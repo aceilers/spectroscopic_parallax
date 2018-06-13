@@ -9,7 +9,6 @@ Created on Tue Jun  5 15:15:21 2018
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('TkAgg')
 import scipy.optimize as op
 import pickle
 from astropy.table import Column, Table, join, vstack, hstack
@@ -28,18 +27,20 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 print('loading spectra...')
-#f = open('data/all_spectra_norm_parent.pickle', 'rb')
-#spectra = pickle.load(f)
-#f.close()
-hdu = fits.open('data/all_spectra_norm_parent.fits')
-fluxes_orig = hdu[0].data
+#hdu = fits.open('data/all_spectra_norm_parent.fits')
+#spectra = hdu[0].data
+#wl = spectra[:, 0, 0]
+#fluxes = spectra[:, :, 1]
+#noises = spectra[:, :, 2]
+hdu = fits.open('data/all_flux_norm_parent.fits')
+fluxes = hdu[0].data
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
  
 # save all labels from the parent sample
-labels_parent = 1. * labels
+labels_parent = labels[:]
 
 # -------------------------------------------------------------------------------
 # load spectra and labels
@@ -49,14 +50,14 @@ labels_parent = 1. * labels
 validation = True
 
 # make plots?
-plots = False
+plots = True
                           
 # -------------------------------------------------------------------------------
 # add pixel mask to remove gaps between chips! 
 # -------------------------------------------------------------------------------
                
-gaps = (np.sum(fluxes_orig.T, axis = 0)) == float(fluxes_orig.T.shape[0])
-fluxes = fluxes_orig[~gaps, :]
+gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
+fluxes = fluxes[~gaps, :]
 
 # -------------------------------------------------------------------------------
 # add absolute Q magnitudes
@@ -119,7 +120,7 @@ Q_factor = Q_factor[cut]
 
 cut = labels['parallax_error'] < 0.1       # this cut is not strictly required!
 labels = labels[cut]              
-print('parallax error < 0.2: {0}'.format(len(labels)))
+print('parallax error < 0.1: {0}'.format(len(labels)))
 fluxes = fluxes[:, cut]   
 Q_factor = Q_factor[cut]
 
@@ -199,66 +200,14 @@ if validation:
         x0 = np.zeros((M,))
                      
         # optimize H_func
+        print('{} otimization...'.format(k+1))
         res = op.minimize(H_func, x0, args=(y, A, lam, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
         print(res)                       
                                
         # prediction
         y_pred = np.dot(A_all[valid, :], res.x) 
         y_pred_all[valid] = y_pred
-                  
-        dy = (y_all[valid] - y_pred_all[valid]) / y_all[valid]
-        print('1 sigma: ', 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5)))
-
-        cut20 = labels['parallax'][valid]/labels['parallax_error'][valid] >= 20.
-        dy20 = (y_all[valid][cut20] - y_pred_all[cut20]) / y_all[valid][cut20]
-        print('1 sigma for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
-
-    
-#    dy = (y_all[valid] - y_pred) / y_all[valid]
-#    chi2 = np.median(ivar_all[valid] * (y_all[valid] - y_pred)**2)
-#    print(0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5)))
-#    
-#    cut20 = np.where(training_labels['parallax'][valid]/training_labels['parallax_error'][valid] >= 20.)
-#    dy20 = (y_all[valid][cut20] - y_pred[cut20]) / y_all[valid][cut20]
-#    chi2_20 = np.median(ivar_all[valid][cut20] * (y_all[valid][cut20] - y_pred[cut20])**2)
-#    print(0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
-#    
-#    plt.scatter(y_all[valid][cut20], y_pred[cut20], c = ivar_all[valid][cut20], cmap = 'Spectral', alpha = .6)
-#    plt.colorbar(label = r'$1/\sigma^2_Q$')
-#    plt.plot((-10000, 10000), (-10000, 10000), lw = 1, color = colors[2])
-#    plt.ylim(0, np.max(y))
-#    plt.xlim(plt.ylim())
-#    new_cut = np.where(y_pred[cut20] < 0.25)
-#    dy_new = 0.5 * (np.percentile(dy20[new_cut], 84) - np.percentile(dy20[new_cut], 16))
-#    plt.axhline(0.25, linestyle = '--', color = colors[2], label = r'$1\sigma = {}$'.format(round(dy_new, 3)), zorder = 0)
-#    plt.xlabel(r'$Q_{K,\,\rm true}$', fontsize = 14)
-#    plt.ylabel(r'$Q_{K,\,\rm pred}$', fontsize = 14)
-#    plt.legend()
-#    plt.title(r'$\varpi/\sigma_{{\varpi}} \geq 20: \lambda = {0}, 1\sigma = {1}$'.format(lam, round(0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 3)))
-#    plt.savefig('plots/{0}/regularization_{1}.pdf'.format(date, name))
-#    plt.close()
-#    
-#    cut10 = np.where(training_labels['parallax'][valid]/training_labels['parallax_error'][valid] >= 10.)
-#    dy10 = (y_all[valid][cut10] - y_pred[cut10]) / y_all[valid][cut10]
-#    chi2_10 = np.median(ivar_all[valid][cut10] * (y_all[valid][cut10] - y_pred[cut10])**2)
-#    print(0.5 * (np.percentile(dy10, 84) - np.percentile(dy10, 16)), 0.25 * (np.percentile(dy10, 97.5) - np.percentile(dy10, 2.5)))
-#    
-#    plt.scatter(y_all[valid][cut10], y_pred[cut10], c = ivar_all[valid][cut10], cmap = 'Spectral', alpha = .6)
-#    plt.colorbar(label = r'$1/\sigma^2_Q$')
-#    plt.plot((-10000, 10000), (-10000, 10000), lw = 1, color = colors[2])
-#    plt.ylim(0, np.max(y))
-#    plt.xlim(plt.ylim())
-#    plt.xlabel(r'$Q_{K,\,\rm true}$', fontsize = 14)
-#    plt.ylabel(r'$Q_{K,\,\rm pred}$', fontsize = 14)
-#    plt.title(r'$\varpi/\sigma_{{\varpi}} \geq 10: \lambda = {0}, 1\sigma = {1}$'.format(lam, round(0.5 * (np.percentile(dy10, 84) - np.percentile(dy10, 16)), 3)))
-#    plt.savefig('plots/{0}/regularization10_{1}.pdf'.format(date, name))
-#    plt.close()
-#    
-#    plt.plot(res.x)
-#    plt.title(r'$\lambda = {}$'.format(lam))
-#    plt.savefig('plots/{0}/regularization_results_{1}.pdf'.format(date, name))
-#    plt.close()
-#                           
+                                           
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
         pickle.dump(res, f)
         f.close()   
@@ -266,7 +215,7 @@ if validation:
     spec_parallax = y_pred_all / Q_factor 
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
-    fits.writeto('data/training_labels_train_cv.fits'.format(name), labels)
+    fits.writeto('data/training_labels_train_cv_{}.fits'.format(name), np.array(labels), clobber = True)
 
 # -------------------------------------------------------------------------------
 # validation plots 
@@ -275,41 +224,49 @@ if validation:
 if plots:
     
     if validation:
-        hdu = fits.open('data/training_labels_train_cv.fits')
+        hdu = fits.open('data/training_labels_train_cv_{}.fits'.format(name))
         labels = hdu[1].data
     
     best = labels['parallax_over_error'] >= 20  
                  
     dy = (labels['parallax'] - labels['spec_parallax']) / labels['parallax']
+    s_all = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
     print('1 sigma inferred parallax: ', 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5)))
     
     dy20 = (labels['parallax'][best] - labels['spec_parallax'][best]) / labels['parallax'][best]
-    print('1 sigma  inferred parallax for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
+    s_20 = 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16))
+    print('1 sigma inferred parallax for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
 
-    fig, ax = plt.subplots(1, 2, figsize = (10, 5))
-    ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20)
-    plt.colorbar(label = 'visibility periods used')
+    fig, ax = plt.subplots(1, 2, figsize = (12, 5))
+    sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_all, 3)))
+    cb = fig.colorbar(sc)
+    cb.set_label(r'visibility periods used', fontsize = fsize)
     ax[0].set_title('all stars', fontsize = fsize)
-    ax[0].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
-    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20)
+    ax[1].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_20, 3)))
     ax[0].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
     ax[1].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-    ax[0].set_ylim(0, 2)
-    ax[0].set_xlim(0, 2)
-    ax[1].set_ylim(0, 2)
-    ax[1].set_xlim(0, 2)
+    ax[0].set_ylim(-0.5, 2)
+    ax[0].set_xlim(-0.5, 2)
+    ax[1].set_ylim(-0.5, 2)
+    ax[1].set_xlim(-0.5, 2)
+    ax[0].legend(frameon = True, fontsize = fsize)
+    ax[1].legend(frameon = True, fontsize = fsize)
     ax[0].set_xlabel('Gaia parallax', fontsize = fsize)
     ax[1].set_xlabel('Gaia parallax', fontsize = fsize)
     ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+    ax[0].tick_params(axis=u'both', direction='in', which='both')
+    ax[1].tick_params(axis=u'both', direction='in', which='both')
     plt.savefig('plots/validation_parallax_inferred_{0}.pdf'.format(name))
     plt.close()
     
-    fig, ax = plt.subplots(1, 2, figsize = (10, 5))
-    ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20)
-    plt.colorbar(label = 'visibility periods used')
+    fig, ax = plt.subplots(1, 2, figsize = (12, 5))
+    sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_all, 3)))
+    cb = fig.colorbar(sc)
+    cb.set_label(r'visibility periods used', fontsize = fsize)
     ax[0].set_title('all stars', fontsize = fsize)
     ax[0].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
-    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20)
+    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_20, 3)))
     ax[0].plot([1e-5, 100], [1e-5, 100], 'k-')
     ax[1].plot([1e-5, 100], [1e-5, 100], 'k-')
     ax[0].set_ylim(1e-4, 5)
@@ -320,8 +277,12 @@ if plots:
     ax[0].set_yscale('log')
     ax[1].set_xscale('log')
     ax[1].set_yscale('log')
+    ax[0].legend(frameon = True, fontsize = fsize)
+    ax[1].legend(frameon = True, fontsize = fsize)
     ax[0].set_xlabel('Gaia parallax', fontsize = fsize)
     ax[1].set_xlabel('Gaia parallax', fontsize = fsize)
+    ax[0].tick_params(axis=u'both', direction='in', which='both')
+    ax[1].tick_params(axis=u'both', direction='in', which='both')
     ax[0].set_ylabel('inferred parallax', fontsize = fsize)
     plt.savefig('plots/validation_parallax_inferred_log_{0}.pdf'.format(name))
     plt.close()
@@ -332,20 +293,33 @@ if plots:
     dy20 = (labels['Q_K'][best] - labels['Q_pred'][best]) / labels['Q_K'][best]
     print('1 sigma Q for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
     
-    plt.scatter(y_all[valid][cut20], y_pred[cut20], c = ivar_all[valid][cut20], cmap = 'Spectral', alpha = .6)
+    fig = plt.subplots(1, 1, figsize = (8, 6))
+    plt.scatter(y_all[best], y_pred_all[best], c = ivar_all[best], cmap = 'Spectral', alpha = .6, label = None)
     plt.colorbar(label = r'$1/\sigma^2_Q$')
-    ax[0].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+    plt.plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
     plt.ylim(0, np.max(y))
     plt.xlim(plt.ylim())
-    low_Q_cut = np.where(y_pred[cut20] < 0.25)
+    low_Q_cut = np.where(y_pred_all[best] < 0.25)
     dy_low_Q = 0.5 * (np.percentile(dy20[low_Q_cut], 84) - np.percentile(dy20[low_Q_cut], 16))
-    plt.axhline(0.25, linestyle = '--', color = 'k', label = r'$1\sigma = {}$'.format(round(dy_low_Q, 3)), zorder = 0)
-    plt.xlabel(r'$Q_{K,\,\rm true}$', fontsize = 14)
-    plt.ylabel(r'$Q_{K,\,\rm inferred}$', fontsize = 14)
+    plt.axhline(0.25, linestyle = '--', color = '#929591', label = r'$1\sigma = {}$'.format(round(dy_low_Q, 3)), zorder = 0)
+    plt.xlabel(r'$Q_{K,\,\rm true}$', fontsize = fsize)
+    plt.ylabel(r'$Q_{K,\,\rm inferred}$', fontsize = fsize)
     plt.legend()
+    plt.tick_params(axis=u'both', direction='in', which='both')
     plt.title(r'$\varpi/\sigma_{{\varpi}} \geq 20: \lambda = {0}, 1\sigma = {1}$'.format(lam, round(0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 3)))
     plt.savefig('plots/validation_Q_{0}.pdf'.format(name))
     plt.close()
+    
+    f = open('optimization/opt_results_0_{}.pickle'.format(name), 'rb')
+    res = pickle.load(f)
+    f.close()
+    
+    fig = plt.subplots(1, 1, figsize = (8, 6))
+    plt.plot(res.x)
+    plt.tick_params(axis=u'both', direction='in', which='both')
+    plt.title(r'$N = {0},\,\lambda = {1}$'.format(len(labels), lam), fontsize = fsize)
+    plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
+    f.close()
 
 # -------------------------------------------------------------------------------
 # infer parallaxes for all stars in parent sample
