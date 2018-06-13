@@ -27,11 +27,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 print('loading spectra...')
-#hdu = fits.open('data/all_spectra_norm_parent.fits')
-#spectra = hdu[0].data
-#wl = spectra[:, 0, 0]
-#fluxes = spectra[:, :, 1]
-#noises = spectra[:, :, 2]
+
 hdu = fits.open('data/all_flux_norm_parent.fits')
 fluxes = hdu[0].data
 
@@ -94,50 +90,30 @@ labels.add_column(Column(Q_W2_err), name='Q_W2_ERR')
 
 print('more quality cuts for training sample...')
 
-# -------------------------------------------------------------------------------
 # cuts in Q
-# -------------------------------------------------------------------------------
+cut_Q = labels['Q_K'] < 0.5 # necessary?
 
-cut = labels['Q_K'] < 0.5 # necessary?
-labels = labels[cut]              
-print('remove weird Q: {}'.format(len(labels)))
-fluxes = fluxes[:, cut]
-Q_factor = Q_factor[cut]
-
-# -------------------------------------------------------------------------------
 # visibility periods used
-# -------------------------------------------------------------------------------
+cut_vis = labels['visibility_periods_used'] >= 8
 
-cut = labels['visibility_periods_used'] >= 8
-labels = labels[cut]              
-print('remove visibility periods < 8: {}'.format(len(labels)))
-fluxes = fluxes[:, cut]
-Q_factor = Q_factor[cut]
-
-# -------------------------------------------------------------------------------
 # cut in parallax_error
-# -------------------------------------------------------------------------------
+cut_par = labels['parallax_error'] < 0.1       # this cut is not strictly required!
 
-cut = labels['parallax_error'] < 0.1       # this cut is not strictly required!
-labels = labels[cut]              
-print('parallax error < 0.1: {0}'.format(len(labels)))
-fluxes = fluxes[:, cut]   
-Q_factor = Q_factor[cut]
-
-# -------------------------------------------------------------------------------
 # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
-# -------------------------------------------------------------------------------
-
 bcut = 0
-if bcut > 0:
-    cut = np.abs(labels['b']) > bcut
-    labels = labels[cut]              
-    print('b > {0} cut: {1}'.format(bcut, len(labels)))
-    fluxes = fluxes[:, cut]
-    Q_factor = Q_factor[cut]
+cut_b = np.abs(labels['b']) >= bcut
+                  
+# more cuts?
+                  
+cut_all = cut_Q * cut_vis * cut_par * cut_b
+
+labels = labels[cut_all]              
+print('after quality cuts: {0}'.format(len(labels)))
+fluxes = fluxes[:, cut_all]
+Q_factor = Q_factor[cut_all]
 
 # -------------------------------------------------------------------------------
-# more cuts?
+
 # -------------------------------------------------------------------------------
 
 
@@ -218,14 +194,19 @@ if validation:
     fits.writeto('data/training_labels_train_cv_{}.fits'.format(name), np.array(labels), clobber = True)
 
 # -------------------------------------------------------------------------------
+# infer parallaxes for all stars in parent sample (not only for training set...)
+# -------------------------------------------------------------------------------
+
+
+
+# -------------------------------------------------------------------------------
 # validation plots 
 # -------------------------------------------------------------------------------
 
 if plots:
     
-    if validation:
-        hdu = fits.open('data/training_labels_train_cv_{}.fits'.format(name))
-        labels = hdu[1].data
+    hdu = fits.open('data/training_labels_train_cv_{}.fits'.format(name))
+    labels = hdu[1].data
     
     best = labels['parallax_over_error'] >= 20  
                  
@@ -265,7 +246,7 @@ if plots:
     cb = fig.colorbar(sc)
     cb.set_label(r'visibility periods used', fontsize = fsize)
     ax[0].set_title('all stars', fontsize = fsize)
-    ax[0].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+    ax[1].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
     ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_20, 3)))
     ax[0].plot([1e-5, 100], [1e-5, 100], 'k-')
     ax[1].plot([1e-5, 100], [1e-5, 100], 'k-')
@@ -320,20 +301,6 @@ if plots:
     plt.title(r'$N = {0},\,\lambda = {1}$'.format(len(labels), lam), fontsize = fsize)
     plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
     f.close()
-
-# -------------------------------------------------------------------------------
-# infer parallaxes for all stars in parent sample
-# -------------------------------------------------------------------------------
-
-
-
-
-
-# -------------------------------------------------------------------------------
-# improve parallaxes with Gaia parallaxes
-# -------------------------------------------------------------------------------
-
-
 
                 
 # -------------------------------------------------------------------------------'''
