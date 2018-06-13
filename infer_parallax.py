@@ -34,24 +34,15 @@ fluxes = hdu[0].data
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
- 
-# save all labels from the parent sample
-labels_parent = labels[:]
-
-# -------------------------------------------------------------------------------
-# load spectra and labels
-# -------------------------------------------------------------------------------
-
-# cross validation or infering parallaxes for complete parent sample?
-validation = True
 
 # make plots?
-plots = True
+prediction = True
                           
 # -------------------------------------------------------------------------------
 # add pixel mask to remove gaps between chips! 
 # -------------------------------------------------------------------------------
-               
+
+print('removing chip gaps...')               
 gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
 fluxes = fluxes[~gaps, :]
 
@@ -85,40 +76,6 @@ labels.add_column(Column(Q_W1_err), name='Q_W1_ERR')
 labels.add_column(Column(Q_W2_err), name='Q_W2_ERR')
 
 # -------------------------------------------------------------------------------
-# create training and validation set
-# -------------------------------------------------------------------------------
-
-print('more quality cuts for training sample...')
-
-# cuts in Q
-cut_Q = labels['Q_K'] < 0.5 # necessary?
-
-# visibility periods used
-cut_vis = labels['visibility_periods_used'] >= 8
-
-# cut in parallax_error
-cut_par = labels['parallax_error'] < 0.1       # this cut is not strictly required!
-
-# cut in b (only necessary if infering extinction from WISE colors doesn't work...)
-bcut = 0
-cut_b = np.abs(labels['b']) >= bcut
-                  
-# more cuts?
-                  
-cut_all = cut_Q * cut_vis * cut_par * cut_b
-
-labels = labels[cut_all]              
-print('after quality cuts: {0}'.format(len(labels)))
-fluxes = fluxes[:, cut_all]
-Q_factor = Q_factor[cut_all]
-
-# -------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------
-
-
-
-# -------------------------------------------------------------------------------
 # linear algebra
 # -------------------------------------------------------------------------------
 
@@ -139,10 +96,14 @@ def check_H_func(x, y, A, lam, ivar):
     return
 
 # -------------------------------------------------------------------------------
-# cross validation
+# predicting parallaxes
 # -------------------------------------------------------------------------------
 
-if validation:
+Kfold = 2
+lam = 100                       # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}'.format(len(labels), lam, Kfold)
+
+if prediction:        
     
     # data
     y_all = labels['Q_K'] 
@@ -159,21 +120,43 @@ if validation:
     A_all = np.vstack([AT_0, AT_linear]).T
        
     # split into training and validation set
-    Kfold = 2
     y_pred_all = np.zeros_like(y_all)
-    lam = 100                       # hyperparameter -- needs to be tuned!
-    
-    name = 'N{0}_lam{1}_K{2}'.format(len(y_all), lam, Kfold)
-    
+        
     for k in range(Kfold):    
         
         valid = labels['random_index'] % Kfold == k
         train = np.logical_not(valid)
-        y = y_all[train]
-        ivar = ivar_all[train]
-        A = A_all[train, :]
+        print('k = {0}: # of stars for prediction: {1}'.format(k, sum(valid)))
+        print('k = {0}: # of remaining of stars: {1}'.format(k, sum(train)))
+            
+        # -------------------------------------------------------------------------------
+        # additional quality cuts for training set
+        # -------------------------------------------------------------------------------
+        
+        print('more quality cuts for training sample...')
+        
+        # cuts in Q
+        cut_Q = labels[train]['Q_K'] < 0.5 # necessary?
+        
+        # visibility periods used
+        cut_vis = labels[train]['visibility_periods_used'] >= 8
+        
+        # cut in parallax_error
+        cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
+        
+        # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
+        bcut = 0
+        cut_b = np.abs(labels[train]['b']) >= bcut
+                          
+        # more cuts? e.g. astrometric_gof_al should be low!
+                          
+        cut_all = cut_Q * cut_vis * cut_par * cut_b        
+        y = y_all[train][cut_all]
+        ivar = ivar_all[train][cut_all]
+        A = A_all[train, :][cut_all, :]
         N, M = A.shape
         x0 = np.zeros((M,))
+        print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
                      
         # optimize H_func
         print('{} otimization...'.format(k+1))
@@ -187,26 +170,35 @@ if validation:
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
         pickle.dump(res, f)
         f.close()   
-
+    
     spec_parallax = y_pred_all / Q_factor 
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
-    fits.writeto('data/training_labels_train_cv_{}.fits'.format(name), np.array(labels), clobber = True)
+    fits.writeto('data/training_labels_new_{}.fits'.format(name), np.array(labels), clobber = True)
 
 # -------------------------------------------------------------------------------
-# infer parallaxes for all stars in parent sample (not only for training set...)
+# plots 
 # -------------------------------------------------------------------------------
 
-
-
-# -------------------------------------------------------------------------------
-# validation plots 
-# -------------------------------------------------------------------------------
-
-if plots:
+if not prediction:
     
-    hdu = fits.open('data/training_labels_train_cv_{}.fits'.format(name))
+    hdu = fits.open('data/training_labels_new_{}.fits'.format(name))
     labels = hdu[1].data
+    
+    # cuts in Q
+    cut_Q = labels[train]['Q_K'] < 0.5 # necessary?
+    
+    # visibility periods used
+    cut_vis = labels[train]['visibility_periods_used'] >= 8
+    
+    # cut in parallax_error
+    cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
+    
+    # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
+    bcut = 0
+    cut_b = np.abs(labels[train]['b']) >= bcut
+                                            
+    valid = cut_Q * cut_vis * cut_par * cut_b
     
     best = labels['parallax_over_error'] >= 20  
                  
