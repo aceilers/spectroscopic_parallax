@@ -104,7 +104,7 @@ print('remove variable stars: {}'.format(len(training_labels)))
 
 print('load and normalize spectra...')
 file_name = 'all_spectra_norm_parent.fits'
-data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'][:100], file_name, training_labels['LOCATION_ID'][:100])
+data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'], file_name, training_labels['LOCATION_ID'])
             
  # remove entries from training labels, where no spectrum was found (for whatever reason...)!
 f = open('data/no_data_parent.pickle', 'rb') 
@@ -118,7 +118,7 @@ print('remove stars with missing spectra: {}'.format(len(training_labels)))
 # -------------------------------------------------------------------------------
 
 print('save labels...')
-fits.writeto('data/training_labels_parent.fits', np.array(training_labels), overwrite = True)
+fits.writeto('data/training_labels_parent.fits', np.array(training_labels), clobber = True)
                    
 # -------------------------------------------------------------------------------'''
 

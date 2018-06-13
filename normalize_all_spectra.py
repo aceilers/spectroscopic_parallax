@@ -112,7 +112,7 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
 #    f = open('data/' + file_name, 'wt')
 #    pickle.dump(data_norm, f)
 #    f.close()
-    fits.writeto('data/' + file_name, data_norm)
+    fits.writeto('data/' + file_name, data_norm, clobber = True)
     
     return data_norm, continuum, no_data_i
 
