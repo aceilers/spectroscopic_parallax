@@ -26,54 +26,61 @@ fsize = 14
 # load spectra and labels
 # -------------------------------------------------------------------------------
 
-print('loading spectra...')
-
-hdu = fits.open('data/all_flux_norm_parent.fits')
-fluxes = hdu[0].data
+# make plots?
+prediction = False
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
 
-# make plots?
-prediction = True
+if prediction: 
+    
+    print('loading spectra...')
+
+    hdu = fits.open('data/all_flux_norm_parent.fits')
+    fluxes = hdu[0].data
                           
 # -------------------------------------------------------------------------------
 # add pixel mask to remove gaps between chips! 
 # -------------------------------------------------------------------------------
 
-print('removing chip gaps...')               
-gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
-fluxes = fluxes[~gaps, :]
+    print('removing chip gaps...')               
+    gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
+    fluxes = fluxes[~gaps, :]
+
+# -------------------------------------------------------------------------------
+# de-redden K band magnitudes!
+# -------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------
 # add absolute Q magnitudes
 # -------------------------------------------------------------------------------
 
-print('calculating Q...')
-m_K = labels['K']
-
-Q_factor = 10**(0.2 * m_K) / 100.                 # assumes parallaxes is in mas
-Q_K = labels['parallax'] * Q_factor
-Q_K_err = labels['parallax_error'] * Q_factor
-
-labels.add_column(Column(Q_K), name='Q_K')
-labels.add_column(Column(Q_K_err), name='Q_K_ERR')
+    print('calculating Q...')
+    m_K = labels['K']
+    
+    Q_factor = 10**(0.2 * m_K) / 100.                 # assumes parallaxes is in mas
+    Q_K = labels['parallax'] * Q_factor
+    Q_K_err = labels['parallax_error'] * Q_factor
+    
+    labels.add_column(Column(Q_K), name='Q_K')
+    labels.add_column(Column(Q_K_err), name='Q_K_ERR')
 
 # -------------------------------------------------------------------------------
 # also add WISE Q (not needed at the moment)
 # -------------------------------------------------------------------------------
 
-m_W1 = labels['w1mpro']
-m_W2 = labels['w2mpro']
-Q_W1 = 10**(0.2 * m_W1) * labels['parallax']/100.                    
-Q_W2 = 10**(0.2 * m_W2) * labels['parallax']/100.                    
-Q_W1_err = labels['parallax_error'] * 10**(0.2 * m_W1)/100.     
-Q_W2_err = labels['parallax_error'] * 10**(0.2 * m_W2)/100.     
-labels.add_column(Column(Q_W1), name='Q_W1')
-labels.add_column(Column(Q_W2), name='Q_W2')
-labels.add_column(Column(Q_W1_err), name='Q_W1_ERR')
-labels.add_column(Column(Q_W2_err), name='Q_W2_ERR')
+    m_W1 = labels['w1mpro']
+    m_W2 = labels['w2mpro']
+    Q_W1 = 10**(0.2 * m_W1) * labels['parallax']/100.                    
+    Q_W2 = 10**(0.2 * m_W2) * labels['parallax']/100.                    
+    Q_W1_err = labels['parallax_error'] * 10**(0.2 * m_W1)/100.     
+    Q_W2_err = labels['parallax_error'] * 10**(0.2 * m_W2)/100.     
+    labels.add_column(Column(Q_W1), name='Q_W1')
+    labels.add_column(Column(Q_W2), name='Q_W2')
+    labels.add_column(Column(Q_W1_err), name='Q_W1_ERR')
+    labels.add_column(Column(Q_W2_err), name='Q_W2_ERR')
 
 # -------------------------------------------------------------------------------
 # linear algebra
@@ -122,7 +129,7 @@ if prediction:
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
         
-    for k in range(Kfold):    
+    for k in range(1): #Kfold):    
         
         valid = labels['random_index'] % Kfold == k
         train = np.logical_not(valid)
@@ -171,10 +178,15 @@ if prediction:
         pickle.dump(res, f)
         f.close()   
     
-    spec_parallax = y_pred_all / Q_factor 
+    spec_parallax = y_pred_all / Q_factor
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
-    fits.writeto('data/training_labels_new_{}.fits'.format(name), np.array(labels), clobber = True)
+    Table.write(labels, 'data/training_labels_new_{}_2.fits'.format(name), format = 'fits', overwrite = True)
+    #fits.writeto('data/training_labels_new_{}.fits'.format(name), np.array(labels), overwrite = True)
+    #f = open('data/training_labels_new_{}.pickle'.format(name), 'wb')
+    #pickle.dump(labels, f)
+    #f.close()
+    
 
 # -------------------------------------------------------------------------------
 # plots 
@@ -182,58 +194,57 @@ if prediction:
 
 if not prediction:
     
-    hdu = fits.open('data/training_labels_new_{}.fits'.format(name))
-    labels = hdu[1].data
+    print('loading new labels...')
+    #hdu = fits.open('data/training_labels_new_{}.fits'.format(name))
+    #labels = hdu[1].data
+    #f = open('data/training_labels_new_{}.pickle'.format(name), 'rt')
+    #labels = pickle.load(f)
+    #f.close()    
+    labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
     
     # cuts in Q
-    cut_Q = labels[train]['Q_K'] < 0.5 # necessary?
-    
+    cut_Q = labels['Q_K'] < 0.5   
     # visibility periods used
-    cut_vis = labels[train]['visibility_periods_used'] >= 8
-    
+    cut_vis = labels['visibility_periods_used'] >= 8    
     # cut in parallax_error
-    cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
-    
-    # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
+    cut_par = labels['parallax_error'] < 0.1           
+    # cut in b 
     bcut = 0
-    cut_b = np.abs(labels[train]['b']) >= bcut
-                                            
-    valid = cut_Q * cut_vis * cut_par * cut_b
+    cut_b = np.abs(labels['b']) >= bcut                                            
     
-    best = labels['parallax_over_error'] >= 20  
-                 
-    dy = (labels['parallax'] - labels['spec_parallax']) / labels['parallax']
-    s_all = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
-    print('1 sigma inferred parallax: ', 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5)))
-    
-    dy20 = (labels['parallax'][best] - labels['spec_parallax'][best]) / labels['parallax'][best]
-    s_20 = 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16))
-    print('1 sigma inferred parallax for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
+    # make plots for parent, valid, and best sample
+    valid = cut_Q * cut_vis * cut_par * cut_b    
+    best = labels[valid]['parallax_over_error'] >= 20  
+    parent = np.ones(len(labels), dtype = bool)
+    samples = [parent, valid, best]
+    samples_str = ['parent', 'validation', 'best']
 
-    fig, ax = plt.subplots(1, 2, figsize = (12, 5))
-    sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_all, 3)))
-    cb = fig.colorbar(sc)
-    cb.set_label(r'visibility periods used', fontsize = fsize)
-    ax[0].set_title('all stars', fontsize = fsize)
-    ax[1].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
-    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_20, 3)))
-    ax[0].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-    ax[1].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-    ax[0].set_ylim(-0.5, 2)
-    ax[0].set_xlim(-0.5, 2)
-    ax[1].set_ylim(-0.5, 2)
-    ax[1].set_xlim(-0.5, 2)
-    ax[0].legend(frameon = True, fontsize = fsize)
-    ax[1].legend(frameon = True, fontsize = fsize)
-    ax[0].set_xlabel('Gaia parallax', fontsize = fsize)
-    ax[1].set_xlabel('Gaia parallax', fontsize = fsize)
-    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
-    ax[0].tick_params(axis=u'both', direction='in', which='both')
-    ax[1].tick_params(axis=u'both', direction='in', which='both')
-    plt.savefig('plots/validation_parallax_inferred_{0}.pdf'.format(name))
-    plt.close()
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    for i, sam in enumerate(list(samples)):
+        
+        sam_i_str = samples_str[i]                        
+        dy = (labels['parallax'][sam] - labels['spec_parallax'][sam]) / labels['spec_parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+        print('1 sigma inferred parallax for {0} sample: {1}, {2}'.format(sam_i_str, 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5))))
     
-    fig, ax = plt.subplots(1, 2, figsize = (12, 5))
+        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['visibility_periods_used'][sam], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s, 3)))
+        if i == 0:
+            cb = fig.colorbar(sc)
+            cb.set_label(r'visibility periods used', fontsize = fsize)
+        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax[i].set_ylim(-0.5, 2)
+        ax[i].set_xlim(-0.5, 2)
+        ax[i].legend(frameon = True, fontsize = fsize)
+        ax[i].tick_params(axis=u'both', direction='in', which='both')
+        ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
+    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+    plt.savefig('plots/parallax_inferred_{0}.pdf'.format(name))
+    plt.close()
+        
+    '''fig, ax = plt.subplots(1, 2, figsize = (12, 5))
     sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_all, 3)))
     cb = fig.colorbar(sc)
     cb.set_label(r'visibility periods used', fontsize = fsize)
@@ -257,7 +268,7 @@ if not prediction:
     ax[0].tick_params(axis=u'both', direction='in', which='both')
     ax[1].tick_params(axis=u'both', direction='in', which='both')
     ax[0].set_ylabel('inferred parallax', fontsize = fsize)
-    plt.savefig('plots/validation_parallax_inferred_log_{0}.pdf'.format(name))
+    plt.savefig('plots/parallax_inferred_log_{0}.pdf'.format(name))
     plt.close()
     
     dy = (labels['Q_K'] - labels['Q_pred']) / labels['Q_K']
@@ -280,7 +291,7 @@ if not prediction:
     plt.legend()
     plt.tick_params(axis=u'both', direction='in', which='both')
     plt.title(r'$\varpi/\sigma_{{\varpi}} \geq 20: \lambda = {0}, 1\sigma = {1}$'.format(lam, round(0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 3)))
-    plt.savefig('plots/validation_Q_{0}.pdf'.format(name))
+    plt.savefig('plots/Q_inferred_{0}.pdf'.format(name))
     plt.close()
     
     f = open('optimization/opt_results_0_{}.pickle'.format(name), 'rb')
