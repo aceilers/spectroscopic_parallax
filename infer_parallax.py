@@ -13,6 +13,8 @@ import scipy.optimize as op
 import pickle
 from astropy.table import Column, Table, join, vstack, hstack
 from astropy.io import fits
+from scipy.stats import binned_statistic_2d
+import matplotlib.gridspec as gridspec
 
 # -------------------------------------------------------------------------------
 # plotting settings
@@ -106,7 +108,7 @@ def check_H_func(x, y, A, lam, ivar):
 # predicting parallaxes
 # -------------------------------------------------------------------------------
 
-Kfold = 2
+Kfold = 4
 lam = 100                       # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}'.format(len(labels), lam, Kfold)
 
@@ -154,10 +156,13 @@ if prediction:
         # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
         bcut = 0
         cut_b = np.abs(labels[train]['b']) >= bcut
-                          
+    
+        # cut in astrometric_gof_al (should be around unity...?)
+        cut_gof = labels[train]['astrometric_gof_al'] < 5                          
+        
         # more cuts? e.g. astrometric_gof_al should be low!
                           
-        cut_all = cut_Q * cut_vis * cut_par * cut_b        
+        cut_all = cut_Q * cut_vis * cut_par * cut_b * cut_gof      
         y = y_all[train][cut_all]
         ivar = ivar_all[train][cut_all]
         A = A_all[train, :][cut_all, :]
@@ -182,10 +187,6 @@ if prediction:
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
     Table.write(labels, 'data/training_labels_new_{}_2.fits'.format(name), format = 'fits', overwrite = True)
-    #fits.writeto('data/training_labels_new_{}.fits'.format(name), np.array(labels), overwrite = True)
-    #f = open('data/training_labels_new_{}.pickle'.format(name), 'wb')
-    #pickle.dump(labels, f)
-    #f.close()
     
 
 # -------------------------------------------------------------------------------
@@ -194,12 +195,7 @@ if prediction:
 
 if not prediction:
     
-    print('loading new labels...')
-    #hdu = fits.open('data/training_labels_new_{}.fits'.format(name))
-    #labels = hdu[1].data
-    #f = open('data/training_labels_new_{}.pickle'.format(name), 'rt')
-    #labels = pickle.load(f)
-    #f.close()    
+    print('loading new labels...')   
     labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
     
     # cuts in Q
@@ -210,24 +206,28 @@ if not prediction:
     cut_par = labels['parallax_error'] < 0.1           
     # cut in b 
     bcut = 0
-    cut_b = np.abs(labels['b']) >= bcut                                            
+    cut_b = np.abs(labels['b']) >= bcut  
+    # cut in astrometric_gof_al
+    cut_gof = labels['astrometric_gof_al'] < 5 
+    # other cuts?                                      
     
     # make plots for parent, valid, and best sample
-    valid = cut_Q * cut_vis * cut_par * cut_b    
-    best = labels[valid]['parallax_over_error'] >= 20  
-    parent = np.ones(len(labels), dtype = bool)
+    valid = cut_Q * cut_vis * cut_par * cut_b * cut_gof  
+    best = valid * (labels['parallax_over_error'] >= 20) #* (labels['astrometric_gof_al'] < 10)
+    parent = np.isfinite(labels['parallax'])
     samples = [parent, valid, best]
     samples_str = ['parent', 'validation', 'best']
 
+    # make this a density plot!
     fig, ax = plt.subplots(1, 3, figsize = (17, 5))
     for i, sam in enumerate(list(samples)):
         
         sam_i_str = samples_str[i]                        
-        dy = (labels['parallax'][sam] - labels['spec_parallax'][sam]) / labels['spec_parallax'][sam]
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
         s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
         print('1 sigma inferred parallax for {0} sample: {1}, {2}'.format(sam_i_str, 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5))))
     
-        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['visibility_periods_used'][sam], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s, 3)))
+        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['visibility_periods_used'][sam], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
         if i == 0:
             cb = fig.colorbar(sc)
             cb.set_label(r'visibility periods used', fontsize = fsize)
@@ -238,60 +238,154 @@ if not prediction:
         ax[i].set_ylim(-0.5, 2)
         ax[i].set_xlim(-0.5, 2)
         ax[i].legend(frameon = True, fontsize = fsize)
-        ax[i].tick_params(axis=u'both', direction='in', which='both')
+        if i == 0:
+            ax[i].tick_params(axis=u'both', direction='in', which='both')
+        else:
+            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
         ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
     ax[0].set_ylabel('inferred parallax', fontsize = fsize)
-    plt.savefig('plots/parallax_inferred_{0}.pdf'.format(name))
+    plt.subplots_adjust(wspace = 0.08)
+    plt.savefig('plots/parallax_inferred_{0}_vis.pdf'.format(name), dpi = 120)
     plt.close()
-        
-    '''fig, ax = plt.subplots(1, 2, figsize = (12, 5))
-    sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['visibility_periods_used'], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_all, 3)))
+    
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    gs = gridspec.GridSpec(1, 3)
+    gs.update(wspace=0.08)
+    for i, sam in enumerate(list(samples)):        
+        ax = plt.subplot(gs[i])
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+    
+        stats, x_edge, y_edge, bins = binned_statistic_2d(labels['spec_parallax'][sam], labels['parallax'][sam], values = labels['visibility_periods_used'][sam], bins = 50, range = [[-0.5, 2], [-0.5, 2]])
+        sc = ax.imshow(stats, cmap = 'viridis_r', vmin = 8, vmax = 20, origin = 'lower', extent = (-0.5, 2, -0.5, 2))
+        ax.set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax.set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax.plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax.set_ylim(-0.5, 2)
+        ax.set_xlim(-0.5, 2)
+        if i == 0:
+            ax.tick_params(axis=u'both', direction='in', which='both')
+            ax.set_ylabel('inferred parallax', fontsize = fsize)
+        else:
+            ax.tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax.set_xlabel('Gaia parallax', fontsize = fsize)
     cb = fig.colorbar(sc)
     cb.set_label(r'visibility periods used', fontsize = fsize)
-    ax[0].set_title('all stars', fontsize = fsize)
-    ax[1].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
-    ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['visibility_periods_used'][best], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s_20, 3)))
-    ax[0].plot([1e-5, 100], [1e-5, 100], 'k-')
-    ax[1].plot([1e-5, 100], [1e-5, 100], 'k-')
-    ax[0].set_ylim(1e-4, 5)
-    ax[0].set_xlim(1e-4, 5)
-    ax[1].set_ylim(1e-4, 5)
-    ax[1].set_xlim(1e-4, 5)
-    ax[0].set_xscale('log')
-    ax[0].set_yscale('log')
-    ax[1].set_xscale('log')
-    ax[1].set_yscale('log')
-    ax[0].legend(frameon = True, fontsize = fsize)
-    ax[1].legend(frameon = True, fontsize = fsize)
-    ax[0].set_xlabel('Gaia parallax', fontsize = fsize)
-    ax[1].set_xlabel('Gaia parallax', fontsize = fsize)
-    ax[0].tick_params(axis=u'both', direction='in', which='both')
-    ax[1].tick_params(axis=u'both', direction='in', which='both')
-    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
-    plt.savefig('plots/parallax_inferred_log_{0}.pdf'.format(name))
+    plt.savefig('plots/parallax_inferred_{0}_vis_density.pdf'.format(name))
     plt.close()
     
-    dy = (labels['Q_K'] - labels['Q_pred']) / labels['Q_K']
-    print('1 sigma Q: ', 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5)))
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    gs = gridspec.GridSpec(1, 3)
+    gs.update(wspace=0.08)
+    for i, sam in enumerate(list(samples)):        
+        ax = plt.subplot(gs[i])
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
     
-    dy20 = (labels['Q_K'][best] - labels['Q_pred'][best]) / labels['Q_K'][best]
-    print('1 sigma Q for best stars: ', 0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 0.25 * (np.percentile(dy20, 97.5) - np.percentile(dy20, 2.5)))
+        stats, x_edge, y_edge, bins = binned_statistic_2d(labels['spec_parallax'][sam], labels['parallax'][sam], values = labels['parallax_error'][sam], bins = 50, range = [[-0.5, 2], [-0.5, 2]])
+        sc = ax.imshow(stats, cmap = 'viridis_r', vmin = 0, vmax = 0.1, origin = 'lower', extent = (-0.5, 2, -0.5, 2))
+        ax.set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax.set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax.plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax.set_ylim(-0.5, 2)
+        ax.set_xlim(-0.5, 2)
+        if i == 0:
+            ax.tick_params(axis=u'both', direction='in', which='both')
+            ax.set_ylabel('inferred parallax', fontsize = fsize)
+        else:
+            ax.tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax.set_xlabel('Gaia parallax', fontsize = fsize)
+    cb = fig.colorbar(sc)
+    cb.set_label(r'$\sigma_{\varpi}$', fontsize = fsize)
+    plt.savefig('plots/parallax_inferred_{0}_varpi_density.pdf'.format(name))
+    plt.close()
     
-    fig = plt.subplots(1, 1, figsize = (8, 6))
-    plt.scatter(y_all[best], y_pred_all[best], c = ivar_all[best], cmap = 'Spectral', alpha = .6, label = None)
-    plt.colorbar(label = r'$1/\sigma^2_Q$')
-    plt.plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-    plt.ylim(0, np.max(y))
-    plt.xlim(plt.ylim())
-    low_Q_cut = np.where(y_pred_all[best] < 0.25)
-    dy_low_Q = 0.5 * (np.percentile(dy20[low_Q_cut], 84) - np.percentile(dy20[low_Q_cut], 16))
-    plt.axhline(0.25, linestyle = '--', color = '#929591', label = r'$1\sigma = {}$'.format(round(dy_low_Q, 3)), zorder = 0)
-    plt.xlabel(r'$Q_{K,\,\rm true}$', fontsize = fsize)
-    plt.ylabel(r'$Q_{K,\,\rm inferred}$', fontsize = fsize)
-    plt.legend()
-    plt.tick_params(axis=u'both', direction='in', which='both')
-    plt.title(r'$\varpi/\sigma_{{\varpi}} \geq 20: \lambda = {0}, 1\sigma = {1}$'.format(lam, round(0.5 * (np.percentile(dy20, 84) - np.percentile(dy20, 16)), 3)))
-    plt.savefig('plots/Q_inferred_{0}.pdf'.format(name))
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    gs = gridspec.GridSpec(1, 3)
+    gs.update(wspace=0.08)
+    for i, sam in enumerate(list(samples)):        
+        ax = plt.subplot(gs[i])
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+    
+        stats, x_edge, y_edge, bins = binned_statistic_2d(labels['spec_parallax'][sam], labels['parallax'][sam], values = labels['parallax_over_error'][sam], bins = 50, range = [[-0.5, 2], [-0.5, 2]])
+        sc = ax.imshow(stats, cmap = 'viridis_r', vmin = 0, vmax = 25, origin = 'lower', extent = (-0.5, 2, -0.5, 2))
+        ax.set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax.set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax.plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax.set_ylim(-0.5, 2)
+        ax.set_xlim(-0.5, 2)
+        if i == 0:
+            ax.tick_params(axis=u'both', direction='in', which='both')
+            ax.set_ylabel('inferred parallax', fontsize = fsize)
+        else:
+            ax.tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax.set_xlabel('Gaia parallax', fontsize = fsize)
+    cb = fig.colorbar(sc)
+    cb.set_label(r'$\varpi/\sigma_{\varpi}$', fontsize = fsize)
+    plt.savefig('plots/parallax_inferred_{0}_varpi_sigma_density.pdf'.format(name))
+    plt.close()
+    
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    for i, sam in enumerate(list(samples)):
+        
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+    
+        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['parallax_error'][sam], cmap = 'viridis_r', s = 10, vmin = 0, vmax = 0.1, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
+        if i == 0:
+            cb = fig.colorbar(sc)
+            cb.set_label(r'$\sigma_{\varpi}$', fontsize = fsize)
+        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax[i].set_title(r'$\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax[i].set_ylim(-0.5, 2)
+        ax[i].set_xlim(-0.5, 2)
+        ax[i].legend(frameon = True, fontsize = fsize)
+        if i == 0:
+            ax[i].tick_params(axis=u'both', direction='in', which='both')
+        else:
+            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
+    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+    plt.subplots_adjust(wspace = 0.08)
+    plt.savefig('plots/parallax_inferred_{0}_varpi.pdf'.format(name), dpi = 120)
+    plt.close()
+            
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    for i, sam in enumerate(list(samples)):
+        
+        sam_i_str = samples_str[i]                        
+        dy = (labels['Q_K'][sam] - labels['Q_pred'][sam]) / labels['Q_K'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+    
+        sc = ax[i].scatter(labels['Q_K'][sam], labels['Q_pred'][sam], c = labels['visibility_periods_used'][sam], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
+        if i == 0:
+            cb = fig.colorbar(sc)
+            cb.set_label(r'visibility periods used', fontsize = fsize)
+        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax[i].set_ylim(-0.1, 1)
+        ax[i].set_xlim(-0.1, 1)
+        ax[i].legend(frameon = True, fontsize = fsize)
+        if i == 0:
+            ax[i].tick_params(axis=u'both', direction='in', which='both')
+        else:
+            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax[i].set_xlabel(r'$Q_{K,\,\rm true}$', fontsize = fsize)
+    ax[0].set_ylabel(r'$Q_{K,\,\rm predicted}$', fontsize = fsize)
+    plt.subplots_adjust(wspace = 0.08)
+    plt.savefig('plots/Q_inferred_{0}_vis.pdf'.format(name), dpi = 120)
     plt.close()
     
     f = open('optimization/opt_results_0_{}.pickle'.format(name), 'rb')
