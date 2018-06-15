@@ -45,6 +45,15 @@ labels.rename_column('ra_1', 'ra')
 labels.rename_column('dec_1', 'dec')
 
 # -------------------------------------------------------------------------------
+# new cross match with Melissa's ages! (or Sanders+ 2018)
+# -------------------------------------------------------------------------------           
+
+hdu = fits.open('data/labels_match_ages_melissa.fits')
+melissa_labels = hdu[1].data
+melissa_labels = Table(melissa_labels)
+melissa_labels.rename_column('col2', 'ages')
+
+# -------------------------------------------------------------------------------
 # including ages
 # -------------------------------------------------------------------------------           
 

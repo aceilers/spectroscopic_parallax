@@ -29,7 +29,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = False
+prediction = True
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
@@ -108,7 +108,7 @@ def check_H_func(x, y, A, lam, ivar):
 # predicting parallaxes
 # -------------------------------------------------------------------------------
 
-Kfold = 4
+Kfold = 2
 lam = 100                       # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}'.format(len(labels), lam, Kfold)
 
@@ -131,7 +131,7 @@ if prediction:
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
         
-    for k in range(1): #Kfold):    
+    for k in range(Kfold):    
         
         valid = labels['random_index'] % Kfold == k
         train = np.logical_not(valid)

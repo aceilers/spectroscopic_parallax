@@ -61,11 +61,6 @@ melissa_labels.rename_column('col2', 'ages')
 spec_par = labels['spec_parallax'] * u.mas
 distance = spec_par.to(u.parsec, equivalencies = u.parallax())
 
-#cs = SkyCoord(ra = labels['ra'] * u.degree, dec = labels['dec'] * u.degree, distance = distance, pm_ra_cosdec = labels['pmra'] * u.mas / u.yr, pm_dec = labels['pmdec'] * u.mas / u.yr)
-#xs = cs.cartesian.x
-#ys = cs.cartesian.y
-#zs = cs.cartesian.z
-
 cs = coord.ICRS(ra = labels['ra'] * u.degree, 
                 dec = labels['dec'] * u.degree, 
                 distance = distance, 
@@ -282,7 +277,7 @@ plt.savefig('plots/xy_arrow.pdf', bbox_inches = 'tight')
 plt.close()
 
 
-vz_cut = vz_cut * (labels['FE_H'] > -1000)
+vz_cut = vz_cut * (labels['FE_H'] > -10)
 fig, ax = plt.subplots(1, 1, figsize = (10, 10))
 plt.scatter(XS[vz_cut, 0], XS[vz_cut, 1], c = labels['FE_H'][vz_cut], cmap = 'RdBu_r', vmin = -.5, vmax = .5, s = 10, rasterized = True)
 cb = plt.colorbar(shrink = .82)
@@ -296,76 +291,6 @@ plt.ylabel('$y$', fontsize = 14)
 ax.set_aspect('equal')
 plt.savefig('plots/xz_feh.pdf', bbox_inches = 'tight', dpi = 120)
 plt.close()
-
-
-# -------------------------------------------------------------------------------
-# including ages
-# -------------------------------------------------------------------------------           
-
-'''spec_par = melissa_labels['spec_parallax'] * u.mas
-distance = spec_par.to(u.parsec, equivalencies = u.parallax())
-
-cs = coord.ICRS(ra = melissa_labels['ra_1'] * u.degree, 
-                dec = melissa_labels['dec_1'] * u.degree, 
-                distance = distance, 
-                pm_ra_cosdec = melissa_labels['pmra_1a'] * u.mas/u.yr, 
-                pm_dec = melissa_labels['pmdec_1a'] * u.mas/u.yr, 
-                radial_velocity = melissa_labels['VHELIO_AVG'] *u.km/u.s)
-
-
-gc = coord.Galactocentric(galcen_distance = X_GC_sun_kpc*u.kpc,
-                          galcen_v_sun = coord.CartesianDifferential([-vX_GC_sun_kms, vY_GC_sun_kms, vZ_GC_sun_kms] * u.km/u.s),
-                          z_sun = Z_GC_sun_kpc*u.kpc)
-
-galcen = cs.transform_to(gc)
-xs, ys, zs = galcen.x.to(u.kpc), galcen.y.to(u.kpc), galcen.z.to(u.kpc)
-vxs, vys, vzs = galcen.v_x, galcen.v_y, galcen.v_z
-
-XS = np.vstack([xs, ys, zs, vxs, vys, vzs]).T.value
-Xlimits = [[-30, 10], [-10, 30], [-20, 20], 
-           [-200, 200], [-200, 200], [-200, 200]]
-Xlabels = ['$x$', '$y$', '$z$', r'$v_x$', r'$v_y$', r'$v_z$']
-
-d2d = np.sqrt(XS[:, 0] ** 2 + XS[:, 1] ** 2)
-units = XS[:, 0:2] / d2d[:, None]
-perps = np.zeros_like(units)
-perps[:, 0] = units[:, 1]
-perps[:, 1] = -units[:, 0]
-vtans = np.sum(perps * XS[:, 3:5], axis=1)
-R = np.sqrt(XS[:, 0] ** 2 + XS[:, 1] ** 2) * np.sign(XS[:, 0])
-
-lims = np.array([-35, 25, -20, 20])
-x1m, x2m, y1m, y2m = lims[0], lims[1], lims[2], lims[3]
-binnum = 50
-
-H1, xedge1, yedge1 = np.histogram2d(R, XS[:, 2], bins = binnum, weights = melissa_labels['ages'], range = ((x1m,x2m), (y1m,y2m)))
-H2, xedge2, yedge2 = np.histogram2d(R, XS[:, 2], bins = binnum, range = ((x1m,x2m), (y1m,y2m)))
-H = H1/ H2
-masked_H = np.ma.array(H, mask = np.isnan(H))
-
-fig, ax = plt.subplots(1, 1, figsize = (12, 8))
-plt.imshow(masked_H.T, interpolation="nearest", aspect = 'auto', origin = 'lower', extent = (x1m, x2m, y1m, y2m), cmap = 'RdYlBu_r', vmin = 3, vmax = 13)
-cb = plt.colorbar(shrink = .8)
-cb.set_label(r'Age [Gyr]', fontsize = 20)
-plt.tick_params(axis=u'both', direction='in', which='both')
-ax.set_xlabel(r"R$_{\rm{GAL}}$ (kpc) ", fontsize = 20, labelpad = 5)
-ax.set_ylabel(r"Galactic height, $z$ (kpc)", fontsize = 20)
-ax.set_aspect('equal')
-plt.savefig('plots/ages.pdf')
-
-vz_cut = np.logical_and(melissa_labels['ages'] < 4, abs(melissa_labels['b']) < 2)
-fig, ax = plt.subplots(1, 1, figsize = (10, 10))
-plt.scatter(XS[vz_cut, 0], XS[vz_cut, 1], c = melissa_labels['ages'][vz_cut], cmap = 'jet', vmin = 3, vmax = 13, s = 10, alpha = 0.2)
-cb = plt.colorbar(shrink = .82)
-cb.set_label(r'Age [Gyr]', fontsize = 15)
-plt.xlim(Xlimits[0])
-plt.ylim(Xlimits[1])
-overplot_rings()
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = 14)
-plt.ylabel('$y$', fontsize = 14)
-ax.set_aspect('equal')
-plt.savefig('plots/xy_young.pdf')
 
 # -------------------------------------------------------------------------------
 # 3D map
