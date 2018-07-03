@@ -46,15 +46,6 @@ labels.rename_column('ra_1', 'ra')
 labels.rename_column('dec_1', 'dec')
 
 # -------------------------------------------------------------------------------
-# new cross match with Melissa's ages! (or Sanders+ 2018)
-# -------------------------------------------------------------------------------           
-
-hdu = fits.open('data/labels_match_ages_melissa.fits')
-melissa_labels = hdu[1].data
-melissa_labels = Table(melissa_labels)
-melissa_labels.rename_column('col2', 'ages')
-
-# -------------------------------------------------------------------------------
 # calculate cartesian coordinates
 # -------------------------------------------------------------------------------           
 
@@ -164,9 +155,9 @@ plt.savefig('plots/xy_vy.pdf', bbox_inches = 'tight', dpi = 120)
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (10, 10))
-sc = plt.scatter(XS[vz_cut, 0], XS[vz_cut, 1], c = labels['parallax_error'][vz_cut], cmap = 'RdBu', vmin = 0, vmax = .2, s = 10, rasterized = True)
+sc = plt.scatter(XS[vz_cut, 0], XS[vz_cut, 1], c = labels['parallax_error'][vz_cut]**2 / (0.1)**2, cmap = 'RdBu', vmin = 0, vmax = 2, s = 10, rasterized = True)
 cb = plt.colorbar(sc, shrink = 0.82)
-cb.set_label(label = r'$\sigma_{\varpi}$', fontsize = fsize)
+cb.set_label(label = r'$\sigma^2_{\varpi,\,\rm Gaia}/\sigma^2_{\varpi,\,\rm inferred}$', fontsize = fsize)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')

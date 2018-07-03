@@ -29,7 +29,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = True
+prediction = False
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
@@ -398,6 +398,95 @@ if not prediction:
     plt.title(r'$N = {0},\,\lambda = {1}$'.format(len(labels), lam), fontsize = fsize)
     plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
     f.close()
+    
+    
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    for i, sam in enumerate(list(samples)):
+        
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+        print('1 sigma inferred parallax for {0} sample: {1}, {2}'.format(sam_i_str, 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5))))
+    
+        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['LOGG'][sam], cmap = 'viridis_r', s = 10, vmin = 0, vmax = 2.2, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
+        if i == 0:
+            cb = fig.colorbar(sc)
+            cb.set_label(r'$\log g$', fontsize = fsize)
+        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax[i].set_ylim(-0.5, 2)
+        ax[i].set_xlim(-0.5, 2)
+        ax[i].legend(frameon = True, fontsize = fsize)
+        if i == 0:
+            ax[i].tick_params(axis=u'both', direction='in', which='both')
+        else:
+            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
+    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+    plt.subplots_adjust(wspace = 0.08)
+    plt.savefig('plots/parallax_inferred_{0}_logg.pdf'.format(name), dpi = 120)
+    plt.close()
+    
+    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+    for i, sam in enumerate(list(samples)):
+        
+        sam_i_str = samples_str[i]                        
+        dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+        print('1 sigma inferred parallax for {0} sample: {1}, {2}'.format(sam_i_str, 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16)), 0.25 * (np.percentile(dy, 97.5) - np.percentile(dy, 2.5))))
+    
+        sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels['TEFF'][sam], cmap = 'viridis_r', s = 10, vmin = 3500, vmax = 5000, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
+        if i == 0:
+            cb = fig.colorbar(sc)
+            cb.set_label(r'$\log g$', fontsize = fsize)
+        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+        if i == 2:
+            ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+        ax[i].set_ylim(-0.5, 2)
+        ax[i].set_xlim(-0.5, 2)
+        ax[i].legend(frameon = True, fontsize = fsize)
+        if i == 0:
+            ax[i].tick_params(axis=u'both', direction='in', which='both')
+        else:
+            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+        ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
+    ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+    plt.subplots_adjust(wspace = 0.08)
+    plt.savefig('plots/parallax_inferred_{0}_teff.pdf'.format(name), dpi = 120)
+    plt.close()
+    
+    list_labels = ['TEFF', 'LOGG', 'FE_H']
+    for lab in list_labels:
+        fig, ax = plt.subplots(1, 3, figsize = (17, 5))
+        for i, sam in enumerate(list(samples)):
+            
+            sam_i_str = samples_str[i]                        
+            dy = (labels['spec_parallax'][sam] - labels['parallax'][sam]) / labels['parallax'][sam]
+            s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
+        
+            sc = ax[i].scatter(labels['parallax'][sam], labels['spec_parallax'][sam], c = labels[lab][sam], cmap = 'viridis_r', s = 10, vmin = 3500, vmax = 5000, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
+            if i == 0:
+                cb = fig.colorbar(sc)
+                cb.set_label(r'$\log g$', fontsize = fsize)
+            ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
+            if i == 2:
+                ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+            ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
+            ax[i].set_ylim(-0.5, 2)
+            ax[i].set_xlim(-0.5, 2)
+            ax[i].legend(frameon = True, fontsize = fsize)
+            if i == 0:
+                ax[i].tick_params(axis=u'both', direction='in', which='both')
+            else:
+                ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
+            ax[i].set_xlabel('Gaia parallax', fontsize = fsize)
+        ax[0].set_ylabel('inferred parallax', fontsize = fsize)
+        plt.subplots_adjust(wspace = 0.08)
+        plt.savefig('plots/parallax_inferred_{0}_{1}.pdf'.format(name, lab), dpi = 120)
+        plt.close()
 
                 
 # -------------------------------------------------------------------------------'''
