@@ -13,7 +13,7 @@
 
 \shorttitle{spectroscopic distance estimates}
 \shortauthors{eilers, hogg, rix, ness}
-\watermark{kittens}
+%\watermark{kittens}
 
 % project macros
 \newcommand{\acronym}[1]{{\small{#1}}}
@@ -29,7 +29,8 @@
 
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing
 
-\title{Accurate spectroscopic estimates of luminosity and distance for luminous red-giant stars}
+\title{Accurate spectroscopic estimates of luminosity and distance\\
+       for luminous red-giant stars}
 
 \correspondingauthor{Anna-Christina Eilers}
 \email{eilers@mpia.de}
@@ -55,9 +56,9 @@ With contemporary infrared spectroscopic surveys like \apogee,
 red-giant stars can be observed to distances and extinctions
 at which geometric parallaxes are not precisely measured by \gaia.
 Here we use the \apogee--\gaia\ overlap to train a purely linear model of
-\gaia, \zmass, and \wise\ photometry and
-continuum-normalized \apogee\ spectroscopy that predicts inverse-square-root luminosity
-for red stars with $0<\logg<2.2$.
+continuum-normalized \apogee\ spectroscopy
+(plus \gaia, \zmass, and \wise\ photometry)
+that predicts inverse-square-root luminosity for red stars with $0<\logg<2.2$.
 The inverse-square-root is used to make the noise model close to Gaussian,
 so that the training can be performed with full use of uncertainties and
 without any cuts on parallax or parallax signal-to-noise ratio;
@@ -65,12 +66,14 @@ the model includes an L1 regularization that zeros out the contributions of
 most spectral pixels to the parallax estimates; and the training was performed
 with leave-out subsamples so no star's astrometry is used even indirectly in its
 spectroscopic parallax estimate.
+The model is flexible enough to correct for extinction by dust without any
+input of explicit extinction or reddening estimates.
 We re-label each star in the sample
 with a new spectroscopic parallax; this new parallax has an empirical uncertainty of
 10\,percent, which is more precise than the \gaia\ parallax
 for the vast majority of targets.
-Validation with globular and open clusters shows that the spectroscopic parallax
-estimates are both accurate and precise.
+Validation with globular and open clusters shows that the spectroscopic parallaxes
+are both accurate and precise.
 These distance and luminosity estimates open up great opportunities for
 mapping the Milky Way disk with the next
 generation of spectroscopic surveys, and especially \sdssv.
@@ -114,7 +117,7 @@ bar
 
 \acknowledgements
 This project was developed in part at the
-2018 NYC Gaia Sprint, hosted by the Center for Computational Astrophysics of
+2018 \acronym{NYC} Gaia Sprint, hosted by the Center for Computational Astrophysics of
 the Flatiron Institute in New York City.
 
 This work has made use of data from the European Space Agency (ESA) mission
