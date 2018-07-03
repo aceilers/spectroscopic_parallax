@@ -1,0 +1,155 @@
+%% This file is part of the spectroscopic_parallax project
+%% Copyright 2018 the authors.
+
+\documentclass[modern]{aastex62}
+
+%% Reintroduced the \received and \accepted commands from AASTeX v5.2
+%\received{TBD}
+%\revised{TBD}
+%\accepted{TBD}
+%% Command to document which AAS Journal the manuscript was submitted to.
+%% Adds "Submitted to " the arguement.
+%\submitjournal{AAS Journals}
+
+\shorttitle{spectroscopic distance estimates}
+\shortauthors{eilers, hogg, rix, ness}
+%\watermark{kittens}
+
+% project macros
+\newcommand{\acronym}[1]{{\small{#1}}}
+\newcommand{\project}[1]{\textsl{#1}}
+\newcommand{\apogee}{\project{\acronym{APOGEE}}}
+\newcommand{\gaia}{\project{Gaia}}
+\newcommand{\wise}{\project{\acronym{WISE}}}
+\newcommand{\zmass}{\project{\acronym{2MASS}}}
+\newcommand{\sdssv}{\project{\acronym{SDSS-V}}}
+
+% math macros
+\newcommand{\logg}{\log g}
+
+\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing
+
+\title{Accurate spectroscopic estimates of luminosity and distance\\
+       for luminous red-giant stars}
+
+\correspondingauthor{Anna-Christina Eilers}
+\email{eilers@mpia.de}
+
+\author[0000-0003-2895-6218]{Anna-Christina Eilers}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+
+\author[0000-0003-2866-9403]{David W. Hogg}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+\affiliation{Center for Cosmology and Particle Physics, Department of Physics, New York University}
+\affiliation{Center for Data Science, New York University}
+\affiliation{Flatiron Institute}
+
+\author{Hans-Walter Rix}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+
+\author{Melissa Ness}
+\affiliation{Flatiron Institute}
+\affiliation{Department of Astronomy, Columbia University}
+
+\begin{abstract}\noindent
+With contemporary infrared spectroscopic surveys like \apogee,
+red-giant stars can be observed to distances and extinctions
+at which geometric parallaxes are not precisely measured by \gaia.
+Here we use the \apogee--\gaia\ overlap to train a purely linear model of
+continuum-normalized \apogee\ spectroscopy
+(plus \gaia, \zmass, and \wise\ photometry)
+that predicts inverse-square-root luminosity for red stars with $0<\logg<2.2$.
+The inverse-square-root is used to make the noise model close to Gaussian,
+so that the training can be performed with full use of uncertainties and
+without any cuts on parallax or parallax signal-to-noise ratio;
+the model includes an L1 regularization that zeros out the contributions of
+most spectral pixels to the parallax estimates; and the training was performed
+with leave-out subsamples so no star's astrometry is used even indirectly in its
+spectroscopic parallax estimate.
+The model is flexible enough to correct for extinction by dust without any
+input of explicit extinction or reddening estimates.
+We re-label each star in the sample
+with a new spectroscopic parallax; this new parallax has an empirical uncertainty of
+10\,percent, which is more precise than the \gaia\ parallax
+for the vast majority of targets.
+Validation with globular and open clusters shows that the spectroscopic parallaxes
+are both accurate and precise.
+These distance and luminosity estimates open up great opportunities for
+mapping the Milky Way disk with the next
+generation of spectroscopic surveys, and especially \sdssv.
+\end{abstract}
+
+\keywords{%
+methods:~statistical
+ ---
+techniques:~spectroscopic
+ ---
+catalogs
+ ---
+surveys
+ ---
+parallaxes
+ ---
+stars:~distances
+ ---
+Galaxy:~disk
+ ---
+infrared:~stars
+}
+
+\section{Introduction} \label{sec:intro}
+
+foo
+
+bar
+
+\section{Data}
+
+foo
+
+bar
+
+\section{Method}
+
+\section{Validation}
+
+\section{Results and Discussion}
+
+\acknowledgements
+This project was developed in part at the
+2018 \acronym{NYC} Gaia Sprint, hosted by the Center for Computational Astrophysics of
+the Flatiron Institute in New York City.
+
+This work has made use of data from the European Space Agency (ESA) mission
+\gaia\ (\url{https://www.cosmos.esa.int/gaia}), processed by the \gaia\ Data
+Processing and Analysis Consortium (\acronym{DPAC},
+\url{https://www.cosmos.esa.int/web/gaia/dpac/consortium}). Funding for the
+\acronym{DPAC}
+has been provided by national institutions, in particular the institutions
+participating in the \gaia\ Multilateral Agreement.
+
+\begin{thebibliography}{}
+
+\bibitem[Astropy Collaboration et al.(2013)]{2013A&A...558A..33A} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., et al.\ 2013, \aap, 558, A33 
+\bibitem[Bertin \& Arnouts(1996)]{1996A&AS..117..393B} Bertin, E., \& Arnouts, S.\ 1996, \aaps, 117, 393 
+\bibitem[Corrales(2015)]{2015ApJ...805...23C} Corrales, L.\ 2015, \apj, 805, 23
+\bibitem[Ferland et al.(2013)]{2013RMxAA..49..137F} Ferland, G.~J., Porter, R.~L., van Hoof, P.~A.~M., et al.\ 2013, \rmxaa, 49, 137
+\bibitem[Hanisch \& Biemesderfer(1989)]{1989BAAS...21..780H} Hanisch, R.~J., \& Biemesderfer, C.~D.\ 1989, \baas, 21, 780 
+\bibitem[Lamport(1994)]{lamport94} Lamport, L. 1994, LaTeX: A Document Preparation System, 2nd Edition (Boston, Addison-Wesley Professional)
+\bibitem[Schwarz et al.(2011)]{2011ApJS..197...31S} Schwarz, G.~J., Ness, J.-U., Osborne, J.~P., et al.\ 2011, \apjs, 197, 31  
+\bibitem[Vogt et al.(2014)]{2014ApJ...793..127V} Vogt, F.~P.~A., Dopita, M.~A., Kewley, L.~J., et al.\ 2014, \apj, 793, 127  
+
+\end{thebibliography}
+
+%% This command is needed to show the entire author+affilation list when
+%% the collaboration and author truncation commands are used.  It has to
+%% go at the end of the manuscript.
+%\allauthors
+
+%% Include this line if you are using the \added, \replaced, \deleted
+%% commands to see a summary list of all changes at the end of the article.
+%\listofchanges
+
+\end{document}
+
+% End of file `sample62.tex'.
