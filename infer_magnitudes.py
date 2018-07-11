@@ -59,10 +59,10 @@ if prediction:
 
 
 # -------------------------------------------------------------------------------
-# add absolute Q magnitudes
+# add absolute K magnitudes
 # -------------------------------------------------------------------------------
 
-    print('calculating Q...')
+    print('calculating Q_K...')
     m_K = labels['K']
     
     Q_factor = 10**(0.2 * m_K) / 100.                 # assumes parallaxes is in mas
@@ -91,14 +91,16 @@ if prediction:
 # linear algebra
 # -------------------------------------------------------------------------------
 
-def H_func(x, y, A, lam, ivar):    
-    H = 0.5 * np.dot((y - np.dot(A, x)).T, ivar * (y - np.dot(A, x))) + lam * np.sum(np.abs(x))
-    dHdx = -1. * np.dot(A.T, ivar * (y - np.dot(A, x))) + lam * np.sign(x)
+def H_func(x, y, A, lam, ivar):   
+    y_model = np.exp(np.dot(A, x))
+    dy = y - y_model
+    H = 0.5 * np.dot(dy.T, ivar * dy) + lam * np.sum(np.abs(x))
+    dHdx = -1. * np.dot(A.T * y_model[None, :], ivar * dy) + lam * np.sign(x)
     return H, dHdx
 
 def check_H_func(x, y, A, lam, ivar):
     H0, dHdx0 = H_func(x, y, A, lam, ivar)
-    dx = 0.001 # magic
+    dx = 0.0001 # magic
     for i in range(len(x)):
         x1 = 1. * x
         x1[i] += dx
@@ -112,7 +114,7 @@ def check_H_func(x, y, A, lam, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 30                       # hyperparameter -- needs to be tuned!
+lam = 100                       # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_offset'.format(len(labels), lam, Kfold)
 
 if prediction:        
@@ -179,7 +181,7 @@ if prediction:
         print(res)                       
                                
         # prediction
-        y_pred = np.dot(A_all[valid, :], res.x) 
+        y_pred = np.exp(np.dot(A_all[valid, :], res.x))
         y_pred_all[valid] = y_pred
                                            
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
