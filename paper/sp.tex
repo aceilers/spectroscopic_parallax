@@ -2,6 +2,7 @@
 %% Copyright 2018 the authors.
 
 \documentclass[modern]{aastex62}
+\usepackage{amsmath}
 
 %% Reintroduced the \received and \accepted commands from AASTeX v5.2
 %\received{TBD}
@@ -26,6 +27,7 @@
 
 % math macros
 \newcommand{\logg}{\log g}
+\DeclareMathOperator*{\argmin}{argmin}
 
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing
 
@@ -99,17 +101,57 @@ infrared:~stars
 
 \section{Introduction} \label{sec:intro}
 
-foo
+The promise of mapping the Milky Way disk with infrared spectroscopy
+and red-giant stars.
 
-bar
+The information \gaia\ brings to this.
+
+The history and value (and disadvantages)
+of data-driven models for these kinds of problems.
+
+The dangers of aggressive machine-learning methods. Why will we just
+look at linear models? The disadvantages of this approach.
+
+The dangers of cutting on \gaia\ properties. Why we will not cut on
+\gaia\ parallaxes. The disadvantages of this approach.
 
 \section{Data}
 
-foo
+The \gaia\ Catalog describes a likelihood function!
 
-bar
+There is a parallax offset.
+
+We are only looking at \apogee\ luminous giants (selected spectroscopically).
+
+We use photometry from \gaia, \zmass, \wise.
 
 \section{Method}
+
+\begin{eqnarray}
+Q_n &\equiv& 0.01\,\varpi_n\,10^{0.2\,K_n}
+\\
+\sigma_n &\equiv& \sigma_{\varpi n}\,10^{0.2\,K_n}
+\\
+Q_n &=& \theta_Q\cdot x_n + \mbox{noise}
+\\
+\chi^2 &\equiv& \sum_{n=1}^N \frac{[Q_n - \theta_Q\cdot x_n]^2}{\sigma_n^2}
+\\
+\hat{\theta}_Q &\leftarrow& \argmin_{\theta_Q}\left[\frac{1}{2}\,\chi^2 + \lambda_Q\,||\theta_Q||_1^1\right]
+\quad ,
+\end{eqnarray}
+where...
+
+\begin{eqnarray}
+Q_n &=& \exp(\theta_M\cdot x_n) + \mbox{noise}
+\\
+M_{Kn} &\approx& \frac{1}{0.2\,\ln 10}\,\theta_M\cdot x_n
+\\
+\chi^2 &\equiv& \sum_{n=1}^N \frac{[Q_n - \exp(\theta_M\cdot x_n)]^2}{\sigma_n^2}
+\\
+\hat{\theta}_M &\leftarrow& \argmin_{\theta_M}\left[\frac{1}{2}\,\chi^2 + \lambda_M\,||\theta_M||_1^1\right]
+\quad ,
+\end{eqnarray}
+where...
 
 \section{Validation}
 
