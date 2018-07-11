@@ -36,9 +36,9 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 N = 45787
-Kfold = 4
+Kfold = 2
 lam = 100
-name = 'N{0}_lam{1}_K{2}'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_offset'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
@@ -118,7 +118,7 @@ clus = 'ngc6791'
 lat = 'NGC 6791'
 ra_clus_hms = '19:20:53.0' 
 dec_clus_dms = '+37:46:18'
-distance = 5.853 
+distance = 4.078
 feh_clus = '+0.47\pm 0.07'
 t.add_row([clus, ra_clus_hms, dec_clus_dms, feh_clus, distance, lat])
 
@@ -317,15 +317,63 @@ for i, clus in enumerate(cluster_list):
     ax[c, r].set_title(r'{0}, $\rm [Fe/H] = {1}$'.format(t['lat_name'][k][0], t['FE_H'][k][0]), fontsize = 14)
     ax[c, r].set_xlabel(r'$\varpi$', fontsize = 14)
     ax[c, r].set_xlim(-0.1, 1.)
-
-plt.savefig('plots/test_copen_clusters.pdf')
+plt.savefig('plots/open_clusters/test_open_clusters_{}.pdf'.format(name))
 
 # -------------------------------------------------------------------------------
 # take Sagittarius region...
 # -------------------------------------------------------------------------------
 
+hdu = fits.open('data/Sgr_Candidate_in_Gaia.fits')
+data_sgr = hdu[1].data
 
+indices = np.arange(len(labels))     
+xx = []              
+for i in data_sgr['APOGEE_ID']:
+    foo = labels['APOGEE_ID'] == i
+    if np.sum(foo) == 1:
+        xx.append(indices[foo][0])
+xx = np.array(xx)
 
+labels_sgr = labels[xx]
 
+XS_sgr = np.vstack([labels_sgr['ra'], labels_sgr['dec'], labels_sgr['spec_parallax']]).T
+Xlabels_sgr = ['RA', 'DEC', r'$\varpi$']
+fig = corner.corner(XS_sgr, labels = Xlabels_sgr, plot_datapoints = True)
+fig.savefig('plots/open_clusters/corner_sgr_varpi_{}.pdf'.format(name)) 
 
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))
+ax.scatter(labels_sgr['RA'], labels_sgr['spec_parallax'], zorder = 20, color = '#363737', s = 20, label = 'spectroscopic parallax')
+ax.scatter(labels_sgr['RA'], labels_sgr['parallax'], zorder = 10, color = "#95d0fc", s = 15, label = 'Gaia parallax')
+ax.set_xlabel('RA', fontsize = 14)
+ax.legend(frameon = True, fontsize = 14)
+ax.set_ylabel(r'$\varpi$', fontsize = 14)    
+ax.tick_params(axis=u'both', direction='in', which='both')
+ax.axhline(1./20, linestyle = '--', color = '#929591')
+ax.set_title('Sagittarius', fontsize = 14)         
+plt.savefig('plots/open_clusters/sagittarius_ra_varpi_{}.pdf'.format(name)) 
+plt.close()
+
+plt.hist(1./labels_sgr['spec_parallax'], bins = np.linspace(-1000, 1000, 60), histtype = 'step', lw=3, color='k', label = 'spec. parallax')
+plt.hist(1./labels_sgr['parallax'], bins = np.linspace(-1000, 1000, 50), histtype = 'step', lw=1, color='k', label = 'Gaia parallax')
+plt.xlabel(r'distance [kpc]', fontsize = 14)
+plt.xlim(-500, 500)
+plt.axvline(20, linestyle = '--', color = '#929591')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.legend(frameon = True, fontsize = 12)
+plt.savefig('plots/open_clusters/hist_sgr_dist_{}.pdf'.format(name)) 
+plt.close()
+
+Q_spec = labels['spec_parallax'] * 10 ** (0.2 * labels['K'])/ 100.
+Q_spec = labels_sgr['spec_parallax'] * 10 ** (0.2 * labels_sgr['K'])/ 100.
+Q_spec_gaia = labels_sgr['parallax'] * 10 ** (0.2 * labels_sgr['K'])/ 100.
+                        
+plt.hist(labels_sgr['spec_parallax'], bins = np.linspace(-1, 1, 100), histtype = 'step', lw=3, color='k', label = 'spec. parallax')
+plt.hist(labels_sgr['parallax'], bins = np.linspace(-1, 1, 100), histtype = 'step', lw=1, color='k', label = 'Gaia parallax')
+plt.xlabel(r'$\varpi$ [mas]', fontsize = 14)
+plt.xlim(-0.2, 0.2)
+plt.axvline(1./20, linestyle = '--', color = '#929591')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.legend(frameon = True, fontsize = 11)
+plt.savefig('plots/open_clusters/sagittarius_parallax_{}.pdf'.format(name))                        
+plt.close()
 # -------------------------------------------------------------------------------'''
