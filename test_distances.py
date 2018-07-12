@@ -38,7 +38,7 @@ fsize = 14
 N = 45787
 Kfold = 2
 lam = 100
-name = 'N{0}_lam{1}_K{2}_offset'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_mag_offset'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    

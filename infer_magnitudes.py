@@ -114,8 +114,8 @@ def check_H_func(x, y, A, lam, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 100                       # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_offset'.format(len(labels), lam, Kfold)
+lam = 3                      # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_mag_offset'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
