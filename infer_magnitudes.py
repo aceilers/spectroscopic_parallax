@@ -91,20 +91,20 @@ if prediction:
 # linear algebra
 # -------------------------------------------------------------------------------
 
-def H_func(x, y, A, lam, ivar):   
+def H_func(x, y, A, lams, ivar):   
     y_model = np.exp(np.dot(A, x))
     dy = y - y_model
-    H = 0.5 * np.dot(dy.T, ivar * dy) + lam * np.sum(np.abs(x))
-    dHdx = -1. * np.dot(A.T * y_model[None, :], ivar * dy) + lam * np.sign(x)
+    H = 0.5 * np.dot(dy.T, ivar * dy) + np.sum(lams * np.abs(x))
+    dHdx = -1. * np.dot(A.T * y_model[None, :], ivar * dy) + lams * np.sign(x)
     return H, dHdx
 
-def check_H_func(x, y, A, lam, ivar):
-    H0, dHdx0 = H_func(x, y, A, lam, ivar)
+def check_H_func(x, y, A, lams, ivar):
+    H0, dHdx0 = H_func(x, y, A, lams, ivar)
     dx = 0.0001 # magic
     for i in range(len(x)):
         x1 = 1. * x
         x1[i] += dx
-        H1, foo = H_func(x1, y, A, lam, ivar)
+        H1, foo = H_func(x1, y, A, lams, ivar)
         dHdx1 = (H1 - H0) / dx
         print(i, x[i], dHdx0[i], dHdx1, (dHdx1 - dHdx0[i]) / dHdx0[i])
     return
@@ -114,8 +114,8 @@ def check_H_func(x, y, A, lam, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 3                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_mag_offset'.format(len(labels), lam, Kfold)
+lam = 100                      # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_mag_allcolors_offset_lams'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
@@ -130,8 +130,13 @@ if prediction:
     
     # design matrix
     AT_0 = np.vstack([np.ones_like(JK)])
-    AT_linear = np.vstack([JK, labels['bp_rp'], JW1, HW2, fluxes])
+    #AT_linear = np.vstack([JK, labels['bp_rp'], JW1, HW2, fluxes])
+    AT_linear = np.vstack([labels['J'], labels['H'], labels['K'], labels['bp_rp'], labels['phot_g_mean_mag'], labels['w1mpro'], labels['w2mpro'], fluxes])
     A_all = np.vstack([AT_0, AT_linear]).T
+    
+    # fucking brittle
+    lams = np.zeros_like(A_all[0])
+    lams[-len(fluxes):] = lam
        
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
@@ -177,7 +182,7 @@ if prediction:
                      
         # optimize H_func
         print('{} otimization...'.format(k+1))
-        res = op.minimize(H_func, x0, args=(y, A, lam, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+        res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
         print(res)                       
                                
         # prediction
@@ -404,7 +409,7 @@ if not prediction:
     plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
     f.close()
     
-    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI']
+    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI', 'w1mpro', 'w2mpro']
     for lab in list_labels:
         fig, ax = plt.subplots(1, 3, figsize = (17, 5))
         for i, sam in enumerate(list(samples)):

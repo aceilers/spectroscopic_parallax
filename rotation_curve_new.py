@@ -38,8 +38,8 @@ fsize = 14
 
 N = 45787
 Kfold = 2
-lam = 100
-name = 'N{0}_lam{1}_K{2}_mag_offset'.format(N, lam, Kfold)
+lam = 30
+name = 'N{0}_lam{1}_K{2}_mag_allcolors_offset'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
@@ -106,6 +106,9 @@ perps[:, 1] = -units[:, 0]
 vtans = np.sum(perps * XS[:, 3:5], axis=1)
 R = np.sqrt(XS[:, 0] ** 2 + XS[:, 1] ** 2) # in cylindrical coordinates! # + XS[:, 2] ** 2)
 
+# uncertainty on proper motion
+mu_err = np.sqrt(labels['pmra_error']**2 + labels['pmdec_error']**2)
+
 # -------------------------------------------------------------------------------
 # divide Milky Way into patches
 # -------------------------------------------------------------------------------   
@@ -116,8 +119,10 @@ box_size = .5               # that's just half of the box size
 all_x = np.arange(-30., 30.01, box_size)
 all_y = np.arange(-30., 30.01, box_size)
 mean_XS = np.zeros((len(all_x), len(all_y), 6))
-var_XS = np.zeros((len(all_x), len(all_y), 6, 6))
+var_XS = np.zeros((len(all_x), len(all_y), 3, 3))
 N_stars = np.zeros((len(all_x), len(all_y)))
+mean_HW2 = np.zeros((len(all_x), len(all_y)))
+mean_mu_err = np.zeros((len(all_x), len(all_y)))
 
 for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
@@ -125,14 +130,12 @@ for i, box_center_x in enumerate(all_x):
         cut_patch = (abs(XS[:, 2]) < box_size) * (abs(XS[:, 0] - box_center_x) < box_size) * (abs(XS[:, 1] - box_center_y) < box_size)
         N_stars[i, j] = np.sum(cut_patch)
         if N_stars[i, j] > 0:
-            mean_XS[i, j, :] = np.nanmean(XS[cut_patch], axis = 0)            
+            mean_XS[i, j, :] = np.nanmean(XS[cut_patch], axis = 0)
+            mean_HW2[i, j] = np.nanmean(labels['H'][cut_patch] - labels['w2mpro'][cut_patch])
+            mean_mu_err[i, j] = np.nanmean(mu_err[cut_patch])
         if N_stars[i, j] > 7:
             dXS = XS[cut_patch] - mean_XS[i, j, :][None, :]
-            var_XS[i, j, :, :] = np.dot(dXS.T, dXS) / (N_stars[i, j] - 1.)
-
-foo = np.trace(var_XS, axis1=2, axis2=3)
-plt.imshow(foo.T, origin = (0, 0), cmap = 'viridis', vmin = 0, vmax = 10000)
-plt.colorbar()
+            var_XS[i, j, :, :] = np.dot(dXS[:, 3:].T, dXS[:, 3:]) / (N_stars[i, j] - 1.)
      
 # -------------------------------------------------------------------------------
 # plot
@@ -144,6 +147,7 @@ def overplot_ring(r):
     xs = r * np.cos(thetas)
     ys = r * np.sin(thetas)
     plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = -np.inf)
+    plt.scatter(0, 0, s = 10, color = 'k', alpha=0.2)
     return
 
 def overplot_rings():
@@ -164,22 +168,60 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/xy_arrow_averaged.pdf', bbox_inches = 'tight')
-#plt.close()
+plt.savefig('plots/rotation/xy_arrow_averaged_{}_withg.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+plt.quiver(mean_XS[:, :, 0], mean_XS[:, :, 1], mean_XS[:, :, 3], mean_XS[:, :, 4], 
+        np.clip(mean_mu_err/0.1, 0, 10), cmap = 'RdYlBu', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'$\sigma_{\mu}/\sigma_{\varpi}\,\,(\rm with\,\sigma_{\varpi} = 10\%)$', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation/xy_arrow_uncertainties_{}_withg.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))
+plt.scatter(mean_HW2.flatten(), mean_mu_err.flatten()/0.1, alpha = .5)
+plt.xlabel('H-W2', fontsize = 15)
+plt.ylabel(r'$\sigma_{\mu}/\sigma_{\varpi}$', fontsize = 15)
+plt.ylim(0, 10)
+plt.xlim(0, 1.5)
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.savefig('plots/rotation/mu_vs_HW2_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+plt.quiver(mean_XS[:, :, 0], mean_XS[:, :, 1], mean_XS[:, :, 3], mean_XS[:, :, 4], 
+        np.clip(mean_HW2, 0, 1.5), cmap = 'RdYlBu_r', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'H-W2', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation/xy_arrow_averaged_{}_HW2_withg.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+traceV = np.trace(var_XS, axis1=2, axis2=3)
+plt.imshow(traceV.T, origin = (0, 0), cmap = 'viridis', vmin = 0, vmax = 10000)
+plt.colorbar()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
 cm = plt.cm.get_cmap('viridis')
-
-for i in range(1): 
-    for j in range(1): 
-        sc = plt.scatter(mean_XS[i, j, 0], mean_XS[i, j, 1], c = foo[i, j], vmin = 10000, vmax = 50000, s=60, cmap=cm)
+sc = plt.scatter(mean_XS[:, :, 0].flatten(), mean_XS[:, :, 1].flatten(), c = traceV.flatten(), vmin = 1000, vmax = 30000, s=60, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-m_color = cbar.to_rgba(foo)
-
-for i in range(len(mean_XS[:, 0, 0])):
-    for j in range(len(mean_XS[0, :, 0])):
-        sc = plt.scatter(mean_XS[i, j, 0], mean_XS[i, j, 1], c = foo[i, j], vmin = 10000, vmax = 50000, s=60, cmap=cm)
 cbar.set_label('velocity dispersion', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
@@ -187,6 +229,6 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/xy_arrow_velocity_dispersion3.pdf', bbox_inches = 'tight')
+plt.savefig('plots/rotation/xy_arrow_velocity_dispersion_{}_withg.pdf'.format(name), bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------'''
