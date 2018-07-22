@@ -60,19 +60,21 @@ at which geometric parallaxes are not precisely measured by \gaia.
 Here we use the \apogee--\gaia\ overlap to train a purely linear model of
 continuum-normalized \apogee\ spectroscopy
 (plus \gaia, \zmass, and \wise\ photometry)
-that predicts inverse-square-root luminosity for red stars with $0<\logg<2.2$.
-The inverse-square-root is used to make the noise model close to Gaussian,
+that predicts absolute magnitude (logarithmic luminosity) for red stars with $0<\logg<2.2$.
+The training makes use of a justified likelihood function for the \gaia\ parallaxes,
 so that the training can be performed with full use of uncertainties and
-without any cuts on parallax or parallax signal-to-noise ratio;
-the model includes an L1 regularization that zeros out the contributions of
-most spectral pixels to the parallax estimates; and the training was performed
-with leave-out subsamples so no star's astrometry is used even indirectly in its
+without any cuts on parallax or parallax signal-to-noise ratio.
+The model includes an L1 regularization that zeros out the contributions of
+most spectral pixels to the parallax estimates.
+The training is performed
+with leave-out subsamples such that no star's astrometry is used even indirectly in its
 spectroscopic parallax estimate.
-The model is flexible enough to correct for extinction by dust without any
+The model is flexible enough---and has enough photometric information---to
+correct for extinction by dust without any
 input of explicit extinction or reddening estimates.
 We re-label each star in the sample
-with a new spectroscopic parallax; this new parallax has an empirical uncertainty of
-10\,percent, which is more precise than the \gaia\ parallax
+with a new spectroscopic parallax; this new parallax has an empirical (1-sigma)
+uncertainty of 9~percent, which is more precise than the \gaia\ parallax
 for the vast majority of targets.
 Validation with globular and open clusters shows that the spectroscopic parallaxes
 are both accurate and precise.
