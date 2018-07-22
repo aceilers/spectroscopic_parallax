@@ -29,13 +29,17 @@
 \newcommand{\logg}{\log g}
 \DeclareMathOperator*{\argmin}{argmin}
 
-\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing
+% tweak the modern style -- trust in Hogg
+\setlength{\parindent}{1.0\baselineskip}
+\addtolength{\textheight}{0.5in}
+\addtolength{\topmargin}{-0.3in}
 
-\title{Accurate spectroscopic estimates of luminosity and distance\\
-       for luminous red-giant stars}
+\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust in Hogg
 
-\correspondingauthor{Anna-Christina Eilers}
-\email{eilers@mpia.de}
+\title{\textbf{%
+Accurate spectroscopic estimates of luminosity and distance\\
+for luminous red-giant stars%
+}}
 
 \author[0000-0003-2895-6218]{Anna-Christina Eilers}
 \affiliation{Max-Planck-Institut f\"ur Astronomie}
@@ -91,8 +95,8 @@ techniques:~spectroscopic
 catalogs
  ---
 surveys
- ---
-parallaxes
+% ---
+%parallaxes
  ---
 stars:~distances
  ---
@@ -117,15 +121,27 @@ look at linear models? The disadvantages of this approach.
 The dangers of cutting on \gaia\ properties. Why we will not cut on
 \gaia\ parallaxes. The disadvantages of this approach.
 
-\section{Data}
+\section{Assumptions of the method}
 
-The \gaia\ Catalog describes a likelihood function!
+Our position is that a methodological technique is correct inasmuch as
+it delivers correct or best results \emph{under its particular assumptions}.
+In that spirit, we present here the assumptions of the method
+explicitly.
+We will return to these assumptions in the Discussion section below,
+to address the costs and benefits of each in more depth.
+\begin{description}
+\item[features] bar
 
-There is a parallax offset.
+\item[good features] bar
 
-We are only looking at \apogee\ luminous giants (selected spectroscopically).
+\item[representativeness] bar
 
-We use photometry from \gaia, \zmass, \wise.
+\item[sparsity] bar
+
+\item[linearity] bar
+
+\item[likelihood] bar
+\end{description}
 
 \section{Method}
 
@@ -155,9 +171,19 @@ M_{Kn} &\approx& \frac{1}{0.2\,\ln 10}\,\theta_M\cdot x_n
 \end{eqnarray}
 where...
 
-\section{Validation}
+\section{Data}
 
-\section{Results and Discussion}
+The \gaia\ Catalog describes a likelihood function!
+
+There is a parallax offset.
+
+We are only looking at \apogee\ luminous giants (selected spectroscopically).
+
+We use photometry from \gaia, \zmass, \wise.
+
+\section{Results and validation}
+
+\section{Discussion}
 
 \acknowledgements
 This project was developed in part at the
