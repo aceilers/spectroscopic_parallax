@@ -1,6 +1,15 @@
 %% This file is part of the spectroscopic_parallax project
 %% Copyright 2018 the authors.
 
+% To-do items
+% -----------
+% - draft introduction
+% - draft data+results section
+% - draft discussion
+% - write list of things we never do!
+% - make sure we address the cross-validation point
+% - make sure we address the sensibleness and generality of the linear model for the photometric space
+
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
 
@@ -29,13 +38,17 @@
 \newcommand{\logg}{\log g}
 \DeclareMathOperator*{\argmin}{argmin}
 
-\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing
+% tweak the modern style -- trust in Hogg
+\setlength{\parindent}{1.0\baselineskip}
+\addtolength{\textheight}{0.5in}
+\addtolength{\topmargin}{-0.3in}
 
-\title{Accurate spectroscopic estimates of luminosity and distance\\
-       for luminous red-giant stars}
+\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust in Hogg
 
-\correspondingauthor{Anna-Christina Eilers}
-\email{eilers@mpia.de}
+\title{\textbf{%
+Accurate spectroscopic estimates of luminosity and distance\\
+for luminous red-giant stars%
+}}
 
 \author[0000-0003-2895-6218]{Anna-Christina Eilers}
 \affiliation{Max-Planck-Institut f\"ur Astronomie}
@@ -60,19 +73,21 @@ at which geometric parallaxes are not precisely measured by \gaia.
 Here we use the \apogee--\gaia\ overlap to train a purely linear model of
 continuum-normalized \apogee\ spectroscopy
 (plus \gaia, \zmass, and \wise\ photometry)
-that predicts inverse-square-root luminosity for red stars with $0<\logg<2.2$.
-The inverse-square-root is used to make the noise model close to Gaussian,
+that predicts absolute magnitude (logarithmic luminosity) for red stars with $0<\logg<2.2$.
+The training makes use of a justified likelihood function for the \gaia\ parallaxes,
 so that the training can be performed with full use of uncertainties and
-without any cuts on parallax or parallax signal-to-noise ratio;
-the model includes an L1 regularization that zeros out the contributions of
-most spectral pixels to the parallax estimates; and the training was performed
-with leave-out subsamples so no star's astrometry is used even indirectly in its
+without any cuts on parallax or parallax signal-to-noise ratio.
+The model includes an L1 regularization that zeros out the contributions of
+most spectral pixels to the parallax estimates.
+The training is performed
+with leave-out subsamples such that no star's astrometry is used even indirectly in its
 spectroscopic parallax estimate.
-The model is flexible enough to correct for extinction by dust without any
+The model is flexible enough---and has enough photometric information---to
+correct for extinction by dust without any
 input of explicit extinction or reddening estimates.
 We re-label each star in the sample
-with a new spectroscopic parallax; this new parallax has an empirical uncertainty of
-10\,percent, which is more precise than the \gaia\ parallax
+with a new spectroscopic parallax; this new parallax has an empirical (1-sigma)
+uncertainty of 9~percent, which is more precise than the \gaia\ parallax
 for the vast majority of targets.
 Validation with globular and open clusters shows that the spectroscopic parallaxes
 are both accurate and precise.
@@ -89,8 +104,8 @@ techniques:~spectroscopic
 catalogs
  ---
 surveys
- ---
-parallaxes
+% ---
+%parallaxes
  ---
 stars:~distances
  ---
@@ -115,6 +130,152 @@ look at linear models? The disadvantages of this approach.
 The dangers of cutting on \gaia\ properties. Why we will not cut on
 \gaia\ parallaxes. The disadvantages of this approach.
 
+\section{Assumptions of the method}
+
+Our position is that a methodological technique is correct inasmuch as
+it delivers correct or best results \emph{under its particular assumptions}.
+In that spirit, we present here the assumptions of the method
+explicitly.
+We will return to these assumptions in the Discussion section below,
+to address the costs and benefits of each in more depth.
+\begin{description}
+\item[features] Perhaps our most fundamental assumption is that the intrinsic
+luminosity of a star can be predicted from the features we provide, which are
+the full set of (pseudo-continuum-normalized) pixels from the \apogee\ spectrum,
+plus the $G$ and $G_{BP}-G_{RP}$ photometry from \gaia,
+plus the $J$, $H$, and $K_s$ photometry from \zmass,
+plus the $W_1$ and $W_2$ photometry from \wise.
+That is, we assume that these spectrophotometric \emph{features} are sufficient
+to predict the intrinsic luminosity in the face of variations in stellar
+age, evolutionary phase, composition and other parameters, and also interstellar
+extinction.
+
+\item[good features] We assume that the spectrophotometric features are known for
+each star with such high fidelity (both precision and accuracy) that we do not
+need to account for errors or uncertainties or biases in the features.
+That is, we assume that the features are substantially higher in signal-to-noise than the
+quantities we are trying to predict; in particular we are assuming that the photometry
+and the spectroscopy is better measured than the astrometry.
+This is true for most features for most stars, but it does not hold universally.
+
+\item[representativeness] We assume that the training set constructed from the overlap
+of \gaia\ and \apogee\ data sets constitutes a representative sample of stars,
+sufficiently representative to train the model for all other stars.
+Although this assumption is not terrible, it has a weakness:
+The stars at greatest distances and greatest local (angular) stellar crowding have
+the least precise \gaia\ parallax measurements, and therefore will effectively get
+less weight in the fits performed to train the model.
+
+\item[sparsity] We expect that only a small subset of the full complement of
+\apogee\ spectral pixels will be relevant to the prediction of stellar luminosity.
+That is, we expect that many of the pixels will or ought to get no weight in the
+final model that we use to predict luminosities and distances.
+
+\item[linearity] Perhaps the most restrictive assumption of this work is that
+the stellar logarithmic luminosity (or, equivalently, the absolute magnitude) in
+the \zmass\ $K_s$~band can be predicted as a \emph{completely linear function} of
+the chosen features. We are only assuming this linearity in a small range of stellar
+surface gravity $\logg$, but this assumption is strong, and limits strongly the
+flexibility or capacity of the model.
+We make it to ensure that our method is easy to optimize, and the results are easy
+to interpret.
+
+\item[likelihood] We assume that the \gaia\ parallaxes are generated by a particular
+stochastic process, in which the difference between the \gaia-Catalog parallax (plus
+a small \gaia-recommended offset HOGG CITE) and the true parallax is effectively drawn from a
+Gaussian with a width set by the \gaia-Catalog uncertainty on the parallax.
+This is the standard assumption in all properly probabilistic \gaia-Mission inferences
+to date, but it subsumes a number of related assumptions, like that the \gaia\ noise
+model is correct, that the stars are only covariant at negligible levels, and that
+there are no significant outliers or large-scale systematics.
+\end{description}
+
+HOGG: LIST of things we don't do, like don't cut the sample on
+astrometric quantities, and why not!! And like don't assume distance
+is inverse-measured-parallax.
+
+\section{Method}
+
+Under the assumptions stated in the previous Section, there are not many choices
+for building a model of the stars that is justifiable probabilistically.
+Here we lay out the model and methodology, and apply it in the following Section.
+
+Since the photometry is (by the ``good features'' assumption above)
+better measured than the parallaxes, we
+presume that the parallax uncertainties dominate
+the uncertainties in the luminosity measurements.
+For each star $n$ in our training set, we define an inverse-square-root
+luminosity $Q_n$ estimate that will be subject to Gaussian noise under these assumptions.
+\begin{eqnarray}
+Q_n &\equiv& \varpi_n\,10^{0.2\,(K_n - 10)}
+\\
+\sigma_n &\equiv& \sigma_{\varpi n}\,10^{0.2\,(K_n - 10)}
+\quad,
+\end{eqnarray}
+where
+$\varpi_n$ is the \gaia\ Catalog entry for the parallax for star $n$,
+$K_n$ is the \zmass\ Catalog $K_s$-band magnitude for star $n$,
+the $Q_n$ have Gaussian errors of root-variance $\sigma_n$,
+and $\sigma_{\varpi n}$ is the \gaia\ Catalog entry for the uncertainty on parallax
+for star $n$.
+In what follows, the $Q_n$ are the training data.
+Naively, the $Q_n$ are related to the absolute magnituges $M_{Kn}$ for the stars by
+\begin{eqnarray}
+M_{Kn} &\approx& 5\,\log_{10} Q_n
+\quad.
+\end{eqnarray}
+These would be the absolute magnitudes of the stars under the
+``the distance is the inverse of the
+measured parallax'' assumption, although we never, in this work, ever make that
+assumption, by God.
+We construct the $Q_n$ because they are related directly to the absolute magnitudes,
+but they (under assumptions) are subject to known Gaussian noise.
+
+The log-likelihood function can be expressed heuristically as
+\begin{eqnarray}
+Q_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
+\\
+\chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[Q_n - \exp(\theta\cdot x_n)]^2}{\sigma_n^2}
+\quad ,
+\end{eqnarray}
+where
+the model is that the $\ln Q_n$ can be expressed as a linear combination of the components
+of some $D$-dimensional feature vector $x_n$,
+$\theta$ is a $D$-vector of linear coefficients,
+and $\chi^2(\theta)$ is the negative-log-likelihood for the parameters $\theta$
+under the assumption of known Gaussian noise and
+that there are $N$ independently measured stars $n$.
+This feature vector $x_n$ contains photometry in a few bands, and all 8000-ish pixels
+in the pseudo-continuum-normalized \apogee\ spectrum, so $D$ is on the order of 8000.
+
+In addition, we assume that many entries in the $D$-vector will be zero
+(the ``sparsity'' assumption).
+In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
+\begin{eqnarray}
+\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\cdot\theta||_1^1\right]
+\quad ,
+\end{eqnarray}
+where
+$\lambda$ is a $D$-vector of regularization parameters (such that we can regularize
+different parts of the $x_n$ vectors differently),
+and $||x||_1^1$ is the L1-norm or sum of absolute values of the components of $x$.
+This kind of regularization adds a convex term to the optimization and leads to
+sparse optima.
+We will set the value $\lambda$ of the $D$-vector of regularization strengths by a
+very coarse cross-validation.
+
+Once the model is optimized, the prediction for a new stellar absolute magnitude
+$M_{Km}$ for a star $m$ in the validation or test set is
+\begin{eqnarray}
+Q_m &=& \exp(\theta\cdot x_m)
+\\
+M_{Km} &=& 5\,\log_{10} Q_m
+\quad ,
+\end{eqnarray}
+where $x_m$ is the feature $D$-vector for star $m$.
+Thus the model can be trained on a training set of stars and applied to make
+predictions for a validation set or a test set.
+
 \section{Data}
 
 The \gaia\ Catalog describes a likelihood function!
@@ -125,37 +286,19 @@ We are only looking at \apogee\ luminous giants (selected spectroscopically).
 
 We use photometry from \gaia, \zmass, \wise.
 
-\section{Method}
+\section{Results and validation}
 
-\begin{eqnarray}
-Q_n &\equiv& 0.01\,\varpi_n\,10^{0.2\,K_n}
-\\
-\sigma_n &\equiv& \sigma_{\varpi n}\,10^{0.2\,K_n}
-\\
-Q_n &=& \theta_Q\cdot x_n + \mbox{noise}
-\\
-\chi^2 &\equiv& \sum_{n=1}^N \frac{[Q_n - \theta_Q\cdot x_n]^2}{\sigma_n^2}
-\\
-\hat{\theta}_Q &\leftarrow& \argmin_{\theta_Q}\left[\frac{1}{2}\,\chi^2 + \lambda_Q\,||\theta_Q||_1^1\right]
-\quad ,
-\end{eqnarray}
-where...
+\section{Discussion}
 
-\begin{eqnarray}
-Q_n &=& \exp(\theta_M\cdot x_n) + \mbox{noise}
-\\
-M_{Kn} &\approx& \frac{1}{0.2\,\ln 10}\,\theta_M\cdot x_n
-\\
-\chi^2 &\equiv& \sum_{n=1}^N \frac{[Q_n - \exp(\theta_M\cdot x_n)]^2}{\sigma_n^2}
-\\
-\hat{\theta}_M &\leftarrow& \argmin_{\theta_M}\left[\frac{1}{2}\,\chi^2 + \lambda_M\,||\theta_M||_1^1\right]
-\quad ,
-\end{eqnarray}
-where...
+What did we do and what's cool?
 
-\section{Validation}
+Why did we make the assumptions we made and what did they gain us and cost us?
 
-\section{Results and Discussion}
+What is this useful for and how do you use them safely?
+
+(Mention independence of every result from the \gaia\ astrometry.)
+
+Come back to SDSS-V and show the rotation curve of the Galaxy.
 
 \acknowledgements
 This project was developed in part at the
