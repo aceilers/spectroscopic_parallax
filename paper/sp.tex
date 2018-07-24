@@ -1,4 +1,4 @@
-w%% This file is part of the spectroscopic_parallax project
+%% This file is part of the spectroscopic_parallax project
 %% Copyright 2018 the authors.
 
 % To-do items
@@ -221,7 +221,7 @@ for star $n$.
 In what follows, the $Q_n$ are the training data.
 Naively, the $Q_n$ are related to the absolute magnituges $M_{Kn}$ for the stars by
 \begin{eqnarray}
-M_{Kn} &\approx& \frac{1}{0.2\,\ln 10}\,\ln Q_n
+M_{Kn} &\approx& 5\,\log_{10} Q_n
 \quad.
 \end{eqnarray}
 These would be the absolute magnitudes of the stars under the
@@ -242,7 +242,7 @@ where
 the model is that the $\ln Q_n$ can be expressed as a linear combination of the components
 of some $D$-dimensional feature vector $x_n$,
 $\theta$ is a $D$-vector of linear coefficients,
-and $\chi^2(\theta)$ is the negative-log-likelihood for the parameters
+and $\chi^2(\theta)$ is the negative-log-likelihood for the parameters $\theta$
 under the assumption of known Gaussian noise and
 that there are $N$ independently measured stars $n$.
 This feature vector $x_n$ contains photometry in a few bands, and all 8000-ish pixels
@@ -252,7 +252,7 @@ In addition, we assume that many entries in the $D$-vector will be zero
 (the ``sparsity'' assumption).
 In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
-\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi(\theta)^2 + ||\lambda\cdot\theta||_1^1\right]
+\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\cdot\theta||_1^1\right]
 \quad ,
 \end{eqnarray}
 where
@@ -263,6 +263,18 @@ This kind of regularization adds a convex term to the optimization and leads to
 sparse optima.
 We will set the value $\lambda$ of the $D$-vector of regularization strengths by a
 very coarse cross-validation.
+
+Once the model is optimized, the prediction for a new stellar absolute magnitude
+$M_{Km}$ for a star $m$ in the validation or test set is
+\begin{eqnarray}
+Q_m &=& \exp(\theta\cdot x_m)
+\\
+M_{Km} &=& 5\,\log_{10} Q_m
+\quad ,
+\end{eqnarray}
+where $x_m$ is the feature $D$-vector for star $m$.
+Thus the model can be trained on a training set of stars and applied to make
+predictions for a validation set or a test set.
 
 \section{Data}
 
@@ -277,6 +289,16 @@ We use photometry from \gaia, \zmass, \wise.
 \section{Results and validation}
 
 \section{Discussion}
+
+What did we do and what's cool?
+
+Why did we make the assumptions we made and what did they gain us and cost us?
+
+What is this useful for and how do you use them safely?
+
+(Mention independence of every result from the \gaia\ astrometry.)
+
+Come back to SDSS-V and show the rotation curve of the Galaxy.
 
 \acknowledgements
 This project was developed in part at the
