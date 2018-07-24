@@ -62,7 +62,7 @@ cs = coord.ICRS(ra = labels['ra'] * u.degree,
 
 
 #Galactocentric position of the Sun:
-X_GC_sun_kpc = 8.    #[kpc]
+X_GC_sun_kpc = 8.   #[kpc]
 Z_GC_sun_kpc = 0.025 #[kpc] (e.g. Juric et al. 2008)
 
 #circular velocity of the Galactic potential at the radius of the Sun:

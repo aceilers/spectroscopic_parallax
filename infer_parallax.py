@@ -91,11 +91,13 @@ if prediction:
 # linear algebra
 # -------------------------------------------------------------------------------
 
-def H_func(x, y, A, lam, ivar):    
-    H = 0.5 * np.dot((y - np.dot(A, x)).T, ivar * (y - np.dot(A, x))) + lam * np.sum(np.abs(x))
-    dHdx = -1. * np.dot(A.T, ivar * (y - np.dot(A, x))) + lam * np.sign(x)
+def H_func(x, y, A, lam, ivar):   
+    dy = y - np.dot(A, x)
+    H = 0.5 * np.dot(dy.T, ivar * dy) + lam * np.sum(np.abs(x))
+    dHdx = -1. * np.dot(A.T, ivar * dy) + lam * np.sign(x)
     return H, dHdx
 
+# check H function again!
 def check_H_func(x, y, A, lam, ivar):
     H0, dHdx0 = H_func(x, y, A, lam, ivar)
     dx = 0.001 # magic
