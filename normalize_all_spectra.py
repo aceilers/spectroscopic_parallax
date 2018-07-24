@@ -120,8 +120,7 @@ def NormalizeData(dataall):
         
     Nlambda, Nstar, foo = dataall.shape
     
-    pixlist = np.loadtxt('data/pixtest8_dr13.txt', usecols = (0,), unpack = 1)
-    pixlist = map(int, pixlist)
+    pixlist = np.loadtxt('data/pixtest8_dr13.txt', usecols = (0,), unpack = 1).astype(int)
     LARGE  = 3.0                          # magic LARGE sigma value
    
     continuum = np.zeros((Nlambda, Nstar))

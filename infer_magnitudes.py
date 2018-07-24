@@ -29,7 +29,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = True
+prediction = False
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
