@@ -8,7 +8,7 @@
 % - draft discussion
 % - make sure we address the cross-validation point
 % - make sure we address the sensibleness and generality of the linear model for the photometric space
-% - address convexity of the model...?
+% - address the non-convexity of the model (see twitter convo with @andy_l_jones).
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -21,8 +21,8 @@
 %% Adds "Submitted to " the arguement.
 %\submitjournal{AAS Journals}
 
-\shorttitle{spectroscopic distance estimates}
-\shortauthors{eilers, hogg, rix, ness}
+\shorttitle{spectrophotometric distance estimates}
+\shortauthors{eilers, hogg, rix}
 %\watermark{kittens}
 
 % project macros
@@ -46,7 +46,7 @@
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust in Hogg
 
 \title{\textbf{%
-Accurate spectroscopic estimates of luminosity and distance\\
+Accurate spectrophotometric estimates of luminosity and distance\\
 for luminous red-giant stars%
 }}
 
@@ -353,7 +353,8 @@ Come back to SDSS-V and show the rotation curve of the Galaxy.
 
 \acknowledgements
 It is a pleasure to thank
-  Daniel Michalik (Lund), and
+  Andy L. Jones (HOGG),
+  Daniel Michalik (\acronym{ESTEC}), and
   Melissa Ness (Columbia)
 for help with this project.
 This project was developed in part at the
@@ -369,7 +370,6 @@ has been provided by national institutions, in particular the institutions
 participating in the \gaia\ Multilateral Agreement.
 
 \begin{thebibliography}{}
-
 \bibitem[Astropy Collaboration et al.(2013)]{2013A&A...558A..33A} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., et al.\ 2013, \aap, 558, A33 
 \bibitem[Bertin \& Arnouts(1996)]{1996A&AS..117..393B} Bertin, E., \& Arnouts, S.\ 1996, \aaps, 117, 393 
 \bibitem[Corrales(2015)]{2015ApJ...805...23C} Corrales, L.\ 2015, \apj, 805, 23
@@ -378,7 +378,6 @@ participating in the \gaia\ Multilateral Agreement.
 \bibitem[Lamport(1994)]{lamport94} Lamport, L. 1994, LaTeX: A Document Preparation System, 2nd Edition (Boston, Addison-Wesley Professional)
 \bibitem[Schwarz et al.(2011)]{2011ApJS..197...31S} Schwarz, G.~J., Ness, J.-U., Osborne, J.~P., et al.\ 2011, \apjs, 197, 31  
 \bibitem[Vogt et al.(2014)]{2014ApJ...793..127V} Vogt, F.~P.~A., Dopita, M.~A., Kewley, L.~J., et al.\ 2014, \apj, 793, 127  
-
 \end{thebibliography}
 
 %% This command is needed to show the entire author+affilation list when
