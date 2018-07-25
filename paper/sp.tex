@@ -6,9 +6,9 @@
 % - draft introduction
 % - draft data+results section
 % - draft discussion
-% - write list of things we never do!
 % - make sure we address the cross-validation point
 % - make sure we address the sensibleness and generality of the linear model for the photometric space
+% - address convexity of the model...?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -61,10 +61,6 @@ for luminous red-giant stars%
 
 \author{Hans-Walter Rix}
 \affiliation{Max-Planck-Institut f\"ur Astronomie}
-
-\author{Melissa Ness}
-\affiliation{Flatiron Institute}
-\affiliation{Department of Astronomy, Columbia University}
 
 \begin{abstract}\noindent
 With contemporary infrared spectroscopic surveys like \apogee,
@@ -190,15 +186,54 @@ model is correct, that the stars are only covariant at negligible levels, and th
 there are no significant outliers or large-scale systematics.
 \end{description}
 
-HOGG: LIST of things we don't do, like don't cut the sample on
-astrometric quantities, and why not!! And like don't assume distance
-is inverse-measured-parallax.
+In addition to making the above assumptions, we also avoid various practices
+with the data that are tempting but lead to strong biases.
+For example, we never cut on \gaia\ parallax or parallax signal-to-noise.
+The common practices of cutting to parallaxes that are good to 20~percent,
+or Catalog parallaxes that are positive, or parallaxes that are smaller or
+larger than something, are all practices that will bias results on stellar
+collections.
+That is, if you cut on parallax or parallax signal-to-noise and you subsequently
+take an average of parallaxes for some population, or perform a regression (as we
+do here), the results of that average or regression will be strongly biased.
+We never cut on parallax or parallax signal-to-noise.
+By using a justifiable likelihood function (the ``likelihood'' assumption above),
+we can use all of the \gaia\ parallaxes without the low signal-to-noise and
+negative parallaxes causing trouble for our regressions, and without the biases
+that enter when cuts are made.
+
+Along similar lines, we never assume that the distance is the inverse of the
+measured parallax.
+In what follows, a star's distance is a latent property of the star, which generates
+the \gaia\ Catalog parallax through a noisy process (again, this is
+the ``likelihood'' assumption above).
+We never take the inverse or the logarithm of the measured parallax at any time.
+This is related to the no-cuts point above:
+If you take the inverse or logarithm of the parallax, you can't operate safely
+on the negative and low signal-to-noise parallaxes, which in turn will require
+making cuts on the sample, which will in turn bias the results.
+
+Finally, we never use Lutz--Kelker corrections (HOGG CITE) or distance
+posteriors (HOGG CITE). These both involve (implicit or explicit) priors on 
+distance.
+When multiple stars are combined as we combine them here (below),
+use of distance posteriors instead of parallax likelihoods is not just
+unjustified, but it also leads to an
+effective raising of the distance prior to an enormous power.
+That is, the effective prior on a $N$-star inference performed naively
+with distance posteriors (made with a weak prior) can end up
+bringing into the inference an \emph{exceedingly
+strong prior}.
+Therefore we don't use any prior-contaminated parallax or distance
+inputs to the inference.
 
 \section{Method}
 
-Under the assumptions stated in the previous Section, there are not many choices
-for building a model of the stars that is justifiable probabilistically.
-Here we lay out the model and methodology, and apply it in the following Section.
+There are not many choices
+for building a model of the stars that is both justifiable probabilistically
+and consistent with the assumptions stated in the previous Section.
+Here we lay out the model and methodology.
+We apply the method to real data in the following Sections.
 
 Since the photometry is (by the ``good features'' assumption above)
 better measured than the parallaxes, we
@@ -213,13 +248,13 @@ Q_n &\equiv& \varpi_n\,10^{0.2\,(K_n - 10)}
 \quad,
 \end{eqnarray}
 where
-$\varpi_n$ is the \gaia\ Catalog entry for the parallax for star $n$,
+$\varpi_n$ is the \gaia\ Catalog entry for the parallax (in mas) for star $n$,
 $K_n$ is the \zmass\ Catalog $K_s$-band magnitude for star $n$,
 the $Q_n$ have Gaussian errors of root-variance $\sigma_n$,
 and $\sigma_{\varpi n}$ is the \gaia\ Catalog entry for the uncertainty on parallax
 for star $n$.
 In what follows, the $Q_n$ are the training data.
-Naively, the $Q_n$ are related to the absolute magnituges $M_{Kn}$ for the stars by
+Naively, the $Q_n$ are related to the absolute magnitudes $M_{Kn}$ for the stars by
 \begin{eqnarray}
 M_{Kn} &\approx& 5\,\log_{10} Q_n
 \quad.
@@ -278,21 +313,37 @@ predictions for a validation set or a test set.
 
 \section{Data}
 
-The \gaia\ Catalog describes a likelihood function!
+We take the \apogee\ data from what subset?
 
-There is a parallax offset.
+We cut on $\logg$ how and why? Comment on the trustworthiness of the $\logg$ values.
 
-We are only looking at \apogee\ luminous giants (selected spectroscopically).
+We take the \gaia\ data and apply the parallax offset.
 
-We use photometry from \gaia, \zmass, \wise.
+We match \apogee\ to \gaia\ how?
+
+We match the catalog to \zmass\ and \wise\ how?
+
+Figures that show off the data.
 
 \section{Results and validation}
+
+We construct the feature vectors $x_n$ how and what is their dimensionality $D$?
+
+Brief comment on the flexibility of the photometric model.
+
+We do 2-fold train-and-test to make results independent of \gaia.
+
+We set the regularization parameters how? And why?
+
+We compute our precision how? Figures.
 
 \section{Discussion}
 
 What did we do and what's cool?
 
 Why did we make the assumptions we made and what did they gain us and cost us?
+
+(In addition: what did we assume about the \apogee\ data: Good $\logg$ values.
 
 What is this useful for and how do you use them safely?
 
@@ -301,6 +352,10 @@ What is this useful for and how do you use them safely?
 Come back to SDSS-V and show the rotation curve of the Galaxy.
 
 \acknowledgements
+It is a pleasure to thank
+  Daniel Michalik (Lund), and
+  Melissa Ness (Columbia)
+for help with this project.
 This project was developed in part at the
 2018 \acronym{NYC} Gaia Sprint, hosted by the Center for Computational Astrophysics of
 the Flatiron Institute in New York City.
