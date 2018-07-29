@@ -25,7 +25,9 @@
 \shortauthors{eilers, hogg, rix}
 %\watermark{kittens}
 
-% project macros
+% text macros
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\foreign}[1]{\textsl{#1}}
 \newcommand{\acronym}[1]{{\small{#1}}}
 \newcommand{\project}[1]{\textsl{#1}}
 \newcommand{\apogee}{\project{\acronym{APOGEE}}}
@@ -335,19 +337,71 @@ predictions for a validation set or a test set.
 
 \section{Data}
 
-We take the \apogee\ data from what subset?
-
+ACE: We take the \apogee\ data from what subset?
 We cut on $\logg$ how and why? Comment on the trustworthiness of the $\logg$ values.
 
-HOGG: We take the \gaia\ data and apply the parallax offset.
+ACE: We match the \apogee\ stars making the $\logg$ cut also to
+the \zmass\ ACE WHICH CATALOG by ACE WHAT CRITERION?
+This gives, for each matching star $n$,
+near-infrared photometry $J_n$, $H_n$, and $K_n$.
+In detail we use from the catalog the entries ACE WHAT SPECIFIC CATALOG ENTRIES.
 
-We match \apogee\ to \gaia\ how?
+ACE: We match the \apogee+\zmass\ stars to he \wise\ ACE WHICH CATALOG by ACE WHAT CRITERION?
+This gives, fore each matching star $n$,
+mid-infrared photometry $W_{1n}$ and $W_{2n}$ at ACE WHAT WAVELENGTHS?
+In detail we use the ACE WHAT SPECIFIC CATALOG ENTRIES?
 
-We match the catalog to \zmass\ and \wise\ how?
+We match this full-match catalog to the \gaia\ \acronym{DR2} (HOGG CITE) by what criteria?
 
-Figures that show off the data.
+For each star $n$, we take from \gaia\ DR2 we the parallax $\varpi_n$
+and its uncertainty $\sigma_{\varpi n}$, which will be used in
+constructing the inverse-root-luminosity $Q_n$ and associated
+uncertainty $\sigma_n$.
+Importantly, to each \gaia\ parallax measurement we add a positive
+offset of $0.029$\,mas to adjust for the under-estimation of
+parallaxes reported by the \gaia\ Collaboration (HOGG CITE LINDEGREN).
+We also take from the \gaia\ data the photometric data $G_n$
+(\code{phot_g_mean_mag}) and $G_{Bn}-G_{Rn}$ (\code{bp_rp}), which will
+become part of the feature vector $x_n$.
+We do not use the entire \gaia\ \acronym{DR2} Catalog but instead the subset
+that meets ACE WHAT ADDITIONAL PHOTOMETRIC CUTS?
 
-We construct the feature vectors $x_n$ how and what is their dimensionality $D$?
+We need complete feature-vector information for all stars.  For this
+reason, we define the Parent Sample to be the set of all stars that
+meet the \apogee\ and \gaia\ cuts and also
+have the complete set of photometry: $G_n$, $G_{Bn}-G_{Rn}$, $J_n$,
+$H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
+This Parent Sample contains ACE HOW MANY STARS? and is shown in HOGG WHAT FIGURES?
+
+Every Parent Sample object gets, in addition, a randomly assigned binary
+label (A or B).
+This is used for two-fold validation and jackknife.
+In short, we will use the model trained on the A data to assign luminosities
+and distances to the B data and \foreign{vice versa}.
+The Parent Sample A has HOGG entries and Parent Sample B has HOGG entries.
+
+For training, we need A and B Training Sets.
+We define the Training Set stars to be Parent Sample stars that also
+have a measured \gaia\ parallax.
+The Training-Set stars, in addition to meeting all Parent-Sample cuts,
+also must meet ACE WHAT ADDITIONAL CUTS to ensure that the parallax
+measurements are good.
+The training sets are shown in HOGG WHAT FIGURES?
+
+But---as we have emphasized above---we do not cut ever on parallax or
+parallax error or their ratio. For this reason, most of the training set
+do not have significantly measured parallaxes and HOGG percent even have
+negative parallaxes!
+But we will perform our training such that it will be unbiased in these
+circumstances.
+Indeed it would be necessarily biased if ever we did cut on parallax or
+parallax signal-to-noise.
+
+For every star $n$ in the full Parent Sample we construct the feature
+vector $x_n$ as HOGG PUT EQUATION HERE.
+The feature vectors live in a $D$-dimensional space where $D=$HOGG.
+For every star $n$ in either of the Training Sets we also construct a
+regression datum $Q_n$ and uncertainty $\sigma_n$ according to HOGG WHAT EQUATION ABOVE?
 
 \section{Results and validation}
 
