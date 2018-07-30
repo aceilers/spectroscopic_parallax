@@ -335,8 +335,18 @@ where $x_m$ is the feature $D$-vector for star $m$.
 Thus the model can be trained on a training set of stars and applied to make
 predictions for a validation set or a test set.
 
-HOGG: PUT WORDS HERE ABOUT GOING TWO-FOLD to pre-flash that we are going to do that
-in the next Section.
+One final detail: We perform all of the fitting in a two-fold train-and-test framework,
+in which the data are split into two disjoint subsets, A and B.
+The model trained on the A data is used to predict the $Q_m$ values (and hence
+the luminosities, distances, and parallaxes) of the B data,
+and the model trained on the B data is used to 
+predict the $Q_m$ values of the A data.
+This ensures that, in the estimate of any individal star's luminosity, distance,
+or parallax, none of the \gaia\ data pertaining to that star was used.
+This makes the parallax estimates from the spectrophotometric feature vectors
+$x_m$ statistically independent of the \gaia\ parallax measurements.
+They are not independent \emph{globally}, but they are independent on a
+star-by-star basis.
 
 \section{Data}
 
