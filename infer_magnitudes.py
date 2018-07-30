@@ -32,7 +32,7 @@ fsize = 14
 prediction = False
 
 print('loading labels...')
-hdu = fits.open('data/training_labels_parent.fits')
+hdu = fits.open('data/training_labels_parent_apogeedr15.fits')
 labels = Table(hdu[1].data)
 
 offset = 0.029 # mas as per Lindegren et al. 2018
@@ -42,7 +42,7 @@ if prediction:
     
     print('loading spectra...')
 
-    hdu = fits.open('data/all_flux_norm_parent.fits')
+    hdu = fits.open('data/all_flux_norm_parent_apogeedr15.fits')
     fluxes = hdu[0].data
                           
 # -------------------------------------------------------------------------------
@@ -114,8 +114,8 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 100                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_mag_allcolors_offset_lams'.format(len(labels), lam, Kfold)
+lam = 10000                      # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_dr15'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
@@ -177,7 +177,7 @@ if prediction:
         ivar = ivar_all[train][cut_all]
         A = A_all[train, :][cut_all, :]
         N, M = A.shape
-        x0 = np.zeros((M,))
+        x0 = np.zeros((M,)) # try ones
         print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
                      
         # optimize H_func
@@ -196,7 +196,7 @@ if prediction:
     spec_parallax = y_pred_all / Q_factor
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
-    Table.write(labels, 'data/training_labels_new_{}_2.fits'.format(name), format = 'fits', overwrite = True)
+    Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
     
 
 # -------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ if prediction:
 if not prediction:
     
     print('loading new labels...')   
-    labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
+    labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
     
     # cuts in Q
     cut_Q = labels['Q_K'] < 0.5   
