@@ -1,0 +1,154 @@
+%% This file is part of the spectroscopic_parallax project
+%% Copyright 2018 the authors.
+
+% To-do items
+% -----------
+% - 
+
+\documentclass[modern]{aastex62}
+\usepackage{amsmath}
+
+%% Reintroduced the \received and \accepted commands from AASTeX v5.2
+%\received{TBD}
+%\revised{TBD}
+%\accepted{TBD}
+%% Command to document which AAS Journal the manuscript was submitted to.
+%% Adds "Submitted to " the arguement.
+%\submitjournal{AAS Journals}
+
+\shorttitle{kinematic distance to the galactic center}
+\shortauthors{hogg, eilers, rix}
+%\watermark{kittens}
+
+% project macros
+\newcommand{\acronym}[1]{{\small{#1}}}
+\newcommand{\project}[1]{\textsl{#1}}
+\newcommand{\apogee}{\project{\acronym{APOGEE}}}
+\newcommand{\gaia}{\project{Gaia}}
+\newcommand{\wise}{\project{\acronym{WISE}}}
+\newcommand{\zmass}{\project{\acronym{2MASS}}}
+
+% jargon macros
+\newcommand{\sagastar}{Sgr\,A$^{\ast}$}
+
+% math macros
+\newcommand{\logg}{\log g}
+\DeclareMathOperator*{\argmin}{argmin}
+
+% tweak the modern style -- trust in Hogg
+\setlength{\parindent}{1.0\baselineskip}
+\addtolength{\textheight}{0.5in}
+\addtolength{\topmargin}{-0.3in}
+
+\begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust in Hogg
+
+\title{\textbf{%
+A purely kinematic distance to the Galactic Center
+}}
+
+\author[0000-0003-2866-9403]{David W. Hogg}
+\affiliation{Center for Cosmology and Particle Physics, Department of Physics, New York University}
+\affiliation{Center for Data Science, New York University}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+\affiliation{Flatiron Institute}
+
+\author[0000-0003-2895-6218]{Anna-Christina Eilers}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+
+\author[0000-0003-4996-9069]{Hans-Walter Rix}
+\affiliation{Max-Planck-Institut f\"ur Astronomie}
+
+\begin{abstract}\noindent
+% Context
+The distance from the Sun to the Galactic Center is a critical parameter
+that sets the length scale for many Galactic measurements and phenomena.
+Radio observations have delivered an extremely precise proper motion
+of the Center (or really \sagastar),
+but not a distance with comparable precision.
+Meanwhile, the \gaia\ Mission is delivering distances and proper motions for
+billions of stars, some of which extend to $>10$~kpc.
+% Aims
+Here we produce a purely kinematic measurement of the position of the
+Galactic Center.
+% Methods
+We use the \gaia\ data to calibrate accurate but simple data-driven
+spectrophotometric distance estimates to luminous red-giant stars.
+We compare the mean proper motions of these stars as a function of distance
+and azimuth in the Milky Way disk to the azimuth and proper motion of
+\sagastar.
+% Results
+We find a kinematic distance to the Galactic Center of $XXX\pm YYY$~kpc.
+This distance measurement is purely kinematic and geometric;
+it involves no physical or dynamical model of either stars or the Milky Way.
+\end{abstract}
+
+\keywords{%
+Galaxy:~center
+ ---
+Galaxy:~fundamental~parameters
+ ---
+Galaxy:~kinematics~and~dynamics
+ ---
+infrared:~stars
+ ---
+%methods:~data~analysis
+% ---
+proper~motions
+ ---
+stars:~distances
+ ---
+stars:~kinematics~and~dynamics
+% ---
+%techniques:~spectroscopic
+}
+
+\section{Introduction} \label{sec:intro}
+
+What do we know about the Galactic Center distance? And cite the GRAVITY result.
+
+\section{Assumptions of the method}
+
+Our position is that a methodological technique is correct inasmuch as
+it delivers correct or best results \emph{under its particular assumptions}.
+In that spirit, we present here the assumptions of the method
+explicitly.
+We will return to these assumptions in the Discussion section below,
+to address the costs and benefits of each in more depth.
+\begin{description}
+\item[features] Wassuh!
+
+\end{description}
+
+\section{Method}
+
+\section{Data}
+
+\section{Results and validation}
+
+\section{Discussion}
+
+\acknowledgements
+It is a pleasure to thank
+  WHOEVER
+for help with this project.
+
+This work has made use of data from the European Space Agency (ESA) mission
+\gaia\ (\url{https://www.cosmos.esa.int/gaia}), processed by the \gaia\ Data
+Processing and Analysis Consortium (\acronym{DPAC},
+\url{https://www.cosmos.esa.int/web/gaia/dpac/consortium}). Funding for the
+\acronym{DPAC}
+has been provided by national institutions, in particular the institutions
+participating in the \gaia\ Multilateral Agreement.
+
+\begin{thebibliography}{}
+\bibitem[Astropy Collaboration et al.(2013)]{2013A&A...558A..33A} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., et al.\ 2013, \aap, 558, A33 
+\bibitem[Bertin \& Arnouts(1996)]{1996A&AS..117..393B} Bertin, E., \& Arnouts, S.\ 1996, \aaps, 117, 393 
+\bibitem[Corrales(2015)]{2015ApJ...805...23C} Corrales, L.\ 2015, \apj, 805, 23
+\bibitem[Ferland et al.(2013)]{2013RMxAA..49..137F} Ferland, G.~J., Porter, R.~L., van Hoof, P.~A.~M., et al.\ 2013, \rmxaa, 49, 137
+\bibitem[Hanisch \& Biemesderfer(1989)]{1989BAAS...21..780H} Hanisch, R.~J., \& Biemesderfer, C.~D.\ 1989, \baas, 21, 780 
+\bibitem[Lamport(1994)]{lamport94} Lamport, L. 1994, LaTeX: A Document Preparation System, 2nd Edition (Boston, Addison-Wesley Professional)
+\bibitem[Schwarz et al.(2011)]{2011ApJS..197...31S} Schwarz, G.~J., Ness, J.-U., Osborne, J.~P., et al.\ 2011, \apjs, 197, 31  
+\bibitem[Vogt et al.(2014)]{2014ApJ...793..127V} Vogt, F.~P.~A., Dopita, M.~A., Kewley, L.~J., et al.\ 2014, \apj, 793, 127  
+\end{thebibliography}
+
+\end{document}
