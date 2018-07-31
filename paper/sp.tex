@@ -345,13 +345,21 @@ This ensures that, in the estimate of any individal star's luminosity, distance,
 or parallax, none of the \gaia\ data pertaining to that star was used.
 This makes the parallax estimates from the spectrophotometric feature vectors
 $x_m$ statistically independent of the \gaia\ parallax measurements.
-They are not independent \emph{globally}, but they are independent on a
-star-by-star basis.
+They are not independent globally---\gaia\ data was used to train the model---but
+each star's spectrophotometric parallax estimate is independent
+of the astrometric estimate from \gaia\ on a star-by-star basis.
 
 \section{Data}
 
-ACE: We take the \apogee\ data from what subset?
-We cut on $\logg$ how and why? Comment on the trustworthiness of the $\logg$ values.
+We take the \apogee\ (HOGG CITE) spectral data
+from \sdssiv\ (HOGG CITE) \acronym{DR14} (HOGG CITE).
+Because we want to make a purely linear model, we restrict our consideration
+to a small region in stellar parameter space.
+We cut the \apogee\ data down to the range $0<\logg<2.2$, which isolates
+stars that are more luminous than the red clump.
+The \apogee\ pipeline $\logg$ values (which we use) have uncertainties but
+this cut leads to a clean sample of luminous red giants, and it is a cut
+that is only on spectral properties of the stars (and not photometry nor astrometry).
 
 Because the \apogee\ target selection is based on \zmass, every \apogee\ star
 comes with \zmass photometry.
