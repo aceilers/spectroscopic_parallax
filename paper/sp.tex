@@ -493,6 +493,19 @@ They show that both \gaia\ and the spectroscopic parallaxes appear to be unbiase
 for these clusters and the range in abundances and ages they represent.
 HOGG: DO WE NEED TO ADDRESS whether why not these clusters show 9-percent spreads?
 
+The linear model we use has many limitations: Linear models are inflexible.
+However, they have a great advantage, which is that it is easy to look inside
+the model and check whether the dependencies represented there make sense.
+One nice thing about the model is that the feature vector $x_n$ for star $n$
+contains a set of photometry in magnitudes.
+Linear combinations of these photometric measurements are like complex synthetic
+magnitudes or colors.
+Since the model was trained to deliver luminosities of stars given training data
+of different metallicities and extinctions, the synthetic photometry developed
+by the model should be, in some sense, metallicity- and extinction-independent
+photometry for luminous red-giant stars!
+HOGG: CONTINUE THAT THOUGHT.
+
 HOGG: Brief comment on the flexibility of the photometric model and interpretation of the photometric coefficients. Maybe plot some photometric properties vs metallicity or dust?
 
 HOGG: How to get the data and how to use it, probabilistically.
