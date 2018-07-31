@@ -9,6 +9,7 @@
 % - make sure we address the cross-validation point
 % - make sure we address the sensibleness and generality of the linear model for the photometric space
 % - address the non-convexity of the model (see twitter convo with @andy_l_jones).
+% - Coryn's point that we should carefully explain how our model is geometric.
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -76,6 +77,8 @@ that predicts absolute magnitude (logarithmic luminosity) for red stars with $0<
 The training makes use of a justified likelihood function for the \gaia\ parallaxes,
 so that the training can be performed with full use of uncertainties and
 without any cuts on parallax or parallax signal-to-noise ratio.
+There are no physical inputs to the model; it is a pure linear regression designed
+to accurately predict astrometric parallaxes.
 The model includes an L1 regularization that zeros out the contributions of
 most spectral pixels to the parallax estimates.
 The training is performed
@@ -144,6 +147,7 @@ stellar luminosities and distances with spectroscopy and photometry...
 
 The history and value (and disadvantages)
 of data-driven models for these kinds of problems.
+How could it be that we are completely independent of stellar models?
 
 The dangers of aggressive machine-learning methods. Why will we just
 look at linear models? The disadvantages of this approach.
