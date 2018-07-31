@@ -427,11 +427,45 @@ regression datum $Q_n$ and uncertainty $\sigma_n$ according to HOGG WHAT EQUATIO
 
 \section{Results and validation}
 
-HOGG: We do 2-fold train-and-test to make results independent of \gaia.
+We optimize two models, one for Training Set A and one for Training Set B.
+For optimization, we use \code{scipy} l-bfgs-b (HOGG CHECK), starting at
+an uninformed starting point in the $\theta$ space.
+The optimization is of the objective function given in (HOGG WHAT EQUATION) above,
+and although this optimization is not convex, it appears to converge to the
+same good solution quickly and reliably from multiple different starting points.
 
-We compute our precision how? Figures.
+The two models are applied to the two splits of the Parent Sample, Parent Sample
+A and Parent Sample B, using the A-trained model on Parent Sample B and
+\foreign{vice versa}.
+For the purposes of assessing the accuracy and precision of the model, this
+train-and-test framework constitutes a two-fold cross-validation.
+Results of this cross-validation is shown in HOGG WHAT FIGURE.
+For the stars with highest \gaia-measured parallax signal-to-noise,
+the spectrophotometric model is predicting the \gaia\ parallaxes with little bias
+and a scatter of better than 9~percent.
 
-We set the regularization parameters how? And why?
+We used this cross-validation framework to adjust the regularization parameters.
+We (arbitrarily) chose zero regularization on the photometric components of the
+$x_n$ vectors, and uniform, identical regularization strength for all of the
+spectral (\apogee-pixel) components.
+We did a coarse grid search in the value for the spectral-component value of the
+$\lambda$ vector, using the A/B split as the two-fold cross-validation.
+The 9-percent scatter is what we obtain at the optimal setting of the regularization
+strength.
+
+We adopt 9~percent as the method's precision.
+This estimate is conservative in that the 9-percent scatter includes contributions
+from both our spectrophotometric model and from the \gaia\ measurements themselves.
+However this estimate is not so conservative in that the test is performed with
+\gaia's best stars, which are bright, nearby, in low extinction regions, and
+(because of these things) near Solar metallicity.
+There could in principle be additional bias or scatter for stars that are in dustier
+regions or at lower metallicities.
+\figurename~HOGG WHAT FIGURE shows that
+there is no suggestion of any such trends when we color the residuals by metallicity
+or $H-W_2$ (which is a reddening proxy).
+
+HOGG: validation with clusters and Sag.
 
 Brief comment on the flexibility of the photometric model and interpretation of the photometric coefficients. Maybe plot some photometric properties vs metallicity or dust?
 
