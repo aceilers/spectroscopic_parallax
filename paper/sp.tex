@@ -354,16 +354,27 @@ of the astrometric estimate from \gaia\ on a star-by-star basis.
 
 We take the \apogee\ (HOGG CITE) spectral data
 from \sdssiv\ (HOGG CITE) \acronym{DR14} (HOGG CITE).
-Because we want to make a purely linear model, we restrict our consideration
-to a small region in stellar parameter space.
+Because we want to make a purely linear model, which has very little capacity,
+we restrict our consideration to a small region in stellar parameter space.
 We cut the \apogee\ data down to the range $0<\logg<2.2$, which isolates
 stars that are more luminous than the red clump.
 The \apogee\ pipeline $\logg$ values (which we use) have uncertainties but
 this cut leads to a clean sample of luminous red giants, and it is a cut
 that is only on spectral properties of the stars (and not photometry nor astrometry).
 
+From the \apogee\ data on these low-$\logg$ stars, we take the spectral pixels,
+of which there are ACE HOW MANY, on a common rest-frame wavelength grid.
+That is, every \apogee\ star is extracted on (or interpolated to)
+the same wavelength scale.
+In detail, we obtain the
+the \apogee\ spectral pixels from the pipeline-generated \code{ACE whatever} files.
+We then pseudo-continuum-normalize the spectra according to the procedure developed
+in \project{The~Cannon} (HOGG CITE): That is, the pseudo-continuum is a spline fit to a set
+of pixels chosen to be insensitive to stellar parameters.
+We use as our spectral data the normalized spectral pixel values.
+
 Because the \apogee\ target selection is based on \zmass, every \apogee\ star
-comes with \zmass photometry.
+also comes with \zmass photometry.
 That is, for each star $n$,
 we have near-infrared photometry $J_n$, $H_n$, and $K_n$.
 In detail we use from the catalog the entries ACE WHAT SPECIFIC CATALOG ENTRIES.
@@ -388,7 +399,7 @@ have the complete set of photometry: $G_n$, $G_{Bn}-G_{Rn}$, $J_n$,
 $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
 This Parent Sample contains ACE HOW MANY STARS? and is shown in HOGG WHAT FIGURES?
 
-Every Parent Sample object gets, in addition, a randomly assigned binary
+Every Parent-Sample star gets, in addition, a randomly assigned binary
 label (A or B).
 This is used for two-fold validation and jackknife.
 In short, we will use the model trained on the A data to assign luminosities
@@ -396,7 +407,7 @@ and distances to the B data and \foreign{vice versa}.
 The Parent Sample A has HOGG entries and Parent Sample B has HOGG entries.
 
 For training, we need A and B Training Sets.
-We define the Training Set stars to be Parent Sample stars that also
+We define the Training Set stars to be Parent-Sample stars that also
 have a measured \gaia\ parallax.
 The Training-Set stars, in addition to meeting all Parent-Sample cuts,
 also must meet ACE WHAT ADDITIONAL CUTS to ensure that the parallax
