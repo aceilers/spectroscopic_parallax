@@ -54,23 +54,57 @@ if prediction:
     fluxes = fluxes[~gaps, :]
 
 # -------------------------------------------------------------------------------
+# de-redden K band magnitudes!
+# -------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------
+# add absolute Q magnitudes
+# -------------------------------------------------------------------------------
+
+    print('calculating Q...')
+    m_K = labels['K']
+    
+    Q_factor = 10**(0.2 * m_K) / 100.                 # assumes parallaxes is in mas
+    Q_K = labels['parallax'] * Q_factor
+    Q_K_err = labels['parallax_error'] * Q_factor
+    
+    labels.add_column(Column(Q_K), name='Q_K')
+    labels.add_column(Column(Q_K_err), name='Q_K_ERR')
+
+# -------------------------------------------------------------------------------
+# also add WISE Q (not needed at the moment)
+# -------------------------------------------------------------------------------
+
+    m_W1 = labels['w1mpro']
+    m_W2 = labels['w2mpro']
+    Q_W1 = 10**(0.2 * m_W1) * labels['parallax']/100.                    
+    Q_W2 = 10**(0.2 * m_W2) * labels['parallax']/100.                    
+    Q_W1_err = labels['parallax_error'] * 10**(0.2 * m_W1)/100.     
+    Q_W2_err = labels['parallax_error'] * 10**(0.2 * m_W2)/100.     
+    labels.add_column(Column(Q_W1), name='Q_W1')
+    labels.add_column(Column(Q_W2), name='Q_W2')
+    labels.add_column(Column(Q_W1_err), name='Q_W1_ERR')
+    labels.add_column(Column(Q_W2_err), name='Q_W2_ERR')
+
+# -------------------------------------------------------------------------------
 # linear algebra
 # -------------------------------------------------------------------------------
 
-def H_func(x, y, A, lams, ivar):   
-    y_model = np.exp(np.dot(A, x))
-    dy = y - y_model
-    H = 0.5 * np.dot(dy.T, ivar * dy) + np.sum(lams * np.abs(x))
-    dHdx = -1. * np.dot(A.T * y_model[None, :], ivar * dy) + lams * np.sign(x)
+def H_func(x, y, A, lam, ivar):   
+    dy = y - np.dot(A, x)
+    H = 0.5 * np.dot(dy.T, ivar * dy) + lam * np.sum(np.abs(x))
+    dHdx = -1. * np.dot(A.T, ivar * dy) + lam * np.sign(x)
     return H, dHdx
 
-def check_H_func(x, y, A, lams, ivar):
-    H0, dHdx0 = H_func(x, y, A, lams, ivar)
-    dx = 0.0001 # magic
+# check H function again!
+def check_H_func(x, y, A, lam, ivar):
+    H0, dHdx0 = H_func(x, y, A, lam, ivar)
+    dx = 0.001 # magic
     for i in range(len(x)):
         x1 = 1. * x
         x1[i] += dx
-        H1, foo = H_func(x1, y, A, lams, ivar)
+        H1, foo = H_func(x1, y, A, lam, ivar)
         dHdx1 = (H1 - H0) / dx
         print(i, x[i], dHdx0[i], dHdx1, (dHdx1 - dHdx0[i]) / dHdx0[i])
     return
@@ -80,24 +114,24 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 30                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
+lam = 30                       # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_offset'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
     # data
-    y_all = labels['parallax'] 
-    yerr_all = labels['parallax_error'] 
+    y_all = labels['Q_K'] 
+    yerr_all = labels['Q_K_ERR'] 
     ivar_all = yerr_all ** (-2)
     
-    # design matrix
-    AT_0 = np.vstack([np.ones_like(y_all)])
-    AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], fluxes])
-    A_all = np.vstack([AT_0, AT_linear]).T
+    JK = labels['J'] - labels['K']
+    HW2 = labels['H'] - labels['w2mpro']
+    JW1 = labels['J'] - labels['w1mpro']
     
-    # fucking brittle
-    lams = np.zeros_like(A_all[0])
-    lams[-len(fluxes):] = lam
+    # design matrix
+    AT_0 = np.vstack([np.ones_like(JK)])
+    AT_linear = np.vstack([JK, labels['bp_rp'], JW1, HW2, fluxes])
+    A_all = np.vstack([AT_0, AT_linear]).T
        
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
@@ -115,47 +149,51 @@ if prediction:
         
         print('more quality cuts for training sample...')
         
-        # finite parallax required for training
-        cut_parallax = np.isfinite(labels[train]['parallax'])
+        # cuts in Q
+        cut_Q = labels[train]['Q_K'] < 0.5 # necessary?
         
         # visibility periods used
         cut_vis = labels[train]['visibility_periods_used'] >= 8
         
         # cut in parallax_error
         cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
+        
+        # cut in b (only necessary if infering extinction from WISE colors doesn't work...)
+        bcut = 0
+        cut_b = np.abs(labels[train]['b']) >= bcut
     
-        # cut in astrometric_gof_al (should be around unity...?) *Daniel Michalik's advice*
-        #cut_gof = labels[train]['astrometric_gof_al'] < 5  
-        # Coryn's advice!
-        cut_cal = (labels[train]['astrometric_chi2_al'] / np.sqrt(labels[train]['astrometric_n_good_obs_al']-5)) <= 35         
+        # cut in astrometric_gof_al (should be around unity...?)
+        cut_gof = labels[train]['astrometric_gof_al'] < 5                          
         
         # more cuts? e.g. astrometric_gof_al should be low!
                           
-        cut_all = cut_parallax * cut_vis * cut_par * cut_cal      
+        cut_all = cut_Q * cut_vis * cut_par * cut_b * cut_gof      
         y = y_all[train][cut_all]
         ivar = ivar_all[train][cut_all]
         A = A_all[train, :][cut_all, :]
         N, M = A.shape
-        x0 = np.zeros((M,)) + 1./M 
+        x0 = np.zeros((M,))
         print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
                      
         # optimize H_func
         print('{} otimization...'.format(k+1))
-        res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+        res = op.minimize(H_func, x0, args=(y, A, lam, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
         print(res)                       
                                
         # prediction
-        y_pred = np.exp(np.dot(A_all[valid, :], res.x))
+        y_pred = np.dot(A_all[valid, :], res.x) 
         y_pred_all[valid] = y_pred
                                            
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
         pickle.dump(res, f)
         f.close()   
     
-    spec_parallax = y_pred_all
+    spec_parallax = y_pred_all / Q_factor
     labels.add_column(spec_parallax, name='spec_parallax')
-    Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
+    labels.add_column(y_pred_all, name='Q_pred')
+    Table.write(labels, 'data/training_labels_new_{}_2.fits'.format(name), format = 'fits', overwrite = True)
     
+
 # -------------------------------------------------------------------------------
 # plots 
 # -------------------------------------------------------------------------------
@@ -163,10 +201,10 @@ if prediction:
 if not prediction:
     
     print('loading new labels...')   
-    labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
+    labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
     
     # cuts in Q
-    #cut_Q = labels['Q_K'] < 0.5   
+    cut_Q = labels['Q_K'] < 0.5   
     # visibility periods used
     cut_vis = labels['visibility_periods_used'] >= 8    
     # cut in parallax_error
@@ -179,7 +217,7 @@ if not prediction:
     # other cuts?                                      
     
     # make plots for parent, valid, and best sample
-    valid = cut_vis * cut_par * cut_b * cut_gof  
+    valid = cut_Q * cut_vis * cut_par * cut_b * cut_gof  
     best = valid * (labels['parallax_over_error'] >= 20) #* (labels['astrometric_gof_al'] < 10)
     parent = np.isfinite(labels['parallax'])
     samples = [parent, valid, best]
@@ -366,7 +404,7 @@ if not prediction:
     plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
     f.close()
     
-    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI', 'w1mpro', 'w2mpro']
+    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI']
     for lab in list_labels:
         fig, ax = plt.subplots(1, 3, figsize = (17, 5))
         for i, sam in enumerate(list(samples)):

@@ -92,7 +92,7 @@ floor_rv = 0.1 # km/s
 
 fractional_parallax_error = 0.09
 
-for i in range(N):
+'''for i in range(N):
     
     if i%1000 == 0: print('working on star {0} out of {1}'.format(i, N))
     spec_par = np.random.normal(labels['spec_parallax'][i], scale = fractional_parallax_error * labels['spec_parallax'][i], size = N_sample) * u.mas
@@ -229,16 +229,16 @@ def overplot_rings():
 Xlimits = [[-30, 10], [-10, 30], [-20, 20], 
            [-200, 200], [-200, 200], [-200, 200]]
 
-## plot [FE/H] vs. radius
-#cut_z = abs(mean_XS_cart_n[:, 2]) < 0.5
-#fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
-#plt.scatter(mean_XS_cyl_n[cut_z, 0], labels['FE_H'][cut_z], s = 5, alpha = 0.1)
-#plt.ylim(-1.9, 1)
-#plt.xlim(0, 30)
-#plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
-#plt.ylabel('[Fe/H]', fontsize = fsize)
-#plt.tick_params(axis=u'both', direction='in', which='both')
-#plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
+# plot [FE/H] vs. radius
+cut_z = abs(mean_XS_cart_n[:, 2]) < 0.5
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
+plt.scatter(mean_XS_cyl_n[cut_z, 0], labels['FE_H'][cut_z], s = 5, alpha = 0.5)
+plt.ylim(-1.9, 1)
+plt.xlim(0, 30)
+plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+plt.ylabel('[Fe/H]', fontsize = fsize)
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
 # divide Milky Way into patches
@@ -253,6 +253,11 @@ mean_XS_cart = np.zeros((len(all_x), len(all_y), 6)) - np.inf
 N_stars = np.zeros((len(all_x), len(all_y)))
 error_var_XS_cyl = np.zeros((len(all_x), len(all_y), 3, 3)) - np.inf
 vvT_cyl = np.zeros((len(all_x), len(all_y), 3, 3)) - np.inf
+mean_HW2 = np.zeros((len(all_x), len(all_y))) - np.inf
+mean_feh = np.zeros((len(all_x), len(all_y))) - np.inf
+cut_feh = labels['FE_H'] > -100
+mean_sigma_mu = np.zeros((len(all_x), len(all_y))) - np.inf
+mean_sigma_par = np.zeros((len(all_x), len(all_y))) - np.inf
 
 for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
@@ -262,6 +267,10 @@ for i, box_center_x in enumerate(all_x):
         if N_stars[i, j] > 0:
             mean_XS_cyl[i, j, :] = np.nanmean(mean_XS_cyl_n[cut_patch], axis = 0)
             mean_XS_cart[i, j, :] = np.nanmean(mean_XS_cart_n[cut_patch], axis = 0)
+            mean_HW2[i, j] = np.nanmean(labels['H'][cut_patch] - labels['w2mpro'][cut_patch])
+            mean_feh[i, j] = np.nanmean(labels['FE_H'][cut_patch * cut_feh])
+            mean_sigma_mu[i, j] = np.nanmean(np.sqrt(labels['pmra_error'][cut_patch] ** 2 + labels['pmdec_error'][cut_patch] ** 2))
+            mean_sigma_par[i, j] = np.nanmean(0.09 * labels['spec_parallax'][cut_patch])
 #        if N_stars[i, j] > 7:
 #            dXS = mean_XS_cyl_n[cut_patch] - mean_XS_cyl[i, j, :][None, :]
 #            var_XS_cyl[i, j, :, :] = np.dot(dXS[:, 3:].T, dXS[:, 3:]) / (N_stars[i, j] - 1.)
@@ -558,6 +567,55 @@ plt.savefig('plots/rotation/vc_R_wegde_{}.pdf'.format(name), bbox_inches = 'tigh
 plt.close()
 
 # plot with arrows!
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
+        np.clip(mean_HW2.flatten(), 0, 1.5), cmap = 'RdYlBu_r', scale_units='xy', \
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'H-W2', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation/xy_arrow_averaged_{}_HW2.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
+        np.clip(mean_feh.flatten(), -.5, .3), cmap = 'RdBu_r', scale_units='xy', \
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'[Fe/H]', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation/xy_arrow_averaged_{}_feh.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+# plot with arrows!
+mu_par = mean_sigma_mu / mean_sigma_par
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
+        np.clip(mean_sigma_mu.flatten(), 0, 2), cmap = 'RdYlBu_r', scale_units='xy', \
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'$\sigma_{\mu}$', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation/xy_arrow_averaged_{}_sigma_mu.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
 
 # -------------------------------------------------------------------------------
 # new plots vs. R_GC (in radial bins and individual stars)
