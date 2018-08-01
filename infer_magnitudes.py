@@ -29,10 +29,10 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = False
+prediction = True
 
 print('loading labels...')
-hdu = fits.open('data/training_labels_parent_apogeedr15.fits')
+hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
 
 offset = 0.029 # mas as per Lindegren et al. 2018
@@ -42,7 +42,7 @@ if prediction:
     
     print('loading spectra...')
 
-    hdu = fits.open('data/all_flux_norm_parent_apogeedr15.fits')
+    hdu = fits.open('data/all_flux_norm_parent.fits')
     fluxes = hdu[0].data
                           
 # -------------------------------------------------------------------------------
@@ -115,7 +115,7 @@ def check_H_func(x, y, A, lams, ivar):
 
 Kfold = 2
 lam = 10000                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_dr15'.format(len(labels), lam, Kfold)
+name = 'N{0}_lam{1}_K{2}'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
