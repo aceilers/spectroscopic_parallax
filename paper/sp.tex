@@ -9,6 +9,10 @@
 % - address the non-convexity of the model (see twitter convo with @andy_l_jones).
 % - Coryn's point that we should carefully explain how our model is geometric.
 % - related: HWR's point that this is standardizeable candles, like the Ia SNe results.
+% - related: Put in an explanation of WHY this works so well.
+% - related: Put in an explanation of how it is that we aren't really modeling luminosity or distance but really just generating parallaxes.
+% - related: Switch the model to be a model for parallax directly.
+% - does the model need a cute name, like The Swan?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -21,7 +25,7 @@
 %% Adds "Submitted to " the arguement.
 %\submitjournal{AAS Journals}
 
-\shorttitle{spectrophotometric distance estimates}
+\shorttitle{spectrophotometric parallax}
 \shortauthors{hogg, eilers, rix}
 %\watermark{kittens}
 
@@ -49,8 +53,9 @@
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust in Hogg
 
 \title{\textbf{%
-Accurate spectrophotometric estimates of luminosity and distance\\
-for luminous red-giant stars%
+Spectrophotometric parallax:\\
+Accurate estimates of luminosity and distance\\
+for luminous red-giant stars
 }}
 
 \author[0000-0003-2866-9403]{David W. Hogg}
@@ -72,27 +77,29 @@ at which geometric parallaxes are not precisely measured by \gaia.
 Here we use the \apogee--\gaia\ overlap to train a purely linear model of
 continuum-normalized \apogee\ spectroscopy
 (plus \gaia, \zmass, and \wise\ photometry)
-that predicts absolute magnitude (logarithmic luminosity) for red stars with $0<\logg<2.2$.
+that predicts distance modulus (logarithmic parallax or distance)
+for red stars with $0<\logg<2.2$.
 The training makes use of a justified likelihood function for the \gaia\ parallaxes,
 so that the training can be performed with full use of uncertainties and
-without any cuts on parallax or parallax signal-to-noise ratio.
-There are no physical inputs to the model; it is a pure linear regression designed
+without any cuts on parallax or parallax signal-to-noise ratio (not even any non-negative
+requirements).
+There are no physical inputs to the model; it is a pure regression designed
 to accurately predict astrometric parallaxes.
 The model includes an L1 regularization that zeros out the contributions of
 most spectral pixels to the parallax estimates.
 The training is performed
 with leave-out subsamples such that no star's astrometry is used even indirectly in its
-spectroscopic parallax estimate.
+spectrophotometric parallax estimate.
 The model is flexible enough---and has enough photometric information---to
 correct for extinction by dust without any
 input of explicit extinction or reddening estimates.
 We re-label each star in the sample
-with a new spectroscopic parallax; this new parallax has an empirical (1-sigma)
+with a new spectrophotometric parallax; this new parallax has an empirical (1-sigma)
 uncertainty of 9~percent, which is more precise than the \gaia\ parallax
 for the vast majority of targets.
 Validation with globular and open clusters shows that the spectroscopic parallaxes
 are both accurate and precise.
-These distance and luminosity estimates open up great opportunities for
+These distance estimates open up great opportunities for
 mapping the Milky Way disk with the next
 generation of spectroscopic surveys, and especially \sdssv.
 \end{abstract}
@@ -153,6 +160,14 @@ look at linear models? The disadvantages of this approach.
 
 The dangers of cutting on \gaia\ properties. Why we will not cut on
 \gaia\ parallaxes. The disadvantages of this approach.
+
+\section{Why and how should we model red-giant stars?}
+
+HOGG: We need to, for \sdssv.
+
+HOGG: We know we can because of physical arguments.
+
+HOGG: What kinds of inputs do we need to predict parallaxes?
 
 \section{Assumptions of the method}
 
@@ -492,9 +507,10 @@ They show that both \gaia\ and the spectroscopic parallaxes appear to be unbiase
 for these clusters and the range in abundances and ages they represent.
 HOGG: DO WE NEED TO ADDRESS whether why not these clusters show 9-percent spreads?
 
-The linear model we use has many limitations: Linear models are inflexible.
-However, they have a great advantage, which is that it is easy to look inside
-the model and check whether the dependencies represented there make sense.
+The linear model we use has a big limitation: Linear models are inflexible.
+However, it has a great advantage over more general methods,
+which is that it is easy to look inside
+the linear model and check whether the dependencies represented there make sense.
 One nice thing about the model is that the feature vector $x_n$ for star $n$
 contains a set of photometry in magnitudes.
 Linear combinations of these photometric measurements are like complex synthetic
@@ -503,9 +519,9 @@ Since the model was trained to deliver luminosities of stars given training data
 of different metallicities and extinctions, the synthetic photometry developed
 by the model should be, in some sense, metallicity- and extinction-independent
 photometry for luminous red-giant stars!
-HOGG: CONTINUE THAT THOUGHT.
-
-HOGG: Brief comment on the flexibility of the photometric model and interpretation of the photometric coefficients. Maybe plot some photometric properties vs metallicity or dust?
+In detail this synthetic magnitude is something like HOGG PUT EQUATION HERE AND
+SAY SOMETHING ABOUT IT. HOGG: Maybe plot this synthetic photometry against dust
+and metallicity.
 
 HOGG: How to get the data and how to use it, probabilistically.
 
