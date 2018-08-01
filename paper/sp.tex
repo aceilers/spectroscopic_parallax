@@ -300,8 +300,8 @@ $\sigma_n$ is the \gaia\ estimate of the uncertainty on the parallax measurement
 and $\chi^2(\theta)$ is (twice) the negative-log-likelihood for the parameters $\theta$
 under the assumption of known Gaussian noise and
 that there are $N$ independently measured stars $n$.
-The feature vector $x_n$ contains photometry in a few bands, and all 8000-ish pixels
-in the pseudo-continuum-normalized \apogee\ spectrum, so $D$ is on the order of 8000.
+The feature vector $x_n$ contains photometry in a few bands, and all 7400-ish pixels
+in the pseudo-continuum-normalized \apogee\ spectrum, so $D$ is on the order of 7400.
 
 In addition, we assume that many entries in the $D$-vector will be zero
 (the ``sparsity'' assumption).
@@ -377,10 +377,9 @@ of pixels chosen to be insensitive to stellar parameters.
 We use as our spectral data the normalized spectral pixel values.
 
 Because the \apogee\ target selection is based on \zmass, every \apogee\ star
-also comes with \zmass photometry.
+also comes with \zmass\ (HOGG CITE) photometry.
 That is, for each star $n$,
-we have near-infrared photometry $J_n$, $H_n$, and $K_n$.
-In detail we use from the catalog the entries ACE WHAT SPECIFIC CATALOG ENTRIES.
+we have \zmass\ near-infrared photometry $J_n$, $H_n$, and $K_n$.
 
 ACE: We match the \apogee+\zmass\ stars to he \wise\ ACE WHICH CATALOG by ACE WHAT CRITERION?
 This gives, fore each matching star $n$,
@@ -389,16 +388,18 @@ In detail we use the ACE WHAT SPECIFIC CATALOG ENTRIES?
 
 We match this full-match catalog to the \gaia\ \acronym{DR2} (HOGG CITE) by what criteria?
 
-We take from the \gaia\ \acronym{DR2} Catalog the photometric data $G_n$
-(\code{phot_g_mean_mag}) and $({BP}-{RP})_n$ (\code{bp_rp}), which will
-become part of the feature vector $x_n$.
+We take from the \gaia\ \acronym{DR2} Catalog the photometric data
+$G_n$ (\code{phot_g_mean_mag}),
+${BP}_n$ (\code{phot_bp_mean_mag}),
+and ${RP})_n$ (\code{phot_rp_mean_mag}),
+which will become part of the feature vector $x_n$.
 We do not use the entire \gaia\ \acronym{DR2} Catalog but instead the subset
 that meets ACE WHAT ADDITIONAL PHOTOMETRIC CUTS?
 
 We need complete feature-vector information for all stars.  For this
 reason, we define the Parent Sample to be the set of all stars that
 meet the \apogee\ and \gaia\ cuts and also
-have the complete set of photometry: $G_n$, $({BP}-{RP})_n$, $J_n$,
+have the complete set of photometry: $G_n$, ${BP}_n$, ${RP}_n$, $J_n$,
 $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
 This Parent Sample contains ACE HOW MANY STARS? and is shown in HOGG WHAT FIGURES?
 
@@ -435,15 +436,16 @@ The training sets are shown in HOGG WHAT FIGURES?
 For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
 \begin{eqnarray}
-x_n\T &\equiv& [1, G_n, ({BP}-{RP})_n, J_n, H_n, K_n, W_{1n}, W_{2n}, f_{1n}, f_{2n}, \cdots, f_{Ln}]
+x_n\T &\equiv& [1, G_n, {BP}_n, {RP}_n, J_n, H_n, K_n, W_{1n}, W_{2n}, f_{1n}, f_{2n}, \cdots, f_{Ln}]
 \quad ,
 \end{eqnarray}
 where the 1 permits a linear offset,
 the photometry is from \gaia, \zmass, and \wise, respectively,
 and
-the fluxes in the $L=$ACE \apogee\ spectral pixels for star $n$ are denoted
+the fluxes in the $L=7405$ \apogee\ spectral pixels (for which there are reliably
+and consistently data) for star $n$ are denoted
 $f_{1n}$, $f_{2n}$, and so on.
-These feature vectors live in a $D$-dimensional space where $D=$HOGG.
+These feature vectors live in a $D$-dimensional space where $D=7414$
 For every star $n$ in either of the Training Sets we additionally require---in
 addition to these feature vectors---a \gaia-measured parallax $\gparallax_n$
 and uncertainty $\sigma_n$.
