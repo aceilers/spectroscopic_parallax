@@ -45,6 +45,8 @@
 \newcommand{\T}{^{\mathsf{T}}}
 \DeclareMathOperator*{\argmin}{argmin}
 \newcommand{\logg}{\log g}
+\newcommand{\gparallax}{\varpi^{(\mathrm{a})}}
+\newcommand{\sparallax}{\varpi^{(\mathrm{sp})}}
 
 % tweak the modern style -- trust in Hogg
 \setlength{\parindent}{1.0\baselineskip}
@@ -207,7 +209,8 @@ the least precise \gaia\ parallax measurements, and therefore will effectively g
 less weight in the fits performed to train the model.
 
 \item[sparsity] We expect that only a small subset of the full complement of
-\apogee\ spectral pixels will be relevant to the prediction of parallax.
+\apogee\ spectral pixels will be relevant to the prediction of parallax
+(the spectrophotometric parallax).
 That is, we expect that many of the pixels will or ought to get no weight in the
 final model that we use to predict luminosities and distances.
 
@@ -281,13 +284,13 @@ We apply the method to real data in the following Sections.
 
 The model and log-likelihood function can be expressed heuristically as
 \begin{eqnarray}
-\varpi_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
+\gparallax_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
 \\
-\chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[\varpi_n - \exp(\theta\cdot x_n)]^2}{\sigma_n^2}
+\chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[\gparallax_n - \exp(\theta\cdot x_n)]^2}{\sigma_n^2}
 \quad ,
 \end{eqnarray}
 where
-$\varpi_n$ is the \gaia\ measurement (adjusted; see below) of the parallax of star $n$,
+$\gparallax_n$ is the \gaia\ measurement (adjusted; see below) of the parallax of star $n$,
 the model is that the logarithm of the true parallax
 can be expressed as a linear combination of the components
 of some $D$-dimensional feature vector $x_n$,
@@ -315,13 +318,19 @@ sparse optima.
 We will set the value $\lambda$ of the $D$-vector of regularization strengths by a
 very coarse cross-validation.
 
-Once the model is optimized, the prediction for a new stellar parallax
-$\varpi_m$ for a star $m$ in the validation or test set is
+Once the model is optimized, the output of the model is a prediction of the parallax,
+or really what we will call the \emph{spectrophotometric parallax}.
+This spectrophotometric parallax
+$\sparallax_m$ for any star $m$ in the validation or test set is
+assigned according to
 \begin{eqnarray}
-\varpi_m &=& \exp(\theta\cdot x_m)
+\sparallax_m &\leftarrow& \exp(\hat{\theta}\cdot x_m)
 \quad ,
 \end{eqnarray}
-where $x_m$ is the feature $D$-vector for star $m$.
+where
+$\hat{\theta}$ is the optimal parameter vector according to (HOGG WHAT EQUATION),
+and
+$x_m$ is the feature $D$-vector for star $m$.
 Thus the model can be trained on a training set of stars and applied to make
 predictions for a validation set or a test set.
 The only requirements are that every test-set object $m$  must have a full feature
@@ -330,10 +339,11 @@ vector $x_n$.
 
 One final detail: We perform all of the fitting in a two-fold train-and-test framework,
 in which the data are split into two disjoint subsets, A and B.
-The model trained on the A data is used to predict the $\varpi_m$ values (and hence
+The model trained on the A data is used to predict or produce
+the spectrophotometric parallaxes $\sparallax_m$ values (and hence
 the distances and parallaxes) of the B data,
 and the model trained on the B data is used to 
-predict the $\varpi_m$ values of the A data.
+produce the $\sparallax_m$ values of the A data.
 This ensures that, in the estimate of any individal star's
 parallax, none of the \gaia\ data pertaining to that star were used.
 This makes the parallax estimates from the spectrophotometric feature vectors
@@ -414,8 +424,8 @@ Indeed it would be necessarily biased if ever we did cut on parallax or
 parallax signal-to-noise.
 
 In detail,
-for each star $n$ in the Training Sets, we take from \gaia\ DR2 we the parallax $\varpi_n$
-and its uncertainty $\sigma_n$.
+for each star $n$ in the Training Sets, we take from \gaia\ DR2
+the parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset of $0.029$\,mas to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (HOGG CITE LINDEGREN).
@@ -434,7 +444,8 @@ the fluxes in the $L=$ACE \apogee\ spectral pixels for star $n$ are denoted
 $f_{1n}$, $f_{2n}$, and so on.
 These feature vectors live in a $D$-dimensional space where $D=$HOGG.
 For every star $n$ in either of the Training Sets we additionally require---in
-addition to these feature vectors---a parallax $\varpi_n$ and uncertainty $\sigma_n$.
+addition to these feature vectors---a \gaia-measured parallax $\gparallax_n$
+and uncertainty $\sigma_n$.
 
 \section{Results and validation}
 
