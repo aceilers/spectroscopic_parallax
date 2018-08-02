@@ -238,10 +238,21 @@ One is that we will do far better with the regression if we have an accurate
 model for noise process in the \gaia\ data.
 For this reason, we make use of a justifiable likelihood function for the
 \gaia\ astrometry (CITE HOGG).
-Another is that we can be strongly biased if we have a bad selection function
+Another is that regressions can be strongly biased if we have a bad selection function
 or data censoring.
-HOGGGGGThis means that we cannot apply cuts to the \gaia\ astrometry or signal-to-noise
-unless those cuts are correctly accounted for in our generative model.HOGGG GGG
+This means that we cannot apply cuts to the \gaia\ astrometry or signal-to-noise
+unless those cuts are correctly accounted for in our generative model for the
+data sample.
+Below, we will make no such cuts. That means that our training step has the odd
+property that much of the training data is low in signal-to-noise and many of the
+training parallax measurements are even negative!
+The fact that we are using a justified likelihood function ensures that these
+data will only affect the model in sensible and justifiable ways.
+The alternative---cutting to high signal-to-noise data---is the more traditional
+approach, but it leads to biased inferences (unless the cuts are included correctly
+in the likelihood function).
+The method in which we make no cuts and keep an umodified, justified likelihood function
+is unbiased, and simple.
 
 \section{Assumptions of the method}
 
