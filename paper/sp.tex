@@ -309,13 +309,14 @@ In addition, we assume that many entries in the $D$-vector will be zero
 (the ``sparsity'' assumption).
 In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
-\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\cdot\theta||_1^1\right]
+\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\ast\theta||_1^1\right]
 \quad ,
 \end{eqnarray}
 where
 $\lambda$ is a $D$-vector of regularization parameters (such that we can regularize
 different parts of the $x_n$ vectors differently),
-and $||x||_1^1$ is the L1-norm or sum of absolute values of the components of $x$.
+the ``$a\ast b$'' operator indicates element-wise multiplication of vectors $a$ and $b$,
+and $||y||_1^1$ is the L1-norm or sum of absolute values of the components of $y$.
 This kind of regularization adds a convex term to the optimization and leads to
 sparse optima.
 We will set the value $\lambda$ of the $D$-vector of regularization strengths by a
@@ -440,15 +441,15 @@ The training sets are shown in HOGG WHAT FIGURES?
 For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
 \begin{eqnarray}
-x_n\T &\equiv& [1, G_n, {BP}_n, {RP}_n, J_n, H_n, K_n, W_{1n}, W_{2n}, f_{1n}, f_{2n}, \cdots, f_{Ln}]
+x_n\T &\equiv& [1, G_n, {BP}_n, {RP}_n, J_n, H_n, K_n, W_{1n}, W_{2n}, \ln f_{1n}, \ln f_{2n}, \cdots, \ln f_{Ln}]
 \quad ,
 \end{eqnarray}
 where the 1 permits a linear offset,
 the photometry is from \gaia, \zmass, and \wise, respectively,
-and
 the fluxes in the $L=7405$ \apogee\ spectral pixels (for which there are reliably
 and consistently data) for star $n$ are denoted
-$f_{1n}$, $f_{2n}$, and so on.
+$f_{1n}$, $f_{2n}$, and so on,
+and we have taken logarithms of those fluxes.
 These feature vectors live in a $D$-dimensional space where $D=7414$
 For every star $n$ in either of the Training Sets we additionally require---in
 addition to these feature vectors---a \gaia-measured parallax $\gparallax_n$
