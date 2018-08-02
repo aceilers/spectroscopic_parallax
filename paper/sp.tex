@@ -59,8 +59,7 @@
 
 \title{\textbf{%
 Spectrophotometric parallaxes with \project{The Cygnet}:\\
-Accurate estimates of luminosity and distance\\
-for luminous red-giant stars
+Accurate distances for luminous red-giant stars
 }}
 
 \author[0000-0003-2866-9403]{David W. Hogg}
@@ -128,6 +127,7 @@ Galaxy:~disk
 infrared:~stars
 }
 
+\section*{~}\clearpage
 \section{Introduction} \label{sec:intro}
 
 If we want to make precise kinematic and element-abundance maps
@@ -154,26 +154,81 @@ to deliver distance information directly, but rather to calibrate stellar models
 which then deliver distance information through relationships between stellar
 luminosities and spectral characteristics.
 
-In this contribution we develop data-driven techniques to predict
-stellar luminosities and distances with spectroscopy and photometry...
+Luminous red-giant stars are valuable for mapping the Milky Way disk for a number
+lf reasons, only one of which is their great luminosities (and hence brightnesses
+even at large distance).
+They are extremely common (frequent) stars, much more common than distance-indicating
+stars like Cepheids.
+They are produced by stellar populations at all metallicities and almost all ages,
+so they can be found in all parts of the Galaxy.
+They have temperatures and surface gravities such that it is
+straightforward to spectroscopically measure metallicities,
+detailed chamical abundances, and stellar parameters, including ages (CITE MARTIG, NESS).
+The red-giant branch is photometrically near-orthogonal to reddening vectors by dust,
+so they are easy to de-redden or dust-correct.
+And finally, in physical models of red giants, their predicted luminosities are simple
+functions of composition, surface gravity, temperature, and age.
+Thus, if we can measure these properties of red giants, we can (in principle) predict
+their luminosities and use them as standard candles.
+That is---like type Ia supernovae---red giants are standardizable candles.
 
-The history and value (and disadvantages)
-of data-driven models for these kinds of problems.
-How could it be that we are completely independent of stellar models?
+In this project, we develop purely data-driven techniques to predict
+red-giant parallaxes or distances with spectroscopy and photometry.
+Our method capitalizes on the point that red-giant stars are dust-correctable,
+standardizable candles, but it makes no use whatsoever of any stellar interior,
+stellar exterior, or dust-reddening models.
+We only use these physical expectations about red giants to recommend
+data features---inputs---for the data-driven model.
+The data-driven method uses patterns in the observed data themselves
+to discover the relationships between spectral features in the spectra of the stars,
+photometry (including colors), and parallax (or distance).
 
-The dangers of aggressive machine-learning methods. Why will we just
-look at linear models? The disadvantages of this approach.
+Data-driven models are very often more accurate than physical models of stars
+for this kind of work, because they have the flexibility to discover
+regularities or offsets in the data that are not captured by the physical
+models.
+They do better than physical models when there are lots of training data
+with properties that are good for performing regressions.
 
-The dangers of cutting on \gaia\ properties. Why we will not cut on
+Simple data-driven models (like the ones we will employ here)
+suffer from many limitations for this kind of work:
+Because they are constrained only by the data, and not physical law,
+they can learn relationships that we know
+to be physically unlikely, and (by the same token) they can't benefit from our
+physical knowledge.
+They are required, in some sense, to spend some of the information in the data on
+learning physical laws or relationships.
+Not all of the information in the data is being used
+optimally when we ignore our physical models.
+Relatedly, they are not (usually) interpretable or generalizable:
+A data-driven model trained with one kind of data can not usually be used in another
+context with very different input data.
+And the internal properties of the model are not useful, in general, for improving
+our understanding or intuition about the astrophysics in play.
+
+There is a huge range of complexity or capacity in data-driven
+models, from linear regressions (what we use here) to the most advanced machine-learning
+methods (like deep neural networks).
+In this work we stay on the low-complexity side of this.
+We do not want to face the (literally combinatoric) choices in model structure that
+advanced methods bring.
+And we want to control or understand the smoothness or flexibility of the model.
+Deep networks can model extremely complex function spaces, which is good in some
+contexts, but bad when you know that the functional dependencies you hope to
+model are smooth:
+In that case, much of the information in the data can get spent on learning the
+smoothness of the function.
+
+All that said, our goal here is to produce a precise mapping tool for surveys
+like \apogee\ and \sdssv.
+So we will take the limitations of the data-driven models in exchange for their
+performance.
+This work builds on the success we have seen in building other kinds of
+data-driven tools for  stellar spectroscopy, for example to measure stellar
+parameters (CITE NESS), abundances (CITE HO, NESS, CASEY), and masses and ages (CITE NESS).
+
+HOGG: The dangers of cutting on \gaia\ properties. Why we will not cut on
 \gaia\ parallaxes. The disadvantages of this approach.
-
-\section{Why and how should we model red-giant stars?}
-
-HOGG: We need to, for \sdssv.
-
-HOGG: We know we can because of physical arguments.
-
-HOGG: What kinds of inputs do we need to predict parallaxes?
 
 \section{Assumptions of the method}
 
