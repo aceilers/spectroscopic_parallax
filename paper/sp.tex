@@ -31,8 +31,10 @@
 %\watermark{kittens}
 
 % text macros
+\newcommand{\equationname}{equation}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\foreign}[1]{\textsl{#1}}
+\newcommand{\etal}{\foreign{et al.}}
 \newcommand{\acronym}[1]{{\small{#1}}}
 \newcommand{\project}[1]{\textsl{#1}}
 \newcommand{\apogee}{\project{\acronym{APOGEE}}}
@@ -236,7 +238,7 @@ design..
 One is that we will do far better with the regression if we have an accurate
 model for noise process in the \gaia\ data.
 For this reason, we make use of a justifiable likelihood function for the
-\gaia\ astrometry (CITE HOGG).
+\gaia\ astrometry (\citealt{gaialf}).
 Another is that regressions can be strongly biased if we have a bad selection function
 or data censoring.
 This means that we cannot apply cuts to the \gaia\ astrometry or signal-to-noise
@@ -266,7 +268,7 @@ to address the costs and benefits of each in more depth.
 of a star can be predicted from the features we provide, which are
 the full set of (pseudo-continuum-normalized) pixels from the \apogee\ spectrum,
 plus the $G$ and $({BP}-{RP})$ photometry from \gaia,
-plus the $J$, $H$, and $K_s$ photometry from \zmass,
+plus the $J$, $H$, and $K_s$ photometry from \zmass (\citealt{zmass}),
 plus the $W_1$ and $W_2$ photometry from \wise.
 That is, we assume that these spectrophotometric \emph{features} are sufficient
 to predict the parallax in the face of variations in stellar
@@ -388,7 +390,7 @@ In addition, we assume that many entries in the $D$-vector will be zero
 In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
 \hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\ast\theta||_1^1\right]
-\quad ,
+\label{eq:objective}\quad ,
 \end{eqnarray}
 where
 $\lambda$ is a $D$-vector of regularization parameters (such that we can regularize
@@ -410,7 +412,8 @@ assigned according to
 \quad ,
 \end{eqnarray}
 where
-$\hat{\theta}$ is the optimal parameter vector according to (HOGG WHAT EQUATION),
+$\hat{\theta}$ is the optimal parameter vector according
+to \equationname~(\ref{eq:objective}),
 and
 $x_m$ is the feature $D$-vector for star $m$.
 Thus the model can be trained on a training set of stars and applied to make
@@ -460,7 +463,7 @@ of pixels chosen to be insensitive to stellar parameters.
 We use as our spectral data the normalized spectral pixel values.
 
 Because the \apogee\ target selection is based on \zmass, every \apogee\ star
-also comes with \zmass\ (HOGG CITE) photometry.
+also comes with \zmass\ (\citealt{zmass}) photometry.
 That is, for each star $n$,
 we have \zmass\ near-infrared photometry $J_n$, $H_n$, and $K_n$.
 
@@ -644,30 +647,38 @@ Processing and Analysis Consortium (\acronym{DPAC},
 has been provided by national institutions, in particular the institutions
 participating in the \gaia\ Multilateral Agreement.
 
-\wise\ Acknowledgement?
+This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation.
 
-\project{\acronym{SDSS-IV}} ack.
+This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration.
+
+Funding for the \project{Sloan Digital Sky Survey IV} has been provided by the Alfred P. Sloan Foundation, the U.S Department of Energy Office of Science, and the Participating Institutions. \sdssiv\ acknowledges
+support and resources from the Center for High-Performance Computing at
+the University of Utah. The \project{\acronym{SDSS}} web site is www.sdss.org.
+
+\sdssiv\ is managed by the Astrophysical Research Consortium for the 
+Participating Institutions of the \project{\acronym{SDSS}} Collaboration including the 
+Brazilian Participation Group, the Carnegie Institution for Science, 
+Carnegie Mellon University, the Chilean Participation Group, the French Participation Group, Harvard-Smithsonian Center for Astrophysics, 
+Instituto de Astrof\'isica de Canarias, The Johns Hopkins University, 
+Kavli Institute for the Physics and Mathematics of the Universe / 
+University of Tokyo, the Korean Participation Group, Lawrence Berkeley National Laboratory, 
+Leibniz Institut f\"ur Astrophysik Potsdam,  
+Max-Planck-Institut f\"ur Astronomie (Heidelberg), 
+Max-Planck-Institut f\"ur Astrophysik (Garching), 
+Max-Planck-Institut f\"ur Extraterrestrische Physik, 
+National Astronomical Observatories of China, New Mexico State University, 
+New York University, University of Notre Dame, 
+Observat\'ario Nacional~/~\acronym{MCTI}, The Ohio State University, 
+Pennsylvania State University, Shanghai Astronomical Observatory, 
+United Kingdom Participation Group,
+Universidad Nacional Aut\'onoma de M\'exico, University of Arizona, 
+University of Colorado Boulder, University of Oxford, University of Portsmouth, 
+University of Utah, University of Virginia, University of Washington, University of Wisconsin, 
+Vanderbilt University, and Yale University.
 
 \begin{thebibliography}{}
-\bibitem[Astropy Collaboration et al.(2013)]{2013A&A...558A..33A} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., et al.\ 2013, \aap, 558, A33 
-\bibitem[Bertin \& Arnouts(1996)]{1996A&AS..117..393B} Bertin, E., \& Arnouts, S.\ 1996, \aaps, 117, 393 
-\bibitem[Corrales(2015)]{2015ApJ...805...23C} Corrales, L.\ 2015, \apj, 805, 23
-\bibitem[Ferland et al.(2013)]{2013RMxAA..49..137F} Ferland, G.~J., Porter, R.~L., van Hoof, P.~A.~M., et al.\ 2013, \rmxaa, 49, 137
-\bibitem[Hanisch \& Biemesderfer(1989)]{1989BAAS...21..780H} Hanisch, R.~J., \& Biemesderfer, C.~D.\ 1989, \baas, 21, 780 
-\bibitem[Lamport(1994)]{lamport94} Lamport, L. 1994, LaTeX: A Document Preparation System, 2nd Edition (Boston, Addison-Wesley Professional)
-\bibitem[Schwarz et al.(2011)]{2011ApJS..197...31S} Schwarz, G.~J., Ness, J.-U., Osborne, J.~P., et al.\ 2011, \apjs, 197, 31  
-\bibitem[Vogt et al.(2014)]{2014ApJ...793..127V} Vogt, F.~P.~A., Dopita, M.~A., Kewley, L.~J., et al.\ 2014, \apj, 793, 127  
+\bibitem[Hogg(2018)]{gaialf} Hogg, D.~W 2018, arXiv:1804.07766 
+\bibitem[Skrutskie \etal(2006)]{zmass} Skrutskie, M.~F., Cutri, R.~M., Stiening, R., et al.\ 2006, \aj, 131, 1163 
 \end{thebibliography}
 
-%% This command is needed to show the entire author+affilation list when
-%% the collaboration and author truncation commands are used.  It has to
-%% go at the end of the manuscript.
-%\allauthors
-
-%% Include this line if you are using the \added, \replaced, \deleted
-%% commands to see a summary list of all changes at the end of the article.
-%\listofchanges
-
 \end{document}
-
-% End of file `sample62.tex'.
