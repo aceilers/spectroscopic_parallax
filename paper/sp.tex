@@ -206,6 +206,14 @@ context with very different input data.
 And the internal properties of the model are not useful, in general, for improving
 our understanding or intuition about the astrophysics in play.
 
+All that said, our goal here is to produce a precise mapping tool for surveys
+like \apogee\ and \sdssv.
+So we will take the limitations of the data-driven models in exchange for their
+performance.
+This work builds on the success we have seen in building other kinds of
+data-driven tools for  stellar spectroscopy, for example to measure stellar
+parameters (CITE NESS), abundances (CITE HO, NESS, CASEY), and masses and ages (CITE NESS).
+
 There is a huge range of complexity or capacity in data-driven
 models, from linear regressions (what we use here) to the most advanced machine-learning
 methods (like deep neural networks).
@@ -219,16 +227,21 @@ model are smooth:
 In that case, much of the information in the data can get spent on learning the
 smoothness of the function.
 
-All that said, our goal here is to produce a precise mapping tool for surveys
-like \apogee\ and \sdssv.
-So we will take the limitations of the data-driven models in exchange for their
-performance.
-This work builds on the success we have seen in building other kinds of
-data-driven tools for  stellar spectroscopy, for example to measure stellar
-parameters (CITE NESS), abundances (CITE HO, NESS, CASEY), and masses and ages (CITE NESS).
-
-HOGG: The dangers of cutting on \gaia\ properties. Why we will not cut on
-\gaia\ parallaxes. The disadvantages of this approach.
+What follows is a regression:
+We use \gaia\ measurements of parallax to learn relationships between 
+the spectroscopic and photometric properties of stars and their parallaxes.
+We then use that learned model to estimate improved parallaxes for stars with
+poor (or no) \gaia\ measurements.
+This regression is very sensitive to certain aspects of the data or experimental
+design..
+One is that we will do far better with the regression if we have an accurate
+model for noise process in the \gaia\ data.
+For this reason, we make use of a justifiable likelihood function for the
+\gaia\ astrometry (CITE HOGG).
+Another is that we can be strongly biased if we have a bad selection function
+or data censoring.
+HOGGGGGThis means that we cannot apply cuts to the \gaia\ astrometry or signal-to-noise
+unless those cuts are correctly accounted for in our generative model.HOGGG GGG
 
 \section{Assumptions of the method}
 
