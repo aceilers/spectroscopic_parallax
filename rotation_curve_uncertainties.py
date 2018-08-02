@@ -389,6 +389,21 @@ plt.close()
 # maps (x,y) for patches!
 # -------------------------------------------------------------------------------        
 
+
+# plot [FE/H] vs. radius
+deg_wedge = 30.
+wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
+cut_feh = labels['FE_H'] > -100
+cut_z_wedge = wedge * (abs(XS_cyl_true_n[:, 2]) < dz/2.) * cut_feh
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
+plt.scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge]['FE_H'], s = 5, alpha = 0.5)
+plt.ylim(-1.9, 1)
+plt.xlim(0, 30)
+plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+plt.ylabel('[Fe/H]', fontsize = fsize)
+plt.tick_params(axis=u'both', direction='in', which='both')
+#plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
+
 traceC = np.trace(error_var_XS_cyl, axis1=2, axis2=3)
 traceVtilde = np.trace(vtilde, axis1=2, axis2=3)
 
