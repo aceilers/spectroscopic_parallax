@@ -35,6 +35,7 @@
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\foreign}[1]{\textsl{#1}}
 \newcommand{\etal}{\foreign{et al.}}
+\newcommand{\eg}{\foreign{e.g.}}
 \newcommand{\acronym}[1]{{\small{#1}}}
 \newcommand{\project}[1]{\textsl{#1}}
 \newcommand{\apogee}{\project{\acronym{APOGEE}}}
@@ -343,8 +344,8 @@ If you take the inverse or logarithm of the parallax, you can't operate safely
 on the negative and low signal-to-noise parallaxes, which in turn will require
 making cuts on the sample, which will in turn bias the results.
 
-Finally, we never use Lutz--Kelker corrections (HOGG CITE) or distance
-posteriors (HOGG CITE). These both involve (implicit or explicit) priors on 
+Finally, we never use Lutz--Kelker corrections (\citealt{lk}) or distance
+posteriors (\eg, \citealt{calj}). These both involve (implicit or explicit) priors on 
 distance.
 When multiple stars are combined as we combine them here (below),
 use of distance posteriors instead of parallax likelihoods is not just
@@ -516,7 +517,7 @@ for each star $n$ in the Training Sets, we take from \gaia\ DR2
 the parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset of $0.029$\,mas to adjust for the under-estimation of
-parallaxes reported by the \gaia\ Collaboration (HOGG CITE LINDEGREN).
+parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The training sets are shown in HOGG WHAT FIGURES?
 
 For every star $n$ in the full Parent Sample we construct the feature
@@ -677,9 +678,11 @@ University of Utah, University of Virginia, University of Washington, University
 Vanderbilt University, and Yale University.
 
 \begin{thebibliography}{}
+\bibitem[Bailer-Jones et al.(2018)]{calj} Bailer-Jones, C.~A.~L., Rybizki, J., Fouesneau, M., Mantelet, G., \& Andrae, R.\ 2018, \aj, 156, 58 
 \bibitem[Blanton \etal(2017)]{sdssiv} Blanton, M.~R., Bershady, M.~A., Abolfathi, B., \etal\ 2017, \aj, 154, 28 
 \bibitem[Hogg(2018)]{gaialf} Hogg, D.~W 2018, arXiv:1804.07766 
 \bibitem[Lindegren \etal(2018)]{lindegren} Lindegren, L., Hernandez, J., Bombrun, A., \etal\ 2018, arXiv:1804.09366 
+\bibitem[Lutz \& Kelker(1973)]{lk} Lutz, T.~E., \& Kelker, D.~H.\ 1973, \pasp, 85, 573 
 \bibitem[Skrutskie \etal(2006)]{zmass} Skrutskie, M.~F., Cutri, R.~M., Stiening, R., \etal\ 2006, \aj, 131, 1163 
 \end{thebibliography}
 
