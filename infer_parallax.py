@@ -66,7 +66,7 @@ def H_func(x, y, A, lams, ivar):
 
 def check_H_func(x, y, A, lams, ivar):
     H0, dHdx0 = H_func(x, y, A, lams, ivar)
-    dx = 0.0001 # magic
+    dx = 1e-6 # magic
     for i in range(len(x)):
         x1 = 1. * x
         x1[i] += dx
@@ -83,6 +83,11 @@ Kfold = 2
 lam = 30                      # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
 
+# optimization schedule
+# 1. photometry only
+# 2. go down with lambda?
+steps = 2
+
 if prediction:        
     
     # data
@@ -92,7 +97,8 @@ if prediction:
     
     # design matrix
     AT_0 = np.vstack([np.ones_like(y_all)])
-    AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], fluxes])
+    ln_fluxes = np.log(np.clip(fluxes, 0.01, 1.2))
+    AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], ln_fluxes])
     A_all = np.vstack([AT_0, AT_linear]).T
     
     # fucking brittle
@@ -123,30 +129,45 @@ if prediction:
         
         # cut in parallax_error
         cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
-    
+        cut_burnin = labels[train]['parallax_over_error'] > 20.
+        
         # cut in astrometric_gof_al (should be around unity...?) *Daniel Michalik's advice*
         #cut_gof = labels[train]['astrometric_gof_al'] < 5  
         # Coryn's advice!
         cut_cal = (labels[train]['astrometric_chi2_al'] / np.sqrt(labels[train]['astrometric_n_good_obs_al']-5)) <= 35         
         
         # more cuts? e.g. astrometric_gof_al should be low!
-                          
-        cut_all = cut_parallax * cut_vis * cut_par * cut_cal      
-        y = y_all[train][cut_all]
-        ivar = ivar_all[train][cut_all]
-        A = A_all[train, :][cut_all, :]
-        N, M = A.shape
-        x0 = np.zeros((M,)) + 1./M 
-        print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
-                     
-        # optimize H_func
-        print('{} otimization...'.format(k+1))
-        res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
-        print(res)                       
+        
+        foo, M = A_all.shape
+        x0 = np.zeros((M,)) + 0.001/M 
+        x_new = None
+        for opt_step in range(steps):   
+            if opt_step == 0:
+                cut_all = cut_parallax * cut_vis * cut_par * cut_cal * cut_burnin
+            else:
+                cut_all = cut_parallax * cut_vis * cut_par * cut_cal
+                x0 = x_new
+        
+            y = y_all[train][cut_all]
+            ivar = ivar_all[train][cut_all]
+            A = A_all[train, :][cut_all, :]
+    
+            print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
+                         
+            # optimize H_func
+            print('{} optimization...'.format(k+1))
+            res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+            print(res)   
+            x_new = res.x  
+            assert res.success
                                
         # prediction
-        y_pred = np.exp(np.dot(A_all[valid, :], res.x))
+        y_pred = np.exp(np.dot(A_all[valid, :], x_new))
         y_pred_all[valid] = y_pred
+        
+        plt.scatter(labels[valid]['parallax'], y_pred, alpha = .1)
+        plt.xlim(-1, 3)
+        plt.ylim(-1, 3)
                                            
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
         pickle.dump(res, f)
