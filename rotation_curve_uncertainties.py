@@ -39,10 +39,10 @@ fsize = 14
 N = 45787
 Kfold = 2
 lam = 30
-name = 'N{0}_lam{1}_K{2}_mag_allcolors_offset'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
-labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
+labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
 labels.rename_column('ra_1', 'ra')
 labels.rename_column('dec_1', 'dec')
 
@@ -51,32 +51,23 @@ labels.rename_column('dec_1', 'dec')
 # -------------------------------------------------------------------------------           
 
 # Galactocentric position of the Sun:
-X_GC_sun_kpc = 8.3    #[kpc]
+X_GC_sun_kpc = 8.122 #[kpc] # (Gravity collaboration 2018)
 Z_GC_sun_kpc = 0.025 #[kpc] (e.g. Juric et al. 2008)
 
-# circular velocity of the Galactic potential at the radius of the Sun:
-vcirc_kms = 220. #[km/s] (e.g. Bovy 2015)
-
-# Velocity of the Sun w.r.t. the Local Standard of Rest (e.g. Schoenrich et al. 2009):
-U_LSR_kms = 11.1  # [km/s]
-V_LSR_kms = 12.24 # [km/s]
-W_LSR_kms = 7.25  # [km/s]
-
 # Galactocentric velocity of the Sun:
-vX_GC_sun_kms = -U_LSR_kms           # = -U              [km/s]
-vY_GC_sun_kms =  V_LSR_kms+vcirc_kms # = V+v_circ(R_Sun) [km/s]
-vZ_GC_sun_kms =  W_LSR_kms           # = W               [km/s]
-
-# keep proper motion of Sgr A* constant! 
-vY_GC_sun_kms = X_GC_sun_kpc * vY_GC_sun_kms / 8.
+vX_GC_sun_kms = -11.1 # [km/s]   (e.g. Schoenrich et al. 2009) 
+vY_GC_sun_kms =  245.8 # [km/s]  (combined with Sgr A* proper motions from Reid & Brunnthaler 2004)
+vZ_GC_sun_kms =  7.8 # [km/s]
 
 # -------------------------------------------------------------------------------
 # re-sample each star
 # -------------------------------------------------------------------------------           
 
-#cuts = np.isfinite(labels['pmra']) * np.isfinite(labels['pmdec'])
-#labels = labels[cuts]
-N = len(labels)
+cuts_finite = np.isfinite(labels['pmra']) * np.isfinite(labels['pmdec']) * np.isfinite(labels['VHELIO_AVG'])
+# remove high alpha elements
+cuts = cuts_finite * (labels['ALPHA_M'] < .12)
+labels = labels[cuts]
+N = len(labels) # 33044 stars!
 
 N_sample = 256
 np.random.seed(42)
@@ -92,7 +83,7 @@ floor_rv = 0.1 # km/s
 
 fractional_parallax_error = 0.09
 
-'''for i in range(N):
+for i in range(N):
     
     if i%1000 == 0: print('working on star {0} out of {1}'.format(i, N))
     spec_par = np.random.normal(labels['spec_parallax'][i], scale = fractional_parallax_error * labels['spec_parallax'][i], size = N_sample) * u.mas
@@ -102,7 +93,7 @@ fractional_parallax_error = 0.09
     
     pmras = np.random.normal(labels['pmra'][i], scale = labels['pmra_error'][i], size = N_sample)
     pmdecs = np.random.normal(labels['pmdec'][i], scale = labels['pmdec_error'][i], size = N_sample)
-    vrs = np.random.normal(labels['VHELIO_AVG'][i], scale = np.sqrt(floor_rv**2), size = N_sample)
+    vrs = np.random.normal(labels['VHELIO_AVG'][i], scale = np.sqrt(floor_rv**2 + labels['radial_velocity_error'][i]**2), size = N_sample)
                              
     # -------------------------------------------------------------------------------
     # calculate cartesian coordinates
@@ -174,7 +165,6 @@ hdu.writeto('data/true_cyl_n_{}.fits'.format(name), overwrite = True)
 hdu = fits.PrimaryHDU(XS_cart_true_n)
 hdu.writeto('data/true_cart_n_{}.fits'.format(name), overwrite = True)
 
-
 # -------------------------------------------------------------------------------'''
 # load data
 # -------------------------------------------------------------------------------           
@@ -201,16 +191,17 @@ XS_cyl_true_n = hdu[0].data
 #cut_low_feh = (labels['FE_H'] < -0.2) * (labels['FE_H'] >= -10) # remove [Fe/H] = -9999.0
 #cut_names = list(['lowFEH', 'solarFEH', 'hiFEH'])
 #cuts = list([cut_low_feh, cut_solar_feh, cut_high_feh])
+#labels = labels[cuts]
+#mean_XS_cart_n = mean_XS_cart_n[cuts, :]
+#var_XS_cart_n = var_XS_cart_n[cuts, :, :]
+#mean_XS_cyl_n = mean_XS_cyl_n[cuts, :]
+#var_XS_cyl_n = var_XS_cyl_n[cuts, :, :]
+#XS_cart_true_n = XS_cart_true_n[cuts, :]
+#XS_cyl_true_n = XS_cyl_true_n[cuts, :]
 
-cuts = np.isfinite(labels['pmra']) * np.isfinite(labels['pmdec']) * (labels['ALPHA_M'] < .12) #\
-       #* cut_solar_feh
-labels = labels[cuts]
-mean_XS_cart_n = mean_XS_cart_n[cuts, :]
-var_XS_cart_n = var_XS_cart_n[cuts, :, :]
-mean_XS_cyl_n = mean_XS_cyl_n[cuts, :]
-var_XS_cyl_n = var_XS_cyl_n[cuts, :, :]
-XS_cart_true_n = XS_cart_true_n[cuts, :]
-XS_cyl_true_n = XS_cyl_true_n[cuts, :]
+# -------------------------------------------------------------------------------
+# for plotting
+# -------------------------------------------------------------------------------   
 
 def overplot_ring(r):
     tiny = 1e-4
@@ -221,9 +212,23 @@ def overplot_ring(r):
     plt.scatter(0, 0, s = 10, color = 'k', alpha=0.2)
     return
 
+def overplot_ring_helio(r):
+    tiny = 1e-4
+    thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
+    xs = r * np.cos(thetas) - X_GC_sun_kpc
+    ys = r * np.sin(thetas)
+    plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = -np.inf)
+    # plt.scatter(-X_GC_sun_kpc, 0, s = 10, color = 'k', alpha=0.2)
+    return
+
 def overplot_rings():
     for r in [5, 10, 15, 20, 25, 30]:
         overplot_ring(r)
+    return
+
+def overplot_rings_helio():
+    for r in [5, 10, 15, 20, 25, 30]:
+        overplot_ring_helio(r)
     return
 
 Xlimits = [[-30, 10], [-10, 30], [-20, 20], 
@@ -241,7 +246,7 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
-# divide Milky Way into patches
+# divide Milky Way into (x, y, z) patches
 # -------------------------------------------------------------------------------   
 
 box_size = .5               # that's just half of the box size
@@ -249,7 +254,6 @@ all_x = np.arange(-30., 30.01, box_size)
 all_y = np.arange(-30., 30.01, box_size)
 mean_XS_cyl = np.zeros((len(all_x), len(all_y), 6)) - np.inf
 mean_XS_cart = np.zeros((len(all_x), len(all_y), 6)) - np.inf
-#var_XS_cyl = np.zeros((len(all_x), len(all_y), 3, 3)) - np.inf
 N_stars = np.zeros((len(all_x), len(all_y)))
 error_var_XS_cyl = np.zeros((len(all_x), len(all_y), 3, 3)) - np.inf
 vvT_cyl = np.zeros((len(all_x), len(all_y), 3, 3)) - np.inf
@@ -263,17 +267,13 @@ for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
         cut_patch = (abs(mean_XS_cart_n[:, 2]) < box_size) * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
         N_stars[i, j] = np.sum(cut_patch)
-        #print(i, j, N_stars[i, j])        
         if N_stars[i, j] > 0:
-            mean_XS_cyl[i, j, :] = np.nanmean(mean_XS_cyl_n[cut_patch], axis = 0)
+            mean_XS_cyl[i, j, :] = np.nanmean(mean_XS_cyl_n[cut_patch], axis = 0) # NEVER USE MEAN PHI -- DOESN'T MAKE SENSE!
             mean_XS_cart[i, j, :] = np.nanmean(mean_XS_cart_n[cut_patch], axis = 0)
             mean_HW2[i, j] = np.nanmean(labels['H'][cut_patch] - labels['w2mpro'][cut_patch])
             mean_feh[i, j] = np.nanmean(labels['FE_H'][cut_patch * cut_feh])
             mean_sigma_mu[i, j] = np.nanmean(np.sqrt(labels['pmra_error'][cut_patch] ** 2 + labels['pmdec_error'][cut_patch] ** 2))
             mean_sigma_par[i, j] = np.nanmean(0.09 * labels['spec_parallax'][cut_patch])
-#        if N_stars[i, j] > 7:
-#            dXS = mean_XS_cyl_n[cut_patch] - mean_XS_cyl[i, j, :][None, :]
-#            var_XS_cyl[i, j, :, :] = np.dot(dXS[:, 3:].T, dXS[:, 3:]) / (N_stars[i, j] - 1.)
             error_var_XS_cyl[i, j, :, :] = np.nanmean(var_XS_cyl_n[cut_patch], axis=0)
             vvT_cyl[i, j, :, :] = np.dot(XS_cyl_true_n[cut_patch, 3:].T, XS_cyl_true_n[cut_patch, 3:]) / N_stars[i, j]
 
