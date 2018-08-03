@@ -390,17 +390,20 @@ In addition, we assume that many entries in the $D$-vector will be zero
 (the ``sparsity'' assumption).
 In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
-\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + ||\lambda\ast\theta||_1^1\right]
+\hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + \lambda\,||P\cdot\theta||_1^1\right]
 \label{eq:objective}\quad ,
 \end{eqnarray}
 where
-$\lambda$ is a $D$-vector of regularization parameters (such that we can regularize
-different parts of the $x_n$ vectors differently),
-the ``$a\ast b$'' operator indicates element-wise multiplication of vectors $a$ and $b$,
+$\lambda$ is a regularization parameter,
+$P$ is a projection operator that selects out from the $\theta$ vector only those components
+that pertain to the \apogee\ spectral pixels,
 and $||y||_1^1$ is the L1-norm or sum of absolute values of the components of $y$.
 This kind of regularization adds a convex term to the optimization and leads to
 sparse optima.
-We will set the value $\lambda$ of the $D$-vector of regularization strengths by a
+The $P$ operator makes it such that we only regularize the components of $\theta$ that multiply
+the spectral pixels; we ask for the spectral model to be sparse but we don't ask for the photometric
+model to be sparse.
+We set the value of $\lambda$ by a 
 very coarse cross-validation.
 
 Once the model is optimized, the output of the model is a prediction of the parallax,
