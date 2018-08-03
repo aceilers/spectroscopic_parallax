@@ -545,9 +545,9 @@ and uncertainty $\sigma_n$.
 \section{Results and validation}
 
 We optimize two models, one for Training Set A and one for Training Set B.
-For optimization, we use \code{scipy} l-bfgs-b (HOGG CHECK), starting at
+For optimization, we use \code{scipy.optimize} \acronym{L-BFGS-B}, starting at
 an uninformed starting point in the $\theta$ space.
-The optimization is of the objective function given in (HOGG WHAT EQUATION) above,
+The optimization is of the objective function given in \equationname~(\ref{eq:objective}) above,
 and although this optimization is not convex, it appears to converge to the
 same good solution quickly and reliably from multiple different starting points.
 
