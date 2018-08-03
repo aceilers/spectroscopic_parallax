@@ -376,7 +376,7 @@ The model and log-likelihood function can be expressed heuristically as
 \quad ,
 \end{eqnarray}
 where
-$\gparallax_n$ is the \gaia\ measurement (adjusted; see below) of the parallax of star $n$,
+$\gparallax_n$ is the \gaia\ measurement (adjusted; see below) of the astrometric parallax of star $n$,
 the model is that the logarithm of the true parallax
 can be expressed as a linear combination of the components
 of some $D$-dimensional feature vector $x_n$,
@@ -496,7 +496,7 @@ $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
 This Parent Sample contains ACE HOW MANY STARS? and is shown in \figurename~\ref{fig:parent}.
 \begin{figure}
 \caption{A visualization of the Parent Sample stars. The left panel
-  shows all XXXX stars in the combined Parent Sample, colored by
+  shows a color--color diagram for all XXXX stars in the combined Parent Sample, colored by
   the \apogee\ pipeline estimates of surface gravity. The right
   panel shows small spectral segments of four example stars,
   chosen to span metallicity and surface gravity.\label{fig:parent}}
@@ -526,13 +526,16 @@ parallax signal-to-noise.
 
 In detail,
 for each star $n$ in the Training Sets, we take from \gaia\ DR2
-the parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
+the astrometric parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset of $0.029$\,mas to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The Training Sets are shown in \figurename~\ref{fig:training}.
 \begin{figure}
-\caption{A visualization of the Training Set stars.\label{fig:training}}
+\caption{A visualization of the Training Set stars. The left panel shows
+  same color--color diagram as in \figurename~\ref{fig:parent}, but for
+  the Training Set only. Note [HOGG SOME DIFFERENCES]. The right panel
+  shows HOGG WHAT?\label{fig:training}}
 \end{figure}
 
 For every star $n$ in the full Parent Sample we construct the feature
@@ -549,7 +552,7 @@ $f_{1n}$, $f_{2n}$, and so on,
 and we have taken logarithms of those fluxes.
 These feature vectors live in a $D$-dimensional space where $D=7414$
 For every star $n$ in either of the Training Sets we additionally require---in
-addition to these feature vectors---a \gaia-measured parallax $\gparallax_n$
+addition to these feature vectors---a \gaia-measured astrometric parallax $\gparallax_n$
 and uncertainty $\sigma_n$.
 
 \section{Results and validation}
