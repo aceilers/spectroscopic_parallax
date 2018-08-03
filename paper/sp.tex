@@ -574,10 +574,21 @@ A and Parent Sample B, using the A-trained model on Parent Sample B and
 \foreign{vice versa}.
 For the purposes of assessing the accuracy and precision of the model, this
 train-and-test framework constitutes a two-fold cross-validation.
-Results of this cross-validation is shown in HOGG WHAT FIGURE.
+Results of this cross-validation is shown in \figurename~\ref{fig:xval}.
 For the stars with highest \gaia-measured parallax signal-to-noise,
 the spectrophotometric model is predicting the \gaia\ parallaxes with little bias
 and a scatter of better than 9~percent.
+\begin{figure}
+\caption{The predictive accuracy of the model, in the two-fold cross-validation.
+  Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the vertical axis
+  and our spectrophotometric parallaxes $\sparallax$ on the horizontal axis.
+  The left panel shows the full Parent Sample, the middle panel shows the Training Set
+  stars (which pass \gaia\ quality checks; see text), and the right panel shows a
+  subset of stars with very high astrometric parallax signal-to-noise. This latter
+  set plays no particular role in the method, but it can be used to demonstrate or
+  assess the prediction precision. Fractional precision of the prediction
+  is XXXX HOGG MEASURED HOW?\label{fig:xval}}
+\end{figure}
 
 We used this cross-validation framework to adjust the regularization parameters.
 We (arbitrarily) chose zero regularization on the photometric components of the
