@@ -5,7 +5,6 @@
 % -----------
 % - draft discussion
 % - make sure we address the sensibleness and generality of the linear model for the photometric space
-% - address the non-convexity of the model (see twitter convo with @andy_l_jones). Plus optimization issues.
 % - Coryn's point that we should carefully explain how our model is geometric.
 % - related: HWR's point that this is standardizeable candles, like the Ia SNe results.
 % - related: Put in an explanation of WHY this works so well.
@@ -408,6 +407,18 @@ model to be sparse.
 We set the value of $\lambda$ by a 
 very coarse cross-validation.
 
+This optimization is not convex---there are multiple optima in general.
+In particular, there is a large, degenerate, pathological optimum where
+the exponential function underflows, all parallaxes are predicted to vanish,
+and there is no gradient of anything with respect to the parameter $D$-vector $\theta$.
+This large, bad optimum (it is a local, not global, optimum) must be avoided in optimization.
+In practice we avoid it by optimizing first for the very highest signal-to-noise
+(in astrometric parallax) Training Set stars, and then use that first optimum as a
+good first guess or initialization for the full optimization.
+This method works because in the limit of high signal-to-noise, the problem asymptotically approaches
+the convex problem of L1-regularized linear least-square fitting.
+Optimization is performed with \code{scipy.optimize} \acronym{L-BFGS-B}.
+
 Once the model is optimized, the output of the model is a prediction of the parallax,
 or really what we will call the \emph{spectrophotometric parallax}.
 This spectrophotometric parallax
@@ -558,12 +569,6 @@ and uncertainty $\sigma_n$.
 \section{Results and validation}
 
 We optimize two models, one for Training Set A and one for Training Set B.
-For optimization, we use \code{scipy.optimize} \acronym{L-BFGS-B}, starting at
-an uninformed starting point in the $\theta$ space.
-The optimization is of the objective function given in \equationname~(\ref{eq:objective}) above,
-and although this optimization is not convex, it appears to converge to the
-same good solution quickly and reliably from multiple different starting points.
-
 The two models are applied to the two splits of the Parent Sample, Parent Sample
 A and Parent Sample B, using the A-trained model on Parent Sample B and
 \foreign{vice versa}.
