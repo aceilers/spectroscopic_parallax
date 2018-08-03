@@ -49,6 +49,8 @@
 \newcommand{\T}{^{\mathsf{T}}}
 \DeclareMathOperator*{\argmin}{argmin}
 \newcommand{\logg}{\log g}
+\newcommand{\BP}{B\!P}
+\newcommand{\RP}{R\!P}
 \newcommand{\gparallax}{\varpi^{(\mathrm{a})}}
 \newcommand{\sparallax}{\varpi^{(\mathrm{sp})}}
 
@@ -268,7 +270,7 @@ to address the costs and benefits of each in more depth.
 \item[features] Perhaps our most fundamental assumption is that the parallax
 of a star can be predicted from the features we provide, which are
 the full set of (pseudo-continuum-normalized) pixels from the \apogee\ spectrum,
-plus the $G$ and $({BP}-{RP})$ photometry from \gaia,
+plus the $G$ and $(\BP-\RP)$ photometry from \gaia,
 plus the $J$, $H$, and $K_s$ photometry from \zmass (\citealt{zmass}),
 plus the $W_1$ and $W_2$ photometry from \wise.
 That is, we assume that these spectrophotometric \emph{features} are sufficient
@@ -482,14 +484,14 @@ We match this full-match catalog to the \gaia\ \acronym{DR2} (HOGG CITE)
 using the \gaia\ Archive official match (given the \zmass\ IDs).
 We take from the \gaia\ \acronym{DR2} Catalog the photometric data
 $G_n$ (\code{phot_g_mean_mag}),
-${BP}_n$ (\code{phot_bp_mean_mag}),
-and ${RP}_n$ (\code{phot_rp_mean_mag}),
+$\BP_n$ (\code{phot_bp_mean_mag}),
+and $\RP_n$ (\code{phot_rp_mean_mag}),
 which will become part of the feature vector $x_n$.
 
 We need complete feature-vector information for all stars.  For this
 reason, we define the Parent Sample to be the set of all stars that
 meet the \apogee\ and \gaia\ cuts and also
-have the complete set of photometry: $G_n$, ${BP}_n$, ${RP}_n$, $J_n$,
+have the complete set of photometry: $G_n$, $\BP_n$, $\RP_n$, $J_n$,
 $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
 This Parent Sample contains ACE HOW MANY STARS? and is shown in HOGG WHAT FIGURES?
 
@@ -526,7 +528,7 @@ The training sets are shown in HOGG WHAT FIGURES?
 For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
 \begin{eqnarray}
-x_n\T &\equiv& [1, G_n, {BP}_n, {RP}_n, J_n, H_n, K_n, W_{1n}, W_{2n}, \ln f_{1n}, \ln f_{2n}, \cdots, \ln f_{Ln}]
+x_n\T &\equiv& [1, G_n, \BP_n, \RP_n, J_n, H_n, K_n, W_{1n}, W_{2n}, \ln f_{1n}, \ln f_{2n}, \cdots, \ln f_{Ln}]
 \quad ,
 \end{eqnarray}
 where the 1 permits a linear offset,
