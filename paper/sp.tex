@@ -493,7 +493,14 @@ reason, we define the Parent Sample to be the set of all stars that
 meet the \apogee\ and \gaia\ cuts and also
 have the complete set of photometry: $G_n$, $\BP_n$, $\RP_n$, $J_n$,
 $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an apogee spectrum.
-This Parent Sample contains ACE HOW MANY STARS? and is shown in HOGG WHAT FIGURES?
+This Parent Sample contains ACE HOW MANY STARS? and is shown in \figurename~\ref{fig:parent}.
+\begin{figure}
+\caption{A visualization of the Parent Sample stars. The left panel
+  shows all XXXX stars in the combined Parent Sample, colored by
+  the \apogee\ pipeline estimates of surface gravity. The right
+  panel shows small spectral segments of four example stars,
+  chosen to span metallicity and surface gravity.\label{fig:parent}}
+\end{figure}
 
 Every Parent-Sample star gets, in addition, a randomly assigned binary
 label (A or B).
@@ -523,7 +530,10 @@ the parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset of $0.029$\,mas to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
-The training sets are shown in HOGG WHAT FIGURES?
+The Training Sets are shown in \figurename~\ref{fig:training}.
+\begin{figure}
+\caption{A visualization of the Training Set stars.\label{fig:training}}
+\end{figure}
 
 For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
