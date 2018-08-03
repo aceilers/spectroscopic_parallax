@@ -71,7 +71,7 @@ N = len(labels) # 33044 stars!
 
 N_sample = 256
 np.random.seed(42)
-mean_XS_cart_n = np.zeros((N, 6))
+'''mean_XS_cart_n = np.zeros((N, 6))
 var_XS_cart_n = np.zeros((N, 3, 3))
 mean_XS_cyl_n = np.zeros((N, 6))
 var_XS_cyl_n = np.zeros((N, 3, 3))
@@ -93,7 +93,7 @@ for i in range(N):
     
     pmras = np.random.normal(labels['pmra'][i], scale = labels['pmra_error'][i], size = N_sample)
     pmdecs = np.random.normal(labels['pmdec'][i], scale = labels['pmdec_error'][i], size = N_sample)
-    vrs = np.random.normal(labels['VHELIO_AVG'][i], scale = np.sqrt(floor_rv**2 + labels['radial_velocity_error'][i]**2), size = N_sample)
+    vrs = np.random.normal(labels['VHELIO_AVG'][i], scale = np.sqrt(floor_rv**2), size = N_sample)
                              
     # -------------------------------------------------------------------------------
     # calculate cartesian coordinates
@@ -217,7 +217,7 @@ def overplot_ring_helio(r):
     thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
     xs = r * np.cos(thetas) - X_GC_sun_kpc
     ys = r * np.sin(thetas)
-    plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = -np.inf)
+    plt.plot(xs, ys, "k", alpha=0.2, lw=.8, linestyle = ':', zorder = np.inf)
     # plt.scatter(-X_GC_sun_kpc, 0, s = 10, color = 'k', alpha=0.2)
     return
 
@@ -233,17 +233,6 @@ def overplot_rings_helio():
 
 Xlimits = [[-30, 10], [-10, 30], [-20, 20], 
            [-200, 200], [-200, 200], [-200, 200]]
-
-# plot [FE/H] vs. radius
-cut_z = abs(mean_XS_cart_n[:, 2]) < 0.5
-fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
-plt.scatter(mean_XS_cyl_n[cut_z, 0], labels['FE_H'][cut_z], s = 5, alpha = 0.5)
-plt.ylim(-1.9, 1)
-plt.xlim(0, 30)
-plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
-plt.ylabel('[Fe/H]', fontsize = fsize)
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
 # divide Milky Way into (x, y, z) patches
@@ -281,71 +270,48 @@ for i, box_center_x in enumerate(all_x):
 # divide Milky Way into annuli of size dr
 # -------------------------------------------------------------------------------   
 
-# rotate phi component by 180 degrees (should be done above)
+# rotate phi component by 180 degrees (to avoid break in wedge)
 XS_cyl_true_n[:, 1] = XS_cyl_true_n[:, 1] - np.pi 
 XS_cyl_true_n[:, 1][XS_cyl_true_n[:, 1] < -np.pi] += 2. * np.pi
 
 # calculate annuli only in 30 degree wedge!  
 deg_wedge = 30.
 wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
+cut_z = abs(mean_XS_cyl_n[:, 2]) < 0.5
 
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
-overplot_rings()
-cm = plt.cm.get_cmap('viridis')
-plt.scatter(XS_cart_true_n[~wedge, 0], XS_cart_true_n[~wedge, 1], c = '#929591', s = 20, alpha = .3) 
-sc = plt.scatter(XS_cart_true_n[wedge, 0], XS_cart_true_n[wedge, 1], c = XS_cyl_true_n[wedge, 1], s=20, vmin = -np.pi, vmax = np.pi, cmap=cm, alpha = .8)
-cbar = plt.colorbar(sc, shrink = .85)
-plt.xlim(Xlimits[0])
-plt.ylim(Xlimits[1])
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = fsize)
-plt.ylabel('$y$', fontsize = fsize)
-ax.set_aspect('equal')  
-plt.savefig('plots/rotation/rotate_phi_wegde_{0}.pdf'.format(name), bbox_inches = 'tight')
-plt.close()  
+## just for confirmation
+#fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+#overplot_rings()
+#cm = plt.cm.get_cmap('viridis')
+#plt.scatter(XS_cart_true_n[~wedge*cut_z, 0], XS_cart_true_n[~wedge*cut_z, 1], c = '#929591', s = 20, alpha = .3) 
+#sc = plt.scatter(XS_cart_true_n[wedge*cut_z, 0], XS_cart_true_n[wedge*cut_z, 1], c = XS_cyl_true_n[wedge*cut_z, 1], s=20, vmin = -np.pi, vmax = np.pi, cmap=cm, alpha = .8)
+#cbar = plt.colorbar(sc, shrink = .85)
+#plt.xlim(Xlimits[0])
+#plt.ylim(Xlimits[1])
+#plt.tick_params(axis=u'both', direction='in', which='both')
+#plt.xlabel('$x$', fontsize = fsize)
+#plt.ylabel('$y$', fontsize = fsize)
+#ax.set_aspect('equal')  
+#plt.savefig('plots/rotation/rotate_phi_wegde_{0}.pdf'.format(name), bbox_inches = 'tight')
+#plt.close()  
 
-#dz = 1000. # pc
-#dr = 1. # kpc
-#bins_dr = np.arange(0, 40.01, dr/1.)
-#N_stars_annulus = np.zeros_like(bins_dr)
-#mean_XS_cyl_annulus = np.zeros((len(bins_dr), 6)) - np.inf
-##mean_XS_cart_annulus = np.zeros((len(bins_dr), 6)) - np.inf
-#var_XS_cyl_annulus = np.zeros((len(bins_dr), 3, 3)) - np.inf
-#error_var_XS_cyl_annulus = np.zeros((len(bins_dr), 3, 3)) - np.inf
-#vvT_cyl_annulus = np.zeros((len(bins_dr), 3, 3)) - np.inf
-#
-#for i, r_center in enumerate(bins_dr):
-#    cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (abs(mean_XS_cyl_n[:, 0] - r_center) < dr/2.)
-#    N_stars_annulus[i] = np.sum(cut_annulus)
-#    #print(i, N_stars_annulus[i])
-#    if N_stars_annulus[i] > 0:
-#        mean_XS_cyl_annulus[i, :] = np.nanmean(mean_XS_cyl_n[cut_annulus], axis = 0)
-##        mean_XS_cart_annulus[i, :] = np.nanmean(mean_XS_cart_n[cut_annulus], axis = 0)
-##    if N_stars_annulus[i] > 7:
-##        dXS = mean_XS_cyl_n[cut_annulus] - mean_XS_cyl_annulus[i, :][None, :]
-##        var_XS_cyl_annulus[i, :, :] = np.dot(dXS[:, 3:].T, dXS[:, 3:]) / (N_stars_annulus[i] - 1.)
-#        error_var_XS_cyl_annulus[i, :, :] = np.nanmean(var_XS_cyl_n[cut_annulus], axis=0)
-#        vvT_cyl_annulus[i, :, :] = np.dot(XS_cyl_true_n[cut_annulus, 3:].T, XS_cyl_true_n[cut_annulus, 3:]) / (N_stars_annulus[i] - 1.)
-
-dz = 1000. # pc
-dr = 1. # kpc
+dz = 1. # kpc
 bins_start = np.array([0.])
 bins_end = np.array([40.])
 
 cut_z_wedge = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.)
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
-stars_per_bin = 128
+stars_per_bin = 32
 bin_start = 0.5 * (foo[::stars_per_bin] + bar[::stars_per_bin])
 bin_end = bin_start[1:]
 bin_start = bin_start[:-1]
 
 N_stars_annulus = np.zeros_like(bin_start)
 mean_XS_cyl_annulus = np.zeros((len(bin_start), 6)) - np.inf
-#mean_XS_cart_annulus = np.zeros((len(bins_dr), 6)) - np.inf
-var_XS_cyl_annulus = np.zeros((len(bin_start), 3, 3)) - np.inf
 error_var_XS_cyl_annulus = np.zeros((len(bin_start), 3, 3)) - np.inf
 vvT_cyl_annulus = np.zeros((len(bin_start), 3, 3)) - np.inf
+mean_feh_annulus = np.zeros_like(bin_start)
 
 for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
     cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
@@ -353,92 +319,35 @@ for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
     if N_stars_annulus[i] > 0:
         mean_XS_cyl_annulus[i, :] = np.nanmean(mean_XS_cyl_n[cut_annulus], axis = 0)
         error_var_XS_cyl_annulus[i, :, :] = np.nanmean(var_XS_cyl_n[cut_annulus], axis=0)
-        vvT_cyl_annulus[i, :, :] = np.dot(XS_cyl_true_n[cut_annulus, 3:].T, XS_cyl_true_n[cut_annulus, 3:]) / (N_stars_annulus[i] - 1.)
-
- 
+        vvT_cyl_annulus[i, :, :] = np.dot(XS_cyl_true_n[cut_annulus, 3:].T, XS_cyl_true_n[cut_annulus, 3:]) / (N_stars_annulus[i])
+        cut_feh = labels['FE_H'] > -100
+        mean_feh_annulus[i] = np.nanmean(labels['FE_H'][cut_annulus * cut_feh])
+        
 # -------------------------------------------------------------------------------
-# calculate rotational velocity via Jeans equation
+# calculate rotational velocity via Jeans equation (in patches)
 # -------------------------------------------------------------------------------        
 
-vtilde = np.clip(vvT_cyl - error_var_XS_cyl, 0., np.Inf)
-dlnrho_dlnR = (-mean_XS_cyl[:, :, 0]) / 3.
-dlnvR2_dlnR = (-mean_XS_cyl[:, :, 0]) / 15. 
-HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
-vc = np.sqrt(vtilde[:, :, 1, 1] - HWRnumber * vtilde[:, :, 0, 0])
+rho_R_exp = 3. # kpc
+vrr_R_exp = 15. # kpc
 
-## estimate dlnvR2/dlnR
-#cut_name = '_allFEH'
-deg_wedge = 10.
-wedge10 = (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
-fig, ax = plt.subplots(1, 1, figsize = (8, 7))        
-plt.scatter(np.log((mean_XS_cyl[wedge10, 0].flatten())), np.log(vtilde[wedge10, 0, 0].flatten() ** 2), s = 10, alpha = .5)
-plt.xlabel(r'$\rm ln\, R$', fontsize = fsize)
-plt.ylabel(r'$\rm ln\, v_{rr}^2$', fontsize = fsize)
-plt.ylim(-5, 10)
-plt.xlim(np.log(5), np.log(25))
-plt.axvline(np.log(14), linestyle = '--', color = '#929591')
-#plt.plot((np.log(14), np.log(25)), (3, 3+3*(np.log(25) - np.log(14))), color = 'r', lw = 2, label = r'$m = 3$')
-#plt.plot((np.log(14), np.log(25)), (3, 3+4*(np.log(25) - np.log(14))), color = 'g', lw = 2, label = r'$m = 4$')
-#plt.plot((np.log(14), np.log(25)), (3, 3+5*(np.log(25) - np.log(14))), color = 'b', lw = 2, label = r'$m = 5$')
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.legend(fontsize  = 14)
-plt.savefig('plots/rotation/vrr_wegde10_{0}.pdf'.format(name), bbox_inches = 'tight')
-plt.close()    
+# velocity tensor!
+vtilde = np.clip(vvT_cyl - error_var_XS_cyl, 0., np.Inf)
+dlnrho_dlnR = (-mean_XS_cyl[:, :, 0]) / rho_R_exp
+dlnvR2_dlnR = (-mean_XS_cyl[:, :, 0]) / vrr_R_exp
+HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
+vc = np.sqrt(vtilde[:, :, 1, 1] - HWRnumber * vtilde[:, :, 0, 0])  
          
 # -------------------------------------------------------------------------------
 # maps (x,y) for patches!
 # -------------------------------------------------------------------------------        
 
-
-# plot [FE/H] vs. radius
+# 30 degree wedge
 deg_wedge = 30.
-wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
-cut_feh = labels['FE_H'] > -100
-cut_z_wedge = wedge * (abs(XS_cyl_true_n[:, 2]) < dz/2.) * cut_feh
-fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
-plt.scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge]['FE_H'], s = 5, alpha = 0.5)
-plt.ylim(-1.9, 1)
-plt.xlim(0, 30)
-plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
-plt.ylabel('[Fe/H]', fontsize = fsize)
-plt.tick_params(axis=u'both', direction='in', which='both')
-#plt.savefig('plots/rotation/FEH_RGC_{}.pdf'.format(name), bbox_inches = 'tight')
-
-traceC = np.trace(error_var_XS_cyl, axis1=2, axis2=3)
-traceVtilde = np.trace(vtilde, axis1=2, axis2=3)
+wedge = (mean_XS_cart[:, :, 0] <= 0) * (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
-cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = traceC.flatten(), vmin = 0, vmax = 2000, s=20, cmap=cm, alpha = .8)
-cbar = plt.colorbar(sc, shrink = .85)
-cbar.set_label(r'$\rm tr(C)$', rotation=270, fontsize=14, labelpad=15)
-plt.xlim(Xlimits[0])
-plt.ylim(Xlimits[1])
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = fsize)
-plt.ylabel('$y$', fontsize = fsize)
-ax.set_aspect('equal')
-plt.savefig('plots/rotation/traceC_{}.pdf'.format(name), bbox_inches = 'tight')
-plt.close()
-
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
-overplot_rings()
-cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = traceVtilde.flatten(), vmin = 0, vmax = 100000, s=20, cmap=cm, alpha = .8)
-cbar = plt.colorbar(sc, shrink = .85)
-cbar.set_label(r'$\rm tr(\tilde V)$', rotation=270, fontsize=14, labelpad=15)
-plt.xlim(Xlimits[0])
-plt.ylim(Xlimits[1])
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = fsize)
-plt.ylabel('$y$', fontsize = fsize)
-ax.set_aspect('equal')
-plt.savefig('plots/rotation/traceVtilde_{}.pdf'.format(name), bbox_inches = 'tight')
-plt.close()
-
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
-overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 0, 0].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
@@ -449,11 +358,12 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/Vtilde_rr_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vrvr_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 1, 1].flatten(), vmin = 0, vmax = 100000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
@@ -464,11 +374,12 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/Vtilde_pp_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vpvp_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 2, 2].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
@@ -479,11 +390,12 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/Vtilde_zz_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vzvz_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vc.flatten(), vmin = 100, vmax = 300, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
@@ -494,16 +406,64 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/vc_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vc_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
-# 30 degree wedge
-deg_wedge = 30.
-wedge = (mean_XS_cart[:, :, 0] <= 0) * (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
-
-# plot wedge only
+# plots for wedge only
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
+cm = plt.cm.get_cmap('viridis')
+sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 0, 0].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
+cbar = plt.colorbar(sc, shrink = .85)
+cbar.set_label(r'$\overline{v^2_{rr}}$', rotation=270, fontsize=14, labelpad=30)
+plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation_curve/vrvr_wedge_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+overplot_rings()
+overplot_rings_helio()
+cm = plt.cm.get_cmap('viridis')
+sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 1, 1].flatten(), vmin = 0, vmax = 100000, s=20, cmap=cm, alpha = .8)
+cbar = plt.colorbar(sc, shrink = .85)
+cbar.set_label(r'$\overline{v^2_{\varphi\varphi}}$', rotation=270, fontsize=14, labelpad=30)
+plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation_curve/vpvp_wedge_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+overplot_rings()
+overplot_rings_helio()
+cm = plt.cm.get_cmap('viridis')
+sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 2, 2].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
+cbar = plt.colorbar(sc, shrink = .85)
+cbar.set_label(r'$\overline{v^2_{zz}}$', rotation=270, fontsize=14, labelpad=30)
+plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation_curve/vzvz_wedge_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vc[wedge].flatten(), vmin = 100, vmax = 300, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
@@ -515,17 +475,18 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/vc_wegde_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vc_wegde_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
+# off-diagonal velocity tensor components
 r_rp = vtilde[:, :, 0, 1] / np.sqrt(vtilde[:, :, 0, 0] * vtilde[:, :, 1, 1])
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_rp.flatten(), vmin = 0., vmax = 0.5, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-#plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) #np.ones_like(mean_XS_cart[~wedge, 1].flatten()) * 0.5)
 cbar.set_label(r'$\tilde{v}_{r\varphi}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
@@ -533,15 +494,15 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/vrvp_xy_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vrvp_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 0, 2].flatten(), vmin = 0., vmax = 300, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-#plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) #np.ones_like(mean_XS_cart[~wedge, 1].flatten()) * 0.5)
 cbar.set_label(r'$\tilde{v}_{rz}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
@@ -549,15 +510,15 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/vrvz_xy_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vrvz_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
+overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 1, 2].flatten(), vmin = 0., vmax = 3000, s=20, cmap=cm)
+sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 1, 2].flatten(), vmin = 0., vmax = 3000, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) #np.ones_like(mean_XS_cart[~wedge, 1].flatten()) * 0.5)
 cbar.set_label(r'$\tilde{v}_{\varphi z}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
@@ -565,7 +526,7 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/vpvz_xy_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vpvz_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))        
@@ -578,10 +539,13 @@ plt.axhline(220, linestyle = '--', color = '#929591')
 plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$v_c\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.tick_params(axis=u'both', direction='in', which='both')
-plt.savefig('plots/rotation/vc_R_wegde_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vc_R_patches_wegde_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
-# plot with arrows!
+# -------------------------------------------------------------------------------
+# plots with arrows!
+# -------------------------------------------------------------------------------
+
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
         np.clip(mean_HW2.flatten(), 0, 1.5), cmap = 'RdYlBu_r', scale_units='xy', \
@@ -595,7 +559,7 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/xy_arrow_averaged_{}_HW2.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/xy_arrow_averaged_{}_HW2.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
@@ -611,17 +575,17 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/xy_arrow_averaged_{}_feh.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/xy_arrow_averaged_{}_feh.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 # plot with arrows!
-mu_par = mean_sigma_mu / mean_sigma_par
+mu_par = np.clip(mean_sigma_mu, 0, 10) / np.clip(mean_sigma_par, 1e-3, 0.2)
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
-        np.clip(mean_sigma_mu.flatten(), 0, 2), cmap = 'RdYlBu_r', scale_units='xy', \
+        np.clip(mu_par.flatten(), 0, 20), cmap = 'RdYlBu_r', scale_units='xy', \
            scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
 cb = plt.colorbar(shrink = .85)
-cb.set_label(r'$\sigma_{\mu}$', fontsize = 15)
+cb.set_label(r'$\sigma_{\mu}/\sigma^{\rm (sp)}_{\varpi}$', fontsize = 15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 overplot_rings()
@@ -629,156 +593,142 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('plots/rotation/xy_arrow_averaged_{}_sigma_mu.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/xy_arrow_averaged_{}_sigma_mu_par.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
 # -------------------------------------------------------------------------------
-# new plots vs. R_GC (in radial bins and individual stars)
+# maps of metallicty, etc.
 # -------------------------------------------------------------------------------        
 
+# plot [FE/H] vs. radius (for annuli and individual stars)
+print('abundances...')
+deg_wedge = 30.
+wedge_n = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
+elements = ['FE_H', 'ALPHA_M', 'M_H', 'C_FE', 'CI_FE', 'N_FE', 'O_FE', 'NA_FE', 'MG_FE', 'TI_FE', 'S_FE', 'SI_FE', 'P_FE', 'K_FE', 'CA_FE', 'TIII_FE', 'V_FE', 'CR_FE', 'CO_FE', 'NI_FE', 'CU_FE', 'GE_FE', 'RB_FE', 'Y_FE', 'ND_FE', 'MN_FE', 'AL_FE']
+for el in list(elements):
+    cut_el = labels[el] > -100
+    cut_z_wedge = wedge_n * (abs(XS_cyl_true_n[:, 2]) < dz/2.) * cut_el
+    fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
+    plt.scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge][el], s = 5, alpha = 0.5, rasterized = True)
+    plt.ylim(-1, 1)
+    plt.xlim(0, 30)
+    plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+    plt.ylabel('{}'.format(el), fontsize = fsize)
+    plt.tick_params(axis=u'both', direction='in', which='both')
+    plt.savefig('plots/rotation_curve/abundances/{0}_vs_R_{1}.pdf'.format(el, name), bbox_inches = 'tight', dpi = 200)
+    plt.close()
+    
+    mean_el_annulus = np.zeros_like(bin_start)
+    for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
+        cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+        if N_stars_annulus[i] > 0:
+            cut_el = labels[el] > -100
+            mean_el_annulus[i] = np.nanmean(labels[el][cut_annulus * cut_el])
+    
+    fig, ax = plt.subplots(1, 1, figsize = (8, 6))        
+    plt.scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 5, alpha = 0.5, rasterized = True)
+    plt.ylim(-.75, .5)
+    plt.xlim(0, 30)
+    plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+    plt.ylabel('{}'.format(el), fontsize = fsize)
+    plt.tick_params(axis=u'both', direction='in', which='both')
+    plt.savefig('plots/rotation_curve/abundances/{2}_vs_R_annulus_{0}_{1}.pdf'.format(stars_per_bin, name, el), bbox_inches = 'tight', dpi = 200)
+    plt.close()
+
+# -------------------------------------------------------------------------------
+# radial profiles (in radial bins and individual stars)
+# -------------------------------------------------------------------------------        
+
+# calculate Jeans equation in annuli
 vtilde_annulus = vvT_cyl_annulus - error_var_XS_cyl_annulus
 for i in range(3):
     vtilde_annulus[:, i, i] = np.clip(vtilde_annulus[:, i, i], 0., np.inf)
-dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / 4.
-dlnvR2_dlnR = (-mean_XS_cyl_annulus[:, 0]) / 15.
+dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / rho_R_exp
+dlnvR2_dlnR = (-mean_XS_cyl_annulus[:, 0]) / vrr_R_exp
 HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
 vc_annulus = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0])
 
+
 bins_dr = mean_XS_cyl_annulus[:, 0]
+idx5 = sum(bins_dr < 5)
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vc_annulus)
+plt.scatter(bins_dr[:idx5], vc_annulus[:idx5], facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], vc_annulus[idx5:], facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$v_c\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(0, 300)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vc_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vc_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
-#fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-#plt.scatter(bins_dr, vc)
-#plt.tick_params(axis=u'both', direction='in', which='both')
-#plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-#plt.ylabel(r'$v_c\,\rm [km\,s^{-1}]$', fontsize = fsize)
-#plt.ylim(0, 300)
-#plt.xlim(0, 37)
-#plt.savefig('plots/rotation/vc_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
-#plt.close()
-
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 0, 0])
+plt.scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 0, 0]), facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 0, 0]), facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$\overline{v^2_{rr}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.ylabel(r'$\overline{v_{rr}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(0, 4000)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vRvR_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
+plt.savefig('plots/rotation_curve/vrvr_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 1, 1])
+plt.scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 1, 1]), facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$\overline{v^2_{\varphi\varphi}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.ylabel(r'$\overline{v_{\varphi\varphi}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(0, 60000)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vpvp_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
+plt.savefig('plots/rotation_curve/vpvp_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 2, 2])
+plt.scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 2, 2]), facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 2, 2]), facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$\overline{v^2_{zz}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.ylabel(r'$\overline{v_{zz}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(0, 4000)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vzvz_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
+plt.savefig('plots/rotation_curve/vzvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 0, 1])
+plt.scatter(bins_dr[:idx5], vtilde_annulus[:idx5, 0, 1], facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], vtilde_annulus[idx5:, 0, 1], facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v^2_{r\varphi}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(-4000, 4000)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vrvp_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vrvp_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 0, 2])
+plt.scatter(bins_dr[:idx5], vtilde_annulus[:idx5, 0, 2], facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], vtilde_annulus[idx5:, 0, 2], facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v^2_{rz}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(-500, 500)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vrvz_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vrvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-plt.scatter(bins_dr, vtilde_annulus[:, 1, 2])
+plt.scatter(bins_dr[:idx5], vtilde_annulus[:idx5, 1, 2], facecolors='none', edgecolors='b')
+plt.scatter(bins_dr[idx5:], vtilde_annulus[idx5:, 1, 2], facecolors='b', edgecolors='b')
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v^2_{\varphi z}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
 plt.ylim(-4000, 4000)
 plt.xlim(0, 37)
-plt.savefig('plots/rotation/vpvz_R_annuli_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.savefig('plots/rotation_curve/vpvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
-        
-# -------------------------------------------------------------------------------
-# old plots
-# -------------------------------------------------------------------------------        
-
-fig, ax = plt.subplots(1, 1, figsize = (8, 7))        
-sc = plt.scatter(mean_XS_cyl[:, :, 0].flatten(), vc.flatten(), c = (mean_XS_cyl[:, :, 1].flatten() + .5) % 2*np.pi, s = 10, cmap = 'viridis_r')
-cbar = plt.colorbar(sc)
-cbar.set_label(r'$\varphi + 0.5$', rotation=270, fontsize=14, labelpad=15)
-plt.ylim(0, 400)
-plt.xlim(0, 30)
-plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$v_c\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.savefig('plots/rotation/vc_R_{}.pdf'.format(name), bbox_inches = 'tight')
-
-def AB(coeff, R, feh):
-    a0, a1, a2 = coeff
-    # expect a0 ~ 1.5
-    return a0 + a1 * (R - 5.) + a2 * feh
-
-# make this plot for every star, rather than ensembles!
-fig, ax = plt.subplots(1, 1, figsize = (8, 7))        
-sc = plt.scatter(mean_XS_cyl[wedge, 0].flatten(), vc[wedge].flatten(), c = (mean_XS_cyl[wedge, 1].flatten() + .5) % 2*np.pi, s = 10, cmap = 'viridis_r')
-cbar = plt.colorbar(sc)
-cbar.set_label(r'$\varphi + 0.5$', rotation=270, fontsize=14, labelpad=15)
-plt.ylim(50, 250)
-plt.xlim(0, 30)
-plt.axhline(220, linestyle = '--', color = '#929591')
-plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$v_c\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.savefig('plots/rotation/vc_R_wegde_{}_allFEH.pdf'.format(name), bbox_inches = 'tight')
-
-# derivatives: dln(v_r^2)/dlnR
-#for k, cut_name in enumerate(cut_names):
-cut_name = 'allFEH'
-deg_wedge = 10.
-wedge = (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
-fig, ax = plt.subplots(1, 1, figsize = (8, 7))        
-#plt.scatter(np.log((mean_XS_cyl[wedge, 0].flatten())), np.log(mean_XS_cyl[wedge, 3].flatten() ** 2), s = 10, alpha = .5)
-plt.scatter(np.log((mean_XS_cyl[wedge, 0].flatten())), np.log(vtilde[wedge, 0, 0].flatten() ** 2), s = 10, alpha = .5)
-plt.xlabel(r'$\rm ln\, R$', fontsize = fsize)
-plt.ylabel(r'$\rm ln\, v_R^2$', fontsize = fsize)
-#plt.xscale('log')
-#plt.yscale('log')
-plt.ylim(-5, 10)
-plt.xlim(np.log(5), np.log(25))
-plt.axvline(np.log(14), linestyle = '--', color = '#929591')
-plt.plot((np.log(14), np.log(25)), (3, 3+3*(np.log(25) - np.log(14))), color = 'r', lw = 2, label = r'$m = 3$')
-plt.plot((np.log(14), np.log(25)), (3, 3+4*(np.log(25) - np.log(14))), color = 'g', lw = 2, label = r'$m = 4$')
-plt.plot((np.log(14), np.log(25)), (3, 3+5*(np.log(25) - np.log(14))), color = 'b', lw = 2, label = r'$m = 5$')
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.legend(fontsize  = 14)
-plt.savefig('plots/rotation/vR2_R_wegde_{0}_{1}.pdf'.format(name, cut_name), bbox_inches = 'tight')
-plt.close()    
 
 # -------------------------------------------------------------------------------'''
