@@ -607,13 +607,19 @@ However this estimate is not so conservative in that the test is performed with
 (because of these things) near Solar metallicity.
 There could in principle be additional bias or scatter for stars that are in dustier
 regions or at lower metallicities.
-\figurename~HOGG WHAT FIGURE shows that
+\figurename~\ref{fig:residuals} shows that
 there is no suggestion of any such trends when we color the residuals by metallicity
 or $H-W_2$ color (which is a reddening proxy).
+\begin{figure}
+\caption{Prediction residuals colored by relevant features.
+  Each panel shows the prediction residuals (\gaia\ astrometric parallax minus
+  spectrophotometric parallax $\gparallax_n-\sparallax_n$) colored by a different
+  data feature that might be relevant to the residual.\label{fig:residuals}}
+\end{figure}
 
 Another validation of the results can be obtained by looking at known
 clusters or spatially compact objects in the data.
-In HOGG WHAT FIGURE, we show the parallax distribution from \gaia\ and
+In \figurename~\ref{fig:clusters}, we show the parallax distribution from \gaia\ and
 the spectrophotometric-parallax distribution from this work for stars in
 angular proximity to known stellar clusters and the Sagittarius dwarf
 galaxy.
@@ -622,6 +628,12 @@ the accuracy of the method for different kinds of populations.
 They show that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
 for these clusters and the range in abundances and ages they represent.
 HOGG: DO WE NEED TO ADDRESS whether why not these clusters show 9-percent spreads?
+\begin{figure}
+\caption{The histograms of \gaia\ astrometric parallaxes $\gparallax_n$
+  and spectrophotometric parallaxes $\sparallax_n$ for stars in angular proximity
+  to various stellar clusters in the \apogee\ observing footprint. In each panel,
+  the expected parallax of the cluster is shown as a vertical line.\label{fig:clusters}}
+\end{figure}
 
 The linear model we use has a big limitation: Linear models are inflexible.
 However, it has a great advantage over more general methods,
@@ -640,7 +652,11 @@ SAY SOMETHING ABOUT IT. HOGG: Maybe plot this synthetic photometry against dust
 and metallicity.
 
 HOGG: Similarly, the spectral part of the model should also be
-interpretable. HOGG SHOW FIGURE THAT DEMONSTRATES THIS, qualitatively.
+interpretable. HOGG DESCRIBE \figurename~\ref{fig:spectral} THAT
+DEMONSTRATES THIS, qualitatively.
+\begin{figure}
+\caption{The coefficients of the spectral part of the linear model.\label{fig:spectral}}
+\end{figure}
 
 HOGG: How to get the data and how to use it, probabilistically.
 
@@ -663,9 +679,13 @@ Okay pseudo-continuum normalization!)
 
 What is this useful for and how do you use them safely?
 HOGG: Show a map of the kinematic rotation of the Galaxy as a function of
-x and y, colored by metallicity.
+x and y, colored by metallicity in \figurename~\ref{fig:disk}.
 We see the kinematic center of the Galaxy! We see the rotation curve.
 We see the chemical gradients.
+\begin{figure}
+\caption{A map of the kinematics and element abundances in the Milky Way disk.
+  This map shows HOGG SOMETHING.\label{fig:disk}}
+\end{figure}
 
 How do you build a proper probabilistic model using these? How is the answer to that
 related to the answer for \gaia\ itself?
