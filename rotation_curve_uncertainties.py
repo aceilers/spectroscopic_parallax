@@ -236,7 +236,11 @@ Xlimits = [[-30, 10], [-10, 30], [-20, 20],
 
 # -------------------------------------------------------------------------------
 # divide Milky Way into (x, y, z) patches
-# -------------------------------------------------------------------------------   
+# ------------------------------------------------------------------------------- 
+
+# cut in |b| instead of |z|! --> wedge in z! (not quite right?!)
+cut_b = abs(labels['b']) < 6.
+name = name + '_cutb6'
 
 box_size = .5               # that's just half of the box size
 all_x = np.arange(-30., 30.01, box_size)
@@ -254,7 +258,8 @@ mean_sigma_par = np.zeros((len(all_x), len(all_y))) - np.inf
 
 for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
-        cut_patch = (abs(mean_XS_cart_n[:, 2]) < box_size) * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
+        #cut_patch = (abs(mean_XS_cart_n[:, 2]) < box_size) * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
+        cut_patch = cut_b * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
         N_stars[i, j] = np.sum(cut_patch)
         if N_stars[i, j] > 0:
             mean_XS_cyl[i, j, :] = np.nanmean(mean_XS_cyl_n[cut_patch], axis = 0) # NEVER USE MEAN PHI -- DOESN'T MAKE SENSE!
@@ -279,27 +284,11 @@ deg_wedge = 30.
 wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
 cut_z = abs(mean_XS_cyl_n[:, 2]) < 0.5
 
-## just for confirmation
-#fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
-#overplot_rings()
-#cm = plt.cm.get_cmap('viridis')
-#plt.scatter(XS_cart_true_n[~wedge*cut_z, 0], XS_cart_true_n[~wedge*cut_z, 1], c = '#929591', s = 20, alpha = .3) 
-#sc = plt.scatter(XS_cart_true_n[wedge*cut_z, 0], XS_cart_true_n[wedge*cut_z, 1], c = XS_cyl_true_n[wedge*cut_z, 1], s=20, vmin = -np.pi, vmax = np.pi, cmap=cm, alpha = .8)
-#cbar = plt.colorbar(sc, shrink = .85)
-#plt.xlim(Xlimits[0])
-#plt.ylim(Xlimits[1])
-#plt.tick_params(axis=u'both', direction='in', which='both')
-#plt.xlabel('$x$', fontsize = fsize)
-#plt.ylabel('$y$', fontsize = fsize)
-#ax.set_aspect('equal')  
-#plt.savefig('plots/rotation/rotate_phi_wegde_{0}.pdf'.format(name), bbox_inches = 'tight')
-#plt.close()  
-
 dz = 1. # kpc
 bins_start = np.array([0.])
 bins_end = np.array([40.])
 
-cut_z_wedge = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.)
+cut_z_wedge = wedge * cut_b #(abs(mean_XS_cyl_n[:, 2]) < dz/2.)
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
 stars_per_bin = 32
@@ -314,7 +303,8 @@ vvT_cyl_annulus = np.zeros((len(bin_start), 3, 3)) - np.inf
 mean_feh_annulus = np.zeros_like(bin_start)
 
 for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
-    cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+    #cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+    cut_annulus = wedge * cut_b * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
     N_stars_annulus[i] = np.sum(cut_annulus)
     if N_stars_annulus[i] > 0:
         mean_XS_cyl_annulus[i, :] = np.nanmean(mean_XS_cyl_n[cut_annulus], axis = 0)
@@ -620,14 +610,14 @@ for el in list(elements):
     
     mean_el_annulus = np.zeros_like(bin_start)
     for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
-        cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+        cut_annulus = wedge_n * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
         if N_stars_annulus[i] > 0:
             cut_el = labels[el] > -100
             mean_el_annulus[i] = np.nanmean(labels[el][cut_annulus * cut_el])
     
     fig, ax = plt.subplots(1, 1, figsize = (8, 6))        
     plt.scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 5, alpha = 0.5, rasterized = True)
-    plt.ylim(-.75, .5)
+    #plt.ylim(-.75, .5)
     plt.xlim(0, 30)
     plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
     plt.ylabel('{}'.format(el), fontsize = fsize)
@@ -668,7 +658,7 @@ plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 0, 0]), facecolors='b'
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v_{rr}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.ylim(0, 4000)
+#plt.ylim(0, 200)
 plt.xlim(0, 37)
 plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
 plt.savefig('plots/rotation_curve/vrvr_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
@@ -680,7 +670,7 @@ plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='b'
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v_{\varphi\varphi}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.ylim(0, 60000)
+#plt.ylim(0, 60000)
 plt.xlim(0, 37)
 plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
 plt.savefig('plots/rotation_curve/vpvp_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
@@ -692,7 +682,7 @@ plt.scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 2, 2]), facecolors='b'
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v_{zz}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.ylim(0, 4000)
+#plt.ylim(0, 4000)
 plt.xlim(0, 37)
 plt.axvline(5, linestyle = ':', color = 'k', alpha = .2)
 plt.savefig('plots/rotation_curve/vzvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
@@ -704,7 +694,7 @@ plt.scatter(bins_dr[idx5:], vtilde_annulus[idx5:, 0, 1], facecolors='b', edgecol
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v^2_{r\varphi}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.ylim(-4000, 4000)
+plt.ylim(-5000, 5000)
 plt.xlim(0, 37)
 plt.savefig('plots/rotation_curve/vrvp_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
@@ -715,7 +705,7 @@ plt.scatter(bins_dr[idx5:], vtilde_annulus[idx5:, 0, 2], facecolors='b', edgecol
 plt.tick_params(axis=u'both', direction='in', which='both')
 plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
 plt.ylabel(r'$\overline{v^2_{rz}}\,\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.ylim(-500, 500)
+plt.ylim(-1000, 1000)
 plt.xlim(0, 37)
 plt.savefig('plots/rotation_curve/vrvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()

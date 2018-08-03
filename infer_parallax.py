@@ -80,7 +80,7 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 10                      # hyperparameter -- needs to be tuned!
+lam = 2n0                      # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
 
 # optimization schedule
