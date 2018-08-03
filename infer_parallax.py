@@ -80,7 +80,7 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 30                      # hyperparameter -- needs to be tuned!
+lam = 10                      # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
 
 # optimization schedule
@@ -347,38 +347,6 @@ if not prediction:
     plt.subplots_adjust(wspace = 0.08)
     plt.savefig('plots/parallax/parallax_inferred_{0}_varpi.pdf'.format(name), dpi = 120)
     plt.close()
-            
-    fig, ax = plt.subplots(1, 3, figsize = (17, 5))
-    for i, sam in enumerate(list(samples)):
-        
-        sam_i_str = samples_str[i]                        
-        dy = (labels['Q_K'][sam] - labels['Q_pred'][sam]) / labels['Q_K'][sam]
-        s = 0.5 * (np.percentile(dy, 84) - np.percentile(dy, 16))
-    
-        sc = ax[i].scatter(labels['Q_K'][sam], labels['Q_pred'][sam], c = labels['visibility_periods_used'][sam], cmap = 'viridis_r', s = 10, vmin = 8, vmax = 20, label = r'$1\sigma={}$'.format(round(s, 3)), rasterized = True)
-        if i == 0:
-            cb = fig.colorbar(sc)
-            cb.set_label(r'visibility periods used', fontsize = fsize)
-        ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
-        if i == 2:
-            ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
-        ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-        ax[i].set_ylim(-0.1, 1)
-        ax[i].set_xlim(-0.1, 1)
-        ax[i].legend(frameon = True, fontsize = fsize)
-        if i == 0:
-            ax[i].tick_params(axis=u'both', direction='in', which='both')
-        else:
-            ax[i].tick_params(axis=u'both', direction='in', which='both', labelleft = False)            
-        ax[i].set_xlabel(r'$Q_{K,\,\rm true}$', fontsize = fsize)
-    ax[0].set_ylabel(r'$Q_{K,\,\rm predicted}$', fontsize = fsize)
-    plt.subplots_adjust(wspace = 0.08)
-    plt.savefig('plots/parallax/Q_inferred_{0}_vis.pdf'.format(name), dpi = 120)
-    plt.close()
-    
-    f = open('optimization/opt_results_0_{}.pickle'.format(name), 'rb')
-    res = pickle.load(f)
-    f.close()
     
     fig = plt.subplots(1, 1, figsize = (8, 6))
     plt.plot(res.x)
