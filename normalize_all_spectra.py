@@ -51,13 +51,13 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
     no_data_i = np.ones((len(file_spectra),), dtype = bool)
     for entry, destination in zip(file_spectra, destinations):
         print(i)
-        destination = './data/spectra/' + str(destination) + '/'
+        destination = './data/spectra/' #+ str(destination) + '/'
         try:
             hdulist = fits.open(destination + entry.strip())
             if len(hdulist[1].data) < 8575: 
                 flux = hdulist[1].data[0]
                 sigma = hdulist[2].data[0]
-                print('something is weird...')
+#                print('something is weird...')
             else:
                 flux = hdulist[1].data
                 sigma = hdulist[2].data
@@ -71,13 +71,13 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
             all_flux[i] = flux
             all_sigma[i] = sigma
         except:
-            entry = entry.replace('apStar-r8', 'aspcapStar-r8-l31c.2')
+            entry = entry.replace('apStar', 'aspcapStar')
             try:
                 hdulist = fits.open(destination + entry.strip())
                 if len(hdulist[1].data) < 8575: 
                     flux = hdulist[1].data[0]
                     sigma = hdulist[2].data[0]
-                    print('something is weird...')
+#                    print('something is weird...')
                 else:
                     flux = hdulist[1].data
                     sigma = hdulist[2].data
@@ -105,14 +105,14 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
 #        pickle.dump(data_coeff, f)
 #        f.close()     
     
-    f = open('data/no_data_parent.pickle' , 'wt')
-    pickle.dump(no_data_i, f)
-    f.close()
+#    f = open('data/no_data_parent.pickle' , 'wt')
+#    pickle.dump(no_data_i, f)
+#    f.close()
     
 #    f = open('data/' + file_name, 'wt')
 #    pickle.dump(data_norm, f)
 #    f.close()
-    fits.writeto('data/' + file_name, data_norm[:, :, 1], clobber = True)
+    fits.writeto('data/' + file_name, data_norm[:, :, 1], overwrite = True)
     
     return data_norm, continuum, no_data_i
 

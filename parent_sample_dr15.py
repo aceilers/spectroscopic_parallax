@@ -95,7 +95,7 @@ print('remove variable stars: {}'.format(len(training_labels)))
 # download spectra
 # -------------------------------------------------------------------------------
 
-delete0 = 'find ./data/spectra/ -size 0c -delete'
+'''delete0 = 'find ./data/spectra/ -size 0c -delete'
 subprocess.call(delete0, shell = True)
 
 for i, (fn, tel, field) in enumerate(zip(training_labels['FILE'], training_labels['TELESCOPE'], training_labels['FIELD'])):
@@ -151,16 +151,18 @@ print('spectra found for: {}'.format(len(training_labels)))
 # -------------------------------------------------------------------------------
 
 print('save labels...')
-fits.writeto('data/training_labels_parent_apogeedr15.fits', np.array(training_labels), overwrite = True)
+#fits.writeto('data/training_labels_parent_apogeedr15.fits', np.array(training_labels), overwrite = True)
+Table.write(training_labels, 'data/training_labels_parent_apogeedr15.fits', format = 'fits')
 
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 # normalize spectra
 # -------------------------------------------------------------------------------
 
 print('load and normalize spectra...')
 file_name = 'all_flux_norm_parent_apogeedr15.fits'
-data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'], file_name, training_labels['LOCATION_ID'])
-            
+data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'][:10], file_name, training_labels['FIELD'][:10])
+print('not found: {}'.format(np.sum(not_found)))       
+
 ## remove entries from training labels, where no spectrum was found (for whatever reason...)!
 #f = open('data/no_data_parent.pickle', 'rb') 
 #no_dat = pickle.load(f) 

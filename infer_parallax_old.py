@@ -59,10 +59,10 @@ if prediction:
 
 
 # -------------------------------------------------------------------------------
-# add absolute K magnitudes
+# add absolute Q magnitudes
 # -------------------------------------------------------------------------------
 
-    print('calculating Q_K...')
+    print('calculating Q...')
     m_K = labels['K']
     
     Q_factor = 10**(0.2 * m_K) / 100.                 # assumes parallaxes is in mas
@@ -91,20 +91,20 @@ if prediction:
 # linear algebra
 # -------------------------------------------------------------------------------
 
-def H_func(x, y, A, lams, ivar):   
-    y_model = np.exp(np.dot(A, x))
-    dy = y - y_model
-    H = 0.5 * np.dot(dy.T, ivar * dy) + np.sum(lams * np.abs(x))
-    dHdx = -1. * np.dot(A.T * y_model[None, :], ivar * dy) + lams * np.sign(x)
+def H_func(x, y, A, lam, ivar):   
+    dy = y - np.dot(A, x)
+    H = 0.5 * np.dot(dy.T, ivar * dy) + lam * np.sum(np.abs(x))
+    dHdx = -1. * np.dot(A.T, ivar * dy) + lam * np.sign(x)
     return H, dHdx
 
-def check_H_func(x, y, A, lams, ivar):
-    H0, dHdx0 = H_func(x, y, A, lams, ivar)
-    dx = 0.0001 # magic
+# check H function again!
+def check_H_func(x, y, A, lam, ivar):
+    H0, dHdx0 = H_func(x, y, A, lam, ivar)
+    dx = 0.001 # magic
     for i in range(len(x)):
         x1 = 1. * x
         x1[i] += dx
-        H1, foo = H_func(x1, y, A, lams, ivar)
+        H1, foo = H_func(x1, y, A, lam, ivar)
         dHdx1 = (H1 - H0) / dx
         print(i, x[i], dHdx0[i], dHdx1, (dHdx1 - dHdx0[i]) / dHdx0[i])
     return
@@ -114,8 +114,8 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 10000                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}'.format(len(labels), lam, Kfold)
+lam = 30                       # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_offset'.format(len(labels), lam, Kfold)
 
 if prediction:        
     
@@ -130,13 +130,8 @@ if prediction:
     
     # design matrix
     AT_0 = np.vstack([np.ones_like(JK)])
-    #AT_linear = np.vstack([JK, labels['bp_rp'], JW1, HW2, fluxes])
-    AT_linear = np.vstack([labels['J'], labels['H'], labels['K'], labels['bp_rp'], labels['phot_g_mean_mag'], labels['w1mpro'], labels['w2mpro'], fluxes])
+    AT_linear = np.vstack([JK, labels['bp_rp'], JW1, HW2, fluxes])
     A_all = np.vstack([AT_0, AT_linear]).T
-    
-    # fucking brittle
-    lams = np.zeros_like(A_all[0])
-    lams[-len(fluxes):] = lam
        
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
@@ -177,16 +172,16 @@ if prediction:
         ivar = ivar_all[train][cut_all]
         A = A_all[train, :][cut_all, :]
         N, M = A.shape
-        x0 = np.zeros((M,)) # try ones
+        x0 = np.zeros((M,))
         print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
                      
         # optimize H_func
         print('{} otimization...'.format(k+1))
-        res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+        res = op.minimize(H_func, x0, args=(y, A, lam, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
         print(res)                       
                                
         # prediction
-        y_pred = np.exp(np.dot(A_all[valid, :], res.x))
+        y_pred = np.dot(A_all[valid, :], res.x) 
         y_pred_all[valid] = y_pred
                                            
         f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
@@ -196,7 +191,7 @@ if prediction:
     spec_parallax = y_pred_all / Q_factor
     labels.add_column(spec_parallax, name='spec_parallax')
     labels.add_column(y_pred_all, name='Q_pred')
-    Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
+    Table.write(labels, 'data/training_labels_new_{}_2.fits'.format(name), format = 'fits', overwrite = True)
     
 
 # -------------------------------------------------------------------------------
@@ -206,7 +201,7 @@ if prediction:
 if not prediction:
     
     print('loading new labels...')   
-    labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
+    labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
     
     # cuts in Q
     cut_Q = labels['Q_K'] < 0.5   
@@ -409,7 +404,7 @@ if not prediction:
     plt.savefig('plots/optimization_results_0_{0}.pdf'.format(name))
     f.close()
     
-    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI', 'w1mpro', 'w2mpro']
+    list_labels = ['TEFF', 'LOGG', 'FE_H', 'VMICRO', 'VMACRO', 'M_H', 'ALPHA_M', 'MG_FE', 'SNR', 'VSINI']
     for lab in list_labels:
         fig, ax = plt.subplots(1, 3, figsize = (17, 5))
         for i, sam in enumerate(list(samples)):
