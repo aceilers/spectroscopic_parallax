@@ -639,7 +639,7 @@ The linear model we use has a big limitation: Linear models are inflexible.
 However, it has a great advantage over more general methods,
 which is that it is easy to look inside
 the linear model and check whether the dependencies represented there make sense.
-One nice thing about the model is that the feature vector $x_n$ for star $n$
+The feature vector $x_n$ for star $n$
 contains a set of photometry in magnitudes.
 Linear combinations of these photometric measurements are like complex synthetic
 magnitudes or colors.
@@ -658,7 +658,21 @@ DEMONSTRATES THIS, qualitatively.
 \caption{The coefficients of the spectral part of the linear model.\label{fig:spectral}}
 \end{figure}
 
-HOGG: How to get the data and how to use it, probabilistically.
+In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$ for
+every star $m$.
+\tablename~\ref{tab:output} shows a snippet of this output, with the full output available
+as an electronic data table associated with this \documentname.
+In order to use this output with \gaia\ astrometry, we recommend joining the table to the
+\gaia\ Catalog on the \zmass\ ID (name), as per the instructions at the \Gaia\ Archive (CITE).
+
+In order to use these outputs in a probabilistic inference or forward model,
+an investigator needs a noise (uncertainty) model.
+The linear model permits straightforward propagation of uncertainty from the
+feature inputs.
+However, these propagated uncertainties clearly under-predict the scatter between
+the spectrophotometric parallaxes $\sparallax_m$ and the \gaia\ astrometric
+parallaxes $\gparallax_m$.
+Our recommendation for an uncertainty model is HOGG WAT?
 
 \section{Discussion}
 
@@ -740,18 +754,18 @@ University of Colorado Boulder, University of Oxford, University of Portsmouth,
 University of Utah, University of Virginia, University of Washington, University of Wisconsin, 
 Vanderbilt University, and Yale University.
 
-\software{} % This command is wack
-The code used in this project is available from
-\url{https://github.com/aceilers/spectroscopic_parallax}.
-It is released under the MIT (HOGG CHECK) open-source software license.
-This research additionally utilized:
-\code{Astropy} (\citealt{astropy, astropy2}),
-\code{IPython} (\citealt{ipython}),
-\code{matplotlib} (\citealt{matplotlib}),
-\code{numpy} (\citealt{numpy}), and
-\code{scipy} (\citealt{scipy}).
+\facilities{
+\sdssiv(\apogee-2),
+\gaia,
+\zmass,
+\wise}
 
-\facilities{\sdssiv, \apogee, \apogee-2, \gaia, \zmass, \wise}
+\software{
+\code{Astropy} \citep{astropy, astropy2},
+\code{IPython} \citep{ipython},
+\code{matplotlib} \citep{matplotlib},
+\code{numpy} \citep{numpy},
+\code{scipy} \citep{scipy}}
 
 \begin{thebibliography}{}
 \bibitem[Abolfathi \etal(2018)]{dr14} Abolfathi, B., Aguado, D.~S., Aguilar, G., \etal\ 2018, \apjs, 235, 42 
