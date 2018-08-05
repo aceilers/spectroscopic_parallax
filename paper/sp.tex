@@ -29,6 +29,7 @@
 %\watermark{kittens}
 
 % text macros
+\newcommand{\documentname}{\textsl{Article}}
 \newcommand{\equationname}{equation}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\foreign}[1]{\textsl{#1}}
@@ -662,7 +663,12 @@ every star $m$.
 \tablename~\ref{tab:output} shows a snippet of this output, with the full output available
 as an electronic data table associated with this \documentname.
 In order to use this output with \gaia\ astrometry, we recommend joining the table to the
-\gaia\ Catalog on the \zmass\ ID (name), as per the instructions at the \Gaia\ Archive (CITE).
+\gaia\ Catalog on the \zmass\ ID (name), as per the instructions at the \gaia\ Archive (CITE).
+In order to use this output with \apogee\ radial velocities and element abundances, we recommend
+joining the table to the \sdssiv\ Catalog on the \zmass\ ID (name).
+\begin{table}
+\caption{The generated spectrophotometric parallaxes.\label{tab:output}}
+\end{table}
 
 In order to use these outputs in a probabilistic inference or forward model,
 an investigator needs a noise (uncertainty) model.
