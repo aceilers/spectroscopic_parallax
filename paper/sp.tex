@@ -685,11 +685,41 @@ What did we do and what's cool?
 
 Why did we make the assumptions we made and what did they gain us and cost us?
 
-In that context: This model is only linear! We could have done much better with
-a more flexible model. But choices, execution.
-
 In that context: These features are bad! We could have used feature engineering
 or an autoencoder to do a much better job. Definitely should do this in the future.
+
+As we said above, our most restrictive assumption is the linearity assumption.
+We required that the parallax prediction be constructed from a linear combination
+of the input data or feature vector components.
+This is absurd: Stars are not linear objects!
+There are two questions to ask about the linearity.
+One is: Why did it work? The other is: Could we have done better?
+The answer to the first is that we have taken such a small part of stellar parameter
+space with our surface gravity cut, that the linearized model of stellar
+spectrophotometry is not a bad approximation.
+Also, because our linear model included photometry in magnitudes (that is, logarithmic)
+and was exponentiated to make the parallax prediction, we knew in advance that much
+of the needed flexibility (for dust attenuation, for example) would be close to
+linear.
+That is, it was a combination of limited model scope and some cleverness in the
+feature engineering and model structure.
+
+The answer to the second question is that absolutely we could have done better!
+Since models like Gaussian processes and deep networks subsume the linear model
+(at least approximately), they could have delivered similar results.
+The issues with going to a much more complex model are manifold, however:
+We would have had many more decisions to make and many more hyper-parameters
+to set.
+We would have used some (or maybe much) of the information in the data to learn
+the simple fact that the problem is close to linear; that is, if you give a model
+a lot of freedom or capacity, it has to use a lot of the data to learn what part
+of that capacity it really needs.
+A more complex model might have had edge issues: Very flexible models don't extrapolate
+outside the convex hull of their training data, and our training data was probably not
+balanced in terms of parallax and dust attenuation.
+And finally, the complex model would have been harder to visualize and interpret;
+the linear model contains essentially only derivatives in the data space, which are
+relatively easy to understand.
 
 (In addition: what did we assume about the \apogee\ data: Good $\logg$ values.
 Okay pseudo-continuum normalization!)
