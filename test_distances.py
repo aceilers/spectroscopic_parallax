@@ -37,11 +37,11 @@ fsize = 14
 
 N = 45787
 Kfold = 2
-lam = 100
-name = 'N{0}_lam{1}_K{2}_mag_offset'.format(N, lam, Kfold)
+lam = 30
+name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
-labels = Table.read('data/training_labels_new_{}_2.fits'.format(name), format = 'fits')    
+labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
 labels.rename_column('ra_1', 'ra')
 labels.rename_column('dec_1', 'dec')
 
@@ -59,23 +59,22 @@ cs = coord.ICRS(ra = labels['ra'] * u.degree,
                 pm_dec = labels['pmdec'] * u.mas/u.yr, 
                 radial_velocity = labels['VHELIO_AVG'] *u.km/u.s)
 
+# -------------------------------------------------------------------------------
+# position of the sun
+# -------------------------------------------------------------------------------           
 
-#Galactocentric position of the Sun:
-X_GC_sun_kpc = 8.    #[kpc]
+# Galactocentric position of the Sun:
+X_GC_sun_kpc = 8.122 #[kpc] # (Gravity collaboration 2018)
 Z_GC_sun_kpc = 0.025 #[kpc] (e.g. Juric et al. 2008)
 
-#circular velocity of the Galactic potential at the radius of the Sun:
-vcirc_kms = 220. #[km/s] (e.g. Bovy 2015)
+# Galactocentric velocity of the Sun:
+vX_GC_sun_kms = -11.1 # [km/s]   (e.g. Schoenrich et al. 2009) 
+vY_GC_sun_kms =  245.8 # [km/s]  (combined with Sgr A* proper motions from Reid & Brunnthaler 2004)
+vZ_GC_sun_kms =  7.8 # [km/s]
 
-#Velocity of the Sun w.r.t. the Local Standard of Rest (e.g. Schoenrich et al. 2009):
-U_LSR_kms = 11.1  # [km/s]
-V_LSR_kms = 12.24 # [km/s]
-W_LSR_kms = 7.25  # [km/s]
-
-#Galactocentric velocity of the Sun:
-vX_GC_sun_kms = -U_LSR_kms           # = -U              [km/s]
-vY_GC_sun_kms =  V_LSR_kms+vcirc_kms # = V+v_circ(R_Sun) [km/s]
-vZ_GC_sun_kms =  W_LSR_kms           # = W               [km/s]
+# -------------------------------------------------------------------------------
+# transformation
+# -------------------------------------------------------------------------------           
 
 gc = coord.Galactocentric(galcen_distance = X_GC_sun_kpc*u.kpc,
                           galcen_v_sun = coord.CartesianDifferential([-vX_GC_sun_kms, vY_GC_sun_kms, vZ_GC_sun_kms] * u.km/u.s),
@@ -284,43 +283,11 @@ cut_clus = (abs(labels['ra'] - ra_clus) < 1) \
 
 XS_clus = np.vstack([labels['ra'][cut_clus], labels['dec'][cut_clus], labels['spec_parallax'][cut_clus]]).T
 Xlabels_clus = ['RA', 'DEC', r'$\varpi$']
-fig = corner.corner(XS_clus, labels = Xlabels_clus, truths = [ra_clus, dec_clus, 1./distance])
-fig.savefig('plots/corner_{}_varpi.pdf'.format(clus))
+#fig = corner.corner(XS_clus, labels = Xlabels_clus, truths = [ra_clus, dec_clus, 1./distance])
+#fig.savefig('plots/corner_{}_varpi.pdf'.format(clus))
 
 # -------------------------------------------------------------------------------
-# plot for paper (3x2) histograms: Gaia vs. me (labeled by cluster name and metallicity)
-# -------------------------------------------------------------------------------
-
-cluster_list = ['m53', 'm107', 'm3', 'm5', 'ngc6791', 'm92']
-
-fig, ax = plt.subplots(3, 2, figsize = (10, 15))
-plt.subplots_adjust(wspace = 0.08, hspace = 0.25)
-for i, clus in enumerate(cluster_list):    
-    c = i % 3
-    r = i % 2    
-    k = t['cluster'] == clus
-    
-    coord = SkyCoord('{0} {1}'.format(t['RA'][k][0], t['DEC'][k][0]), unit=(u.hourangle, u.deg))
-    ra_clus = coord.ra.deg
-    dec_clus = coord.dec.deg
-    cut_clus = (abs(labels['ra'] - ra_clus) < .8) \
-          * (abs(labels['dec'] - dec_clus) < .8) 
-          
-    bins = np.linspace(-0.1, 1, 15)
-    if c == 0:  
-        bins = np.linspace(-0.1, 1, 18)
-    ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = 'spectroscopic parallax')
-    ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = 'Gaia parallax')
-    ax[c, r].tick_params(axis=u'both', direction='in', which='both')
-    ax[c, r].legend(frameon = True)
-    ax[c, r].axvline(1./t['distance'][k][0], linestyle = '--', color = '#929591', lw = 2)
-    ax[c, r].set_title(r'{0}, $\rm [Fe/H] = {1}$'.format(t['lat_name'][k][0], t['FE_H'][k][0]), fontsize = 14)
-    ax[c, r].set_xlabel(r'$\varpi$', fontsize = 14)
-    ax[c, r].set_xlim(-0.1, 1.)
-plt.savefig('plots/open_clusters/test_open_clusters_{}.pdf'.format(name))
-
-# -------------------------------------------------------------------------------
-# take Sagittarius region...
+# Sagittarius data
 # -------------------------------------------------------------------------------
 
 hdu = fits.open('data/Sgr_Candidate_in_Gaia.fits')
@@ -336,7 +303,57 @@ xx = np.array(xx)
 
 labels_sgr = labels[xx]
 
-XS_sgr = np.vstack([labels_sgr['ra'], labels_sgr['dec'], labels_sgr['spec_parallax']]).T
+# -------------------------------------------------------------------------------
+# plot for paper (3x2) histograms: Gaia vs. me (labeled by cluster name and metallicity)
+# -------------------------------------------------------------------------------
+
+cluster_list = ['m2', 'm3', 'm5', 'm13', 'm15', 'm53', 'm71', 'm92', 'm107', 'ngc6791', 'ngc6819']
+
+fig, ax = plt.subplots(4, 3, figsize = (9, 12))
+plt.subplots_adjust(wspace = 0.08, hspace = 0.25)
+c, r = 0, 0
+for i, clus in enumerate(cluster_list):       
+    k = t['cluster'] == clus
+    print(c, r, len(k))
+    
+    coord = SkyCoord('{0} {1}'.format(t['RA'][k][0], t['DEC'][k][0]), unit=(u.hourangle, u.deg))
+    ra_clus = coord.ra.deg
+    dec_clus = coord.dec.deg
+    cut_clus = (abs(labels['ra'] - ra_clus) < .8) \
+          * (abs(labels['dec'] - dec_clus) < .8) 
+          
+    bins = np.linspace(-0.1, 1, 20)
+    ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = r'$\varpi^{(sp)}$')
+    ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = r'$\varpi^{(a)}$')
+    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    
+    ax[c, r].axvline(1./t['distance'][k][0], linestyle = '--', color = '#929591', lw = 2)
+    ax[c, r].set_title(r'{0}, $\rm [Fe/H] = {1}$'.format(t['lat_name'][k][0], t['FE_H'][k][0]), fontsize = 13)
+    ax[c, r].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
+    ax[c, r].set_ylabel('normalized counts', fontsize = 14)
+    ax[c, r].set_xlim(-0.1, 1.)
+    if r == 2: 
+        c += 1
+        r = 0    
+    else:
+        r += 1
+plt.tight_layout()
+ax[0, 0].legend(frameon = True)
+ax[3, 2].hist(labels_sgr['spec_parallax'], normed = True, bins = bins, histtype = 'step', lw=3, color='k', label = r'$\varpi^{(sp)}$')
+ax[3, 2].hist(labels_sgr['parallax'], normed = True, bins = bins, histtype = 'step', lw=1, color='k', label = r'$\varpi^{(a)}$')
+ax[3, 2].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
+ax[3, 2].set_xlim(-0.1, 1.)
+ax[3, 2].axvline(1./20, linestyle = '--', color = '#929591')
+ax[3, 2].set_title('Sagittarius')
+ax[3, 2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+#plt.savefig('plots/open_clusters/test_open_clusters_{}.pdf'.format(name))
+plt.savefig('paper/clusters.pdf')
+
+# -------------------------------------------------------------------------------
+# take Sagittarius region...
+# -------------------------------------------------------------------------------
+
+'''XS_sgr = np.vstack([labels_sgr['ra'], labels_sgr['dec'], labels_sgr['spec_parallax']]).T
 Xlabels_sgr = ['RA', 'DEC', r'$\varpi$']
 fig = corner.corner(XS_sgr, labels = Xlabels_sgr, plot_datapoints = True)
 fig.savefig('plots/open_clusters/corner_sgr_varpi_{}.pdf'.format(name)) 
@@ -362,10 +379,6 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.legend(frameon = True, fontsize = 12)
 plt.savefig('plots/open_clusters/hist_sgr_dist_{}.pdf'.format(name)) 
 plt.close()
-
-Q_spec = labels['spec_parallax'] * 10 ** (0.2 * labels['K'])/ 100.
-Q_spec = labels_sgr['spec_parallax'] * 10 ** (0.2 * labels_sgr['K'])/ 100.
-Q_spec_gaia = labels_sgr['parallax'] * 10 ** (0.2 * labels_sgr['K'])/ 100.
                         
 plt.hist(labels_sgr['spec_parallax'], bins = np.linspace(-1, 1, 100), histtype = 'step', lw=3, color='k', label = 'spec. parallax')
 plt.hist(labels_sgr['parallax'], bins = np.linspace(-1, 1, 100), histtype = 'step', lw=1, color='k', label = 'Gaia parallax')

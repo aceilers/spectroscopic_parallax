@@ -29,7 +29,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = True
+prediction = False
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
@@ -80,7 +80,7 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 2n0                      # hyperparameter -- needs to be tuned!
+lam = 70                      # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
 
 # optimization schedule
@@ -107,6 +107,7 @@ if prediction:
        
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
+    y_pred_all_err = np.zeros_like(y_all)
         
     for k in range(Kfold):    
         
@@ -163,7 +164,10 @@ if prediction:
                                
         # prediction
         y_pred = np.exp(np.dot(A_all[valid, :], x_new))
+#        foo = A_all[valid, :] * x_new_err
+#        y_pred_err = y_pred * np.sqrt(np.dot(foo, foo))
         y_pred_all[valid] = y_pred
+#        y_pred_all_err[valid] = y_pred_err
         
         plt.scatter(labels[valid]['parallax'], y_pred, alpha = .1)
         plt.xlim(-1, 3)
@@ -174,7 +178,9 @@ if prediction:
         f.close()   
     
     spec_parallax = y_pred_all
+    spec_parallax_err = y_pred_all_err
     labels.add_column(spec_parallax, name='spec_parallax')
+    labels.add_column(spec_parallax_err, name='spec_parallax_err')
     Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
     
 # -------------------------------------------------------------------------------
@@ -191,16 +197,15 @@ if not prediction:
     # visibility periods used
     cut_vis = labels['visibility_periods_used'] >= 8    
     # cut in parallax_error
-    cut_par = labels['parallax_error'] < 0.1           
-    # cut in b 
-    bcut = 0
-    cut_b = np.abs(labels['b']) >= bcut  
+    cut_par = labels['parallax_error'] < 0.1            
     # cut in astrometric_gof_al
-    cut_gof = labels['astrometric_gof_al'] < 5 
-    # other cuts?                                      
+    #cut_gof = labels['astrometric_gof_al'] < 5 
+    # other cuts?    
+    cut_cal = (labels['astrometric_chi2_al'] / np.sqrt(labels['astrometric_n_good_obs_al']-5)) <= 35         
+                                  
     
     # make plots for parent, valid, and best sample
-    valid = cut_vis * cut_par * cut_b * cut_gof  
+    valid = cut_vis * cut_par * cut_cal  
     best = valid * (labels['parallax_over_error'] >= 20) #* (labels['astrometric_gof_al'] < 10)
     parent = np.isfinite(labels['parallax'])
     samples = [parent, valid, best]
