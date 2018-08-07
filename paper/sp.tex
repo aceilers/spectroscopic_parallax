@@ -147,7 +147,7 @@ and show us how and where stars form, and how they migrate around (and out of) t
 disk with time.
 
 As we operate these spectroscopic surveys,
-the \gaia\ Mission has been revolutionizing our view of the disk.
+the \gaia\ Mission (CITE) has been revolutionizing our view of the disk.
 It delivers good proper motions everywhere,
 and extremely valuable parallax information
 locally.
@@ -271,7 +271,7 @@ to address the costs and benefits of each in more depth.
 of a star can be predicted from the features we provide, which are
 the full set of (pseudo-continuum-normalized) pixels from the \apogee\ spectrum,
 plus the $G$ and $(\BP-\RP)$ photometry from \gaia,
-plus the $J$, $H$, and $K_s$ photometry from \zmass (\citealt{zmass}),
+plus the $J$, $H$, and $K_s$ photometry from \zmass\ (\citealt{zmass}),
 plus the $W_1$ and $W_2$ photometry from \wise.
 That is, we assume that these spectrophotometric \emph{features} are sufficient
 to predict the parallax in the face of variations in stellar
@@ -480,7 +480,7 @@ That is, the pseudo-continuum is a spline fit to a set
 of pixels chosen to be insensitive to stellar parameters.
 We use as our spectral data the normalized spectral pixel values.
 
-Because the \apogee\ target selection is based on \zmass (\citealt{zmass}),
+Because the \apogee\ target selection is based on \zmass\ (\citealt{zmass}),
 every \apogee\ star also comes with \zmass\ photometry.
 That is, for each star $n$,
 we have \zmass\ near-infrared photometry $J_n$, $H_n$, and $K_n$.
@@ -694,8 +694,23 @@ What did we do and what's cool?
 
 Why did we make the assumptions we made and what did they gain us and cost us?
 
-In that context: These features are bad! We could have used feature engineering
-or an autoencoder to do a much better job. Definitely should do this in the future.
+One strong assumption of this work is that our set of features is sufficient to
+build a predictive model for distance.
+Our arguments for our included features is that they ought to be sufficient to
+estimate a dust-independent apparent magnitude and the stellar parameters (especially
+age and surface gravity) that are sensitive to luminosity.
+The derived model parameters shown in \figurename~\ref{fig:spectral} do indicate that
+the model is capturing some or all of this information.
+However, our choice of features is very rigid:
+In principle the data themselves should tell us what features to include.
+In that direction, it would make sense to choose features using a more complex
+technique like deep learning or an auto-encoder (CITE).
+These methods generate good features automatically.
+However, they also involve an enormous set of hyper-parameter-like choices,
+and they involve sacrificing certain kinds of interpretability.
+However, we expect that a better set of features would do better; in this sense
+the project here is just a first step towards precise spectrophotometric distance
+estimates.
 
 As we said above, our most restrictive assumption is the linearity assumption.
 We required that the parallax prediction be constructed from a linear combination
@@ -738,6 +753,8 @@ on the basis of the derived physical parameter, but instead selecting stars to
 be similar, observationally, in the spectral space.
 That would have lead to a clean sample and made the project independent completely
 of stellar models.
+
+Complain about our lack of a noise model.
 
 (Mention independence of every result from the \gaia\ astrometry.)
 
