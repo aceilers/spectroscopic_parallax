@@ -52,16 +52,20 @@ labels.rename_column('dec_1', 'dec')
 # Figure 1
 # -------------------------------------------------------------------------------
 
+cm = 'viridis_r'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
-ax[0].scatter(labels['bp_rp'], labels['J']-labels['K'], rasterized = True, s = 10, alpha = .1)
-ax[1].scatter(labels['bp_rp'], labels['H']-labels['w2mpro'], rasterized = True, s = 10, alpha = .1)
+ax[0].scatter(labels['bp_rp'], labels['J']-labels['K'], c = labels['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, rasterized = True, s = 10, alpha = .5)
+sc = ax[1].scatter(labels['bp_rp'], labels['H']-labels['w2mpro'], c = labels['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, rasterized = True, s = 10, alpha = .5)
 ax[0].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
 ax[1].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
 ax[0].set_ylabel(r'$\rm J-K$', fontsize = fsize)
 ax[1].set_ylabel(r'$\rm H-W_2$', fontsize = fsize)
 ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-#plt.subplots_adjust(wspace = .1)
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\log g$', fontsize = fsize)
 plt.tight_layout()
 plt.savefig('paper/parent_sample.pdf')
 
@@ -169,12 +173,16 @@ plt.savefig('paper/residuals_training.pdf')
 
 # linear Cannon with logg, Teff, [Fe/H] for A or B model --> overplot on res.x is some sensible way (partial wavelength range?)!
 
-f = open('optimization/opt_results_0_{}.pickle'.format(name), 'r')
+f1 = open('optimization/opt_results_0_{}.pickle'.format(name), 'rb')
 res1 = pickle.load(f1)
 f1.close() 
+f2 = open('optimization/opt_results_1_{}.pickle'.format(name), 'rb')
+res2 = pickle.load(f2)
+f2.close() 
 
 fig, ax = plt.subplots(2, 1, figsize = figsize)
-
+ax[0].plot(res1.x)
+ax[1].plot(res2.x)
 plt.savefig('paper/coefficients.pdf')
 
 
@@ -186,10 +194,7 @@ plt.savefig('paper/coefficients.pdf')
 # patch colored by metallicty, opacity proportional to number of stars
 # superimposed arrow color coded by v_z, opacity also proportional to number of stars
 
-fig, ax = plt.subplots(1, 2, figsize = figsize)
-
-
-
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))
 plt.savefig('paper/map.pdf')
 
 
