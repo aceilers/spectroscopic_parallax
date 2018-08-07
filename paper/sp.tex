@@ -544,6 +544,7 @@ offset of $0.029$\,mas to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The Training Sets are shown in \figurename~\ref{fig:training}.
 \begin{figure}
+\includegraphics[width=\textwidth]{./training_sample.pdf}
 \caption{A visualization of the Training Set stars. The left panel shows
   same color--color diagram as in \figurename~\ref{fig:parent}, but for
   the Training Set only. Note [HOGG SOME DIFFERENCES]. The right panel
@@ -580,6 +581,7 @@ For the stars with highest \gaia-measured parallax signal-to-noise,
 the spectrophotometric model is predicting the \gaia\ parallaxes with little bias
 and a scatter of better than 9~percent.
 \begin{figure}
+\includegraphics[width=\textwidth]{residuals.pdf}
 \caption{The predictive accuracy of the model, in the two-fold cross-validation.
   Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the vertical axis
   and our spectrophotometric parallaxes $\sparallax$ on the horizontal axis.
@@ -612,6 +614,7 @@ regions or at lower metallicities.
 there is no suggestion of any such trends when we color the residuals by metallicity
 or $H-W_2$ color (which is a reddening proxy).
 \begin{figure}
+\includegraphics[width=\textwidth]{./residuals_training.pdf}
 \caption{Prediction residuals colored by relevant features.
   Each panel shows the prediction residuals (\gaia\ astrometric parallax minus
   spectrophotometric parallax $\gparallax_n-\sparallax_n$) colored by a different
@@ -630,6 +633,7 @@ They show that both \gaia\ and the spectrophotometric parallaxes appear to be un
 for these clusters and the range in abundances and ages they represent.
 HOGG: DO WE NEED TO ADDRESS whether why not these clusters show 9-percent spreads?
 \begin{figure}
+\includegraphics[width=\textwidth]{clusters.pdf}
 \caption{The histograms of \gaia\ astrometric parallaxes $\gparallax_n$
   and spectrophotometric parallaxes $\sparallax_n$ for stars in angular proximity
   to various stellar clusters in the \apogee\ observing footprint. In each panel,
@@ -656,6 +660,7 @@ HOGG: Similarly, the spectral part of the model should also be
 interpretable. HOGG DESCRIBE \figurename~\ref{fig:spectral} THAT
 DEMONSTRATES THIS, qualitatively.
 \begin{figure}
+\includegraphics[width=\textwidth]{coefficients.pdf}
 \caption{The coefficients of the spectral part of the linear model.
   Also shown are derivatives with respect to labels for a \project{Cannon}-like
   linear regression for the Training Set data.\label{fig:spectral}}
