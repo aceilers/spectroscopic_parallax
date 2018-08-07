@@ -12,7 +12,10 @@
 % - does the model need a cute name, like The Swan?
 % - check with WISE experts that we have the correct WISE photometry
 % - we need an uncertainty estimate or noise model for our outputs.
-% - we have set lambda = 30 by x-val.
+% - we have set lambda = 50 by x-val. We could go as high as 60 without hurting our results.
+% - We probably should cut in color-color space. Probably in J-K vs B-R and in H-W2.
+% - We will match axes on relevant plots.
+% - ...
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -31,6 +34,7 @@
 
 % text macros
 \newcommand{\documentname}{\textsl{Article}}
+\newcommand{\sectionname}{Section}
 \newcommand{\equationname}{equation}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\foreign}[1]{\textsl{#1}}
@@ -258,7 +262,7 @@ in the likelihood function).
 The method in which we make no cuts and keep an umodified, justified likelihood function
 is unbiased, and simple.
 
-\section{Assumptions of the method}
+\section{Assumptions of the method}\label{sec:assumptions}
 
 Our position is that a methodological technique is correct inasmuch as
 it delivers correct or best results \emph{under its particular assumptions}.
@@ -364,9 +368,9 @@ inputs to the inference.
 
 There are not many choices
 for building a model of the stars that is both justifiable probabilistically
-and consistent with the assumptions stated in the previous Section.
+and consistent with the assumptions stated in the previous \sectionname.
 Here we lay out the model and methodology.
-We apply the method to real data in the following Sections.
+We apply the method to real data in the following {\sectionname s}.
 
 The model and log-likelihood function can be expressed heuristically as
 \begin{eqnarray}
@@ -690,17 +694,30 @@ Our recommendation for an uncertainty model is HOGG WAT?
 
 \section{Discussion}
 
-What did we do and what's cool?
+This project demonstrates that photometry and spectroscopy can be used to predict
+or estimate distances to stars.
+This isn't new!
+However, what's new is that it is possible to do this very well but with a purely
+linear model acting on magnitudes and spectral (logarithmic) fluxes, and entirely
+data-driven.
+That is, a linear model trained on noisy parallax data from \gaia.
 
-Why did we make the assumptions we made and what did they gain us and cost us?
+The model and method is based on a raft of assumptions, listed above
+in \sectionname~\ref{sec:assumptions}.
+We make some comments there, but we emphasize some particulars here:
 
 One strong assumption of this work is that our set of features is sufficient to
 build a predictive model for distance.
 Our arguments for our included features is that they ought to be sufficient to
 estimate a dust-independent apparent magnitude and the stellar parameters (especially
 age and surface gravity) that are sensitive to luminosity.
-The derived model parameters shown in \figurename~\ref{fig:spectral} do indicate that
-the model is capturing some or all of this information.
+In particular, since our model is linear in the logarithm of the parallax, it is
+also linear in any kind of apparent magnitude at fixed distance and also linear
+in distance modulus at fixed luminosity.
+Our feature decisions were highly motivated by these kinds of considerations.
+And the derived model parameters shown in \figurename~\ref{fig:spectral} do indicate that
+the model is capturing some or all of the expected information in the spectra, at least.
+
 However, our choice of features is very rigid:
 In principle the data themselves should tell us what features to include.
 In that direction, it would make sense to choose features using a more complex
@@ -754,22 +771,45 @@ be similar, observationally, in the spectral space.
 That would have lead to a clean sample and made the project independent completely
 of stellar models.
 
-Complain about our lack of a noise model.
+One significant limitation of the model is that it does not produce a sensible or
+useful noise estimate or error bar on each spectrophotometric parallax estimate.
+Although the linear model does permit simple noise propagation, that noise propagation
+seriously under-estimates the scatter between the spectrophotometric parallaxes
+and the best of the \gaia\ \acronym{DR2} astrometric parallaxes.
+We thus used an empirical noise estimate to get our HOGG DETAIL HERE.
+In principle it might have been better to build a noise model for our outputs,
+and learned that noise model along with the coefficients.
 
-(Mention independence of every result from the \gaia\ astrometry.)
+Because of our train-and-test framework, each star is given a spectrophotometric
+parallax based on coefficients derived from training on a complementary Training Set sample, of
+which that star is not a member.
+This framework ensures that the \gaia\ parallax $\gparallax_m$ of star $m$ is never used,
+even indirectly, in generating the spectrophotometric parallax $\sparallax_m$ of star $m$.
+That means that the parallax estimates generated here and given in \tablename~\ref{tab:output}
+is statistically independent of the \gaia\ parallaxes and can be combined with them in
+na\"ive ways, for example in inverse-variance-weighted averages.
 
 What is this useful for and how do you use them safely?
 HOGG: Show a map of the kinematic rotation of the Galaxy as a function of
 x and y, colored by metallicity in \figurename~\ref{fig:disk}.
 We see the kinematic center of the Galaxy! We see the rotation curve.
-We see the chemical gradients.
+We see the chemical gradients. HOGG WHY CAN YOU NOT JUST READ OFF THINGS FROM THIS PLOT?
 \begin{figure}
 \caption{A map of the kinematics and element abundances in the Milky Way disk.
-  This map shows HOGG SOMETHING.\label{fig:disk}}
+  This map shows the rotation of the Galaxy out to large radius, and also
+  indicates the kinematic center of the disk rotation. Interpretation of
+  the quantitative information in this plot requires care (see text).\label{fig:disk}}
 \end{figure}
 
-How do you build a proper probabilistic model using these? How is the answer to that
-related to the answer for \gaia\ itself?
+\figurename~\ref{fig:disk} shows that this sample of spectrophotometric parallaxes is useful for
+mapping the Milky Way.
+How does an investigator use these spectrophotometric parallaxes wisely?
+How do you build a proper probabilistic model using these?
+The answer is similar to the answer to the same question for the \gaia\ \acronym{DR2} data
+themselves (\citealt{gaialf}): A likelihood function must be constructed for each of the
+spectroscopic parallaxes, given assumptions about the noise in those values.
+The sensible likelihood function for star $m$ would be HOGG PUT HERE.
+Model fitting can then be built on those likelihood functions.
 
 \acknowledgements
 It is a pleasure to thank
