@@ -322,7 +322,7 @@ for i, clus in enumerate(cluster_list):
     cut_clus = (abs(labels['ra'] - ra_clus) < .8) \
           * (abs(labels['dec'] - dec_clus) < .8) 
           
-    bins = np.linspace(-0.1, 1, 20)
+    bins = np.linspace(-0.1, .8, 20)
     ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = r'$\varpi^{(sp)}$')
     ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = r'$\varpi^{(a)}$')
     ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
@@ -331,7 +331,7 @@ for i, clus in enumerate(cluster_list):
     ax[c, r].set_title(r'{0}, $\rm [Fe/H] = {1}$'.format(t['lat_name'][k][0], t['FE_H'][k][0]), fontsize = 13)
     ax[c, r].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
     ax[c, r].set_ylabel('normalized counts', fontsize = 14)
-    ax[c, r].set_xlim(-0.1, 1.)
+    ax[c, r].set_xlim(-0.1, .8)
     if r == 2: 
         c += 1
         r = 0    
@@ -342,7 +342,7 @@ ax[0, 0].legend(frameon = True)
 ax[3, 2].hist(labels_sgr['spec_parallax'], normed = True, bins = bins, histtype = 'step', lw=3, color='k', label = r'$\varpi^{(sp)}$')
 ax[3, 2].hist(labels_sgr['parallax'], normed = True, bins = bins, histtype = 'step', lw=1, color='k', label = r'$\varpi^{(a)}$')
 ax[3, 2].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
-ax[3, 2].set_xlim(-0.1, 1.)
+ax[3, 2].set_xlim(-0.1, .8)
 ax[3, 2].axvline(1./20, linestyle = '--', color = '#929591')
 ax[3, 2].set_title('Sagittarius')
 ax[3, 2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')

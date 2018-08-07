@@ -208,7 +208,7 @@ def overplot_ring(r):
     thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
     xs = r * np.cos(thetas)
     ys = r * np.sin(thetas)
-    plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = -np.inf)
+    plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = np.inf)
     plt.scatter(0, 0, s = 10, color = 'k', alpha=0.2)
     return
 
@@ -217,7 +217,7 @@ def overplot_ring_helio(r):
     thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
     xs = r * np.cos(thetas) - X_GC_sun_kpc
     ys = r * np.sin(thetas)
-    plt.plot(xs, ys, "k", alpha=0.2, lw=.8, linestyle = ':', zorder = np.inf)
+    plt.plot(xs, ys, "k:", alpha=0.2, lw=1, zorder = -np.inf)
     # plt.scatter(-X_GC_sun_kpc, 0, s = 10, color = 'k', alpha=0.2)
     return
 
@@ -231,16 +231,17 @@ def overplot_rings_helio():
         overplot_ring_helio(r)
     return
 
-Xlimits = [[-30, 10], [-10, 30], [-20, 20], 
+Xlimits = [[-25, 10], [-12, 23], [-20, 20], 
            [-200, 200], [-200, 200], [-200, 200]]
 
 # -------------------------------------------------------------------------------
 # divide Milky Way into (x, y, z) patches
 # ------------------------------------------------------------------------------- 
 
-# cut in |b| instead of |z|! --> wedge in z! (not quite right?!)
-cut_b = abs(labels['b']) < 6.
-name = name + '_cutb6'
+# take wegde in z 
+deg_wedge_in_z = 6.
+wedge_z = (np.abs(XS_cyl_true_n[:, 2])/(XS_cyl_true_n[:, 0])) < np.tan(deg_wedge_in_z/360. * 2. * np.pi)
+cut_z = np.logical_or(abs(mean_XS_cyl_n[:, 2]) < 0.5, wedge_z)
 
 box_size = .5               # that's just half of the box size
 all_x = np.arange(-30., 30.01, box_size)
@@ -259,7 +260,7 @@ mean_sigma_par = np.zeros((len(all_x), len(all_y))) - np.inf
 for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
         #cut_patch = (abs(mean_XS_cart_n[:, 2]) < box_size) * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
-        cut_patch = cut_b * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
+        cut_patch = cut_z * (abs(mean_XS_cart_n[:, 0] - box_center_x) < box_size) * (abs(mean_XS_cart_n[:, 1] - box_center_y) < box_size)
         N_stars[i, j] = np.sum(cut_patch)
         if N_stars[i, j] > 0:
             mean_XS_cyl[i, j, :] = np.nanmean(mean_XS_cyl_n[cut_patch], axis = 0) # NEVER USE MEAN PHI -- DOESN'T MAKE SENSE!
@@ -282,13 +283,12 @@ XS_cyl_true_n[:, 1][XS_cyl_true_n[:, 1] < -np.pi] += 2. * np.pi
 # calculate annuli only in 30 degree wedge!  
 deg_wedge = 30.
 wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
-cut_z = abs(mean_XS_cyl_n[:, 2]) < 0.5
 
 dz = 1. # kpc
 bins_start = np.array([0.])
 bins_end = np.array([40.])
 
-cut_z_wedge = wedge * cut_b #(abs(mean_XS_cyl_n[:, 2]) < dz/2.)
+cut_z_wedge = wedge * cut_z 
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
 stars_per_bin = 32
@@ -304,7 +304,7 @@ mean_feh_annulus = np.zeros_like(bin_start)
 
 for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
     #cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
-    cut_annulus = wedge * cut_b * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+    cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
     N_stars_annulus[i] = np.sum(cut_annulus)
     if N_stars_annulus[i] > 0:
         mean_XS_cyl_annulus[i, :] = np.nanmean(mean_XS_cyl_n[cut_annulus], axis = 0)
@@ -321,7 +321,9 @@ rho_R_exp = 3. # kpc
 vrr_R_exp = 15. # kpc
 
 # velocity tensor!
-vtilde = np.clip(vvT_cyl - error_var_XS_cyl, 0., np.Inf)
+vtilde = vvT_cyl - error_var_XS_cyl
+for i in range(3):
+    vtilde[:, :, i, i] = np.clip(vtilde[:, :, i, i], 0., np.Inf)
 dlnrho_dlnR = (-mean_XS_cyl[:, :, 0]) / rho_R_exp
 dlnvR2_dlnR = (-mean_XS_cyl[:, :, 0]) / vrr_R_exp
 HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
@@ -474,10 +476,10 @@ r_rp = vtilde[:, :, 0, 1] / np.sqrt(vtilde[:, :, 0, 0] * vtilde[:, :, 1, 1])
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
 overplot_rings_helio()
-cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_rp.flatten(), vmin = 0., vmax = 0.5, s=20, cmap=cm)
+cm = plt.cm.get_cmap('RdBu')
+sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_rp.flatten(), vmin = -0.5, vmax = 0.5, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-cbar.set_label(r'$\tilde{v}_{r\varphi}$', rotation=270, fontsize=14, labelpad=15)
+cbar.set_label(r'correlation coefficient between ${v}_{R}$ and ${v}_{\varphi}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -485,13 +487,15 @@ plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
 plt.savefig('plots/rotation_curve/vrvp_{}.pdf'.format(name), bbox_inches = 'tight')
-plt.close()
+'''plt.close()
+
+r_rz = vtilde[:, :, 0, 2] / np.sqrt(vtilde[:, :, 0, 0] * vtilde[:, :, 2, 2])
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 0, 2].flatten(), vmin = 0., vmax = 300, s=20, cmap=cm)
+sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_rz.flatten(), vmin = 0., vmax = 300, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
 cbar.set_label(r'$\tilde{v}_{rz}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
