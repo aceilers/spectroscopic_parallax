@@ -48,6 +48,10 @@ labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'f
 labels.rename_column('ra_1', 'ra')
 labels.rename_column('dec_1', 'dec')
 
+cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
+cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
+labels = labels[cut_jk * cut_hw2]
+
 # -------------------------------------------------------------------------------
 # Figure 1
 # -------------------------------------------------------------------------------
@@ -59,7 +63,7 @@ y2 = -0.05 + 0. * x
 
 bprplim = (0.5, 6.0)
 jklim = (0.2, 2.7)
-hw2lim = (-0.2, 1.4)
+hw2lim = (-0.1, 1.3)
 
 cm = 'viridis_r'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
@@ -120,7 +124,7 @@ plt.savefig('paper/training_sample.pdf', pad_inches=.2, bbox_inches = 'tight')
 # Figure 3 (parallax vs. parallax for training and Gaia excellent, colored by SNR)
 # -------------------------------------------------------------------------------
 
-'''fig, ax = plt.subplots(1, 2, figsize = figsize, sharey = True)
+fig, ax = plt.subplots(1, 2, figsize = figsize, sharey = True)
 sc = ax[0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['SNR'][train], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
 ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['SNR'][best], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
 ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
@@ -203,13 +207,24 @@ f1.close()
 f2 = open('optimization/opt_results_1_{}.pickle'.format(name), 'rb')
 res2 = pickle.load(f2)
 f2.close() 
-pixlist = np.loadtxt('data/pixtest8_dr13.txt', usecols = (0,), unpack = 1).astype(int)
 
-#wl = 
+hdulist = fits.open('./data/spectra/apStar-t9-2M00000002+7417074.fits')
+header = hdulist[1].header
+flux = hdulist[1].data[0]
+start_wl = header['CRVAL1']
+diff_wl = header['CDELT1']
+val = diff_wl * (len(flux)) + start_wl
+wl_full_log = np.arange(start_wl, val, diff_wl)
+wl = [10**aval for aval in wl_full_log]
 
-fig, ax = plt.subplots(2, 1, figsize = figsize)
-ax[0].plot(res1.x)
-ax[1].plot(res2.x)
+hdu = fits.open('data/all_flux_norm_parent.fits')
+fluxes = hdu[0].data
+gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
+
+fig, ax = plt.subplots(2, 1, figsize = figsize, sharex = True)
+ax[0].plot(np.array(wl)[~gaps], res1.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
+ax[1].plot(np.array(wl)[~gaps], res2.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
+ax[1].set_xlabel(r'$\lambda~\rm[{\AA}]$', fontsize = 14)
 plt.savefig('paper/coefficients.pdf')
 
 

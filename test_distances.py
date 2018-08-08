@@ -103,6 +103,8 @@ R = np.sqrt(XS[:, 0] ** 2 + XS[:, 1] ** 2) # in cylindrical coordinates! # + XS[
 
 t = Table(names = ('cluster', 'RA', 'DEC', 'FE_H', 'distance', 'lat_name'), dtype=('S8', 'S8', 'S8', 'S16', 'f8', 'S8'))
 
+# look up Melissa's paper: arxiv: 1701.07829
+
 # M67
 clus = 'm67'
 lat = 'M 67'
