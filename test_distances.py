@@ -123,7 +123,7 @@ t.add_row([clus, ra_clus_hms, dec_clus_dms, feh_clus, distance, lat])
 
 # NGC 6819
 clus = 'ngc6819'
-lat = 'NGC 6891'
+lat = 'NGC 6819'
 ra_clus_hms = '19:41:18.0' 
 dec_clus_dms = '+40:11:12'
 distance = 2.2 #kpc
@@ -323,8 +323,8 @@ for i, clus in enumerate(cluster_list):
           * (abs(labels['dec'] - dec_clus) < .8) 
           
     bins = np.linspace(-0.1, .8, 20)
-    ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = r'$\varpi^{(sp)}$')
-    ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = r'$\varpi^{(a)}$')
+    ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = r'$\varpi^{\rm (sp)}$')
+    ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = r'$\varpi^{\rm (a)}$')
     ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
     
     ax[c, r].axvline(1./t['distance'][k][0], linestyle = '--', color = '#929591', lw = 2)

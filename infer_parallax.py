@@ -38,12 +38,21 @@ labels = Table(hdu[1].data)
 offset = 0.029 # mas as per Lindegren et al. 2018
 labels['parallax'] += offset
 
+# -------------------------------------------------------------------------------
+# color_cuts
+# -------------------------------------------------------------------------------
+
+cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
+cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
+labels = labels[cut_jk * cut_hw2]
+
 if prediction: 
     
     print('loading spectra...')
 
     hdu = fits.open('data/all_flux_norm_parent.fits')
     fluxes = hdu[0].data
+    fluxes = fluxes[:, cut_jk * cut_hw2]
                           
 # -------------------------------------------------------------------------------
 # add pixel mask to remove gaps between chips! 
