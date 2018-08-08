@@ -30,6 +30,7 @@ from plotting_helpers import histcont
 
 matplotlib.rcParams['ytick.labelsize'] = 14
 matplotlib.rcParams['xtick.labelsize'] = 14
+matplotlib.rc('text', usetex=True)
 fsize = 14
 
 # -------------------------------------------------------------------------------
@@ -256,6 +257,7 @@ mean_feh = np.zeros((len(all_x), len(all_y))) - np.inf
 cut_feh = labels['FE_H'] > -100
 mean_sigma_mu = np.zeros((len(all_x), len(all_y))) - np.inf
 mean_sigma_par = np.zeros((len(all_x), len(all_y))) - np.inf
+mean_rv = np.zeros((len(all_x), len(all_y))) - np.inf
 
 for i, box_center_x in enumerate(all_x):
     for j, box_center_y in enumerate(all_y):
@@ -267,6 +269,7 @@ for i, box_center_x in enumerate(all_x):
             mean_XS_cart[i, j, :] = np.nanmean(mean_XS_cart_n[cut_patch], axis = 0)
             mean_HW2[i, j] = np.nanmean(labels['H'][cut_patch] - labels['w2mpro'][cut_patch])
             mean_feh[i, j] = np.nanmean(labels['FE_H'][cut_patch * cut_feh])
+            mean_rv[i, j] = np.nanmean(labels['VHELIO_AVG'][cut_patch])
             mean_sigma_mu[i, j] = np.nanmean(np.sqrt(labels['pmra_error'][cut_patch] ** 2 + labels['pmdec_error'][cut_patch] ** 2))
             mean_sigma_par[i, j] = np.nanmean(0.09 * labels['spec_parallax'][cut_patch])
             error_var_XS_cyl[i, j, :, :] = np.nanmean(var_XS_cyl_n[cut_patch], axis=0)
@@ -487,7 +490,7 @@ plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$y$', fontsize = fsize)
 ax.set_aspect('equal')
 plt.savefig('plots/rotation_curve/vrvp_{}.pdf'.format(name), bbox_inches = 'tight')
-'''plt.close()
+plt.close()
 
 r_rz = vtilde[:, :, 0, 2] / np.sqrt(vtilde[:, :, 0, 0] * vtilde[:, :, 2, 2])
 
@@ -497,7 +500,7 @@ overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
 sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_rz.flatten(), vmin = 0., vmax = 300, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-cbar.set_label(r'$\tilde{v}_{rz}$', rotation=270, fontsize=14, labelpad=15)
+cbar.set_label(r'correlation coefficient between ${v}_{R}$ and ${v}_{z}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -507,13 +510,16 @@ ax.set_aspect('equal')
 plt.savefig('plots/rotation_curve/vrvz_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
+r_pz = vtilde[:, :, 1, 2] / np.sqrt(vtilde[:, :, 1, 1] * vtilde[:, :, 2, 2])
+
+
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vtilde[:, :, 1, 2].flatten(), vmin = 0., vmax = 3000, s=20, cmap=cm)
+sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = r_pz.flatten(), vmin = 0., vmax = 3000, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-cbar.set_label(r'$\tilde{v}_{\varphi z}$', rotation=270, fontsize=14, labelpad=15)
+cbar.set_label(r'correlation coefficient between ${v}_{\varphi}$ and ${v}_{z}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -536,11 +542,27 @@ plt.tick_params(axis=u'both', direction='in', which='both')
 plt.savefig('plots/rotation_curve/vc_R_patches_wegde_{}.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
+fig, ax = plt.subplots(1, 1, figsize = (10, 10))        
+overplot_rings()
+overplot_rings_helio()
+cm = plt.cm.get_cmap('RdBu_r')
+sc = plt.scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = mean_XS_cyl[:, :, 3].flatten(), vmin = -25, vmax = 25, s=20, cmap=cm, alpha = .8)
+cbar = plt.colorbar(sc, shrink = .85)
+cbar.set_label(r'$v_{R}$ [km/s]', rotation=270, fontsize=14, labelpad=30)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/rotation_curve/rv_{}.pdf'.format(name), bbox_inches = 'tight')
+plt.close()
+
 # -------------------------------------------------------------------------------
 # plots with arrows!
 # -------------------------------------------------------------------------------
 
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+'''fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
         np.clip(mean_HW2.flatten(), 0, 1.5), cmap = 'RdYlBu_r', scale_units='xy', \
            scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
@@ -598,36 +620,121 @@ plt.close()
 print('abundances...')
 deg_wedge = 30.
 wedge_n = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
-elements = ['FE_H', 'ALPHA_M', 'M_H', 'C_FE', 'CI_FE', 'N_FE', 'O_FE', 'NA_FE', 'MG_FE', 'TI_FE', 'S_FE', 'SI_FE', 'P_FE', 'K_FE', 'CA_FE', 'TIII_FE', 'V_FE', 'CR_FE', 'CO_FE', 'NI_FE', 'CU_FE', 'GE_FE', 'RB_FE', 'Y_FE', 'ND_FE', 'MN_FE', 'AL_FE']
-for el in list(elements):
-    cut_el = labels[el] > -100
-    cut_z_wedge = wedge_n * (abs(XS_cyl_true_n[:, 2]) < dz/2.) * cut_el
-    fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
-    plt.scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge][el], s = 5, alpha = 0.5, rasterized = True)
-    plt.ylim(-1, 1)
-    plt.xlim(0, 30)
-    plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
-    plt.ylabel('{}'.format(el), fontsize = fsize)
-    plt.tick_params(axis=u'both', direction='in', which='both')
-    plt.savefig('plots/rotation_curve/abundances/{0}_vs_R_{1}.pdf'.format(el, name), bbox_inches = 'tight', dpi = 200)
-    plt.close()
+elements = ['FE_H', 'ALPHA_M', 'M_H', 'C_FE', 'CI_FE', 'N_FE', 'O_FE', 'NA_FE', 'MG_FE', 'TI_FE', 'S_FE', 'SI_FE', 'P_FE', 'K_FE', 'CA_FE', 'TIII_FE', 'V_FE', 'CR_FE', 'CO_FE', 'NI_FE', 'MN_FE', 'AL_FE']
+elements_latex = ['[Fe/H]', '[$\\alpha$/M]', '[M/H]', '[C/Fe]', '[Ci/Fe]', '[N/Fe]', '[O/Fe]', '[Na/Fe]', '[Mg/Fe]', '[Ti/Fe]', '[S/Fe]', '[Si/Fe]', '[P/Fe]', '[K/Fe]', '[Ca/Fe]', '[TiII/Fe]', '[V/Fe]', '[Cr/Fe]', '[Co/Fe]', '[Ni/Fe]', '[Mn/Fe]', '[Al/Fe]']
+fig, ax = plt.subplots(6, 4, figsize = (18, 16), sharex = True)   
+c, r = 0, 0
+for j, el in enumerate(list(elements)):
+    cut_el = abs(labels[el]) < 10
+    cut_z_wedge = cut_z * wedge_n * cut_el
     
     mean_el_annulus = np.zeros_like(bin_start)
     for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
-        cut_annulus = wedge_n * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+        cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
         if N_stars_annulus[i] > 0:
-            cut_el = labels[el] > -100
             mean_el_annulus[i] = np.nanmean(labels[el][cut_annulus * cut_el])
     
-    fig, ax = plt.subplots(1, 1, figsize = (8, 6))        
-    plt.scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 5, alpha = 0.5, rasterized = True)
-    #plt.ylim(-.75, .5)
-    plt.xlim(0, 30)
-    plt.xlabel(r'$\rm R_{GC}$', fontsize = fsize)
-    plt.ylabel('{}'.format(el), fontsize = fsize)
-    plt.tick_params(axis=u'both', direction='in', which='both')
-    plt.savefig('plots/rotation_curve/abundances/{2}_vs_R_annulus_{0}_{1}.pdf'.format(stars_per_bin, name, el), bbox_inches = 'tight', dpi = 200)
-    plt.close()
+#    fig, ax = plt.subplots(1, 1, figsize = (8, 6))   
+    ax[c, r].scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge][el], s = 5, alpha = 0.1, rasterized = True, color = '#a8a495')     
+    ax[c, r].scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 20, rasterized = True, color = '#d9544d')
+    ax[c, r].set_xlim(0, 30)
+    ax[c, r].set_ylim(np.percentile(labels[cut_z_wedge][el], 1), np.percentile(labels[cut_z_wedge][el], 99))
+    ax[c, r].set_ylabel(r'{}'.format(elements_latex[j]), fontsize = fsize)
+    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    ax[5, r].set_xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+    if r == 3: 
+        c += 1
+        r = 0    
+    else:
+        r += 1
+fig.subplots_adjust(wspace = 0.0)
+plt.tight_layout()
+fig.delaxes(ax[5, 2])
+fig.delaxes(ax[5, 3])
+plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight', dpi = 200)
+plt.close()
+
+# -------------------------------------------------------------------------------'''
+# radial element profiles
+# -------------------------------------------------------------------------------        
+
+fig, ax = plt.subplots(6, 4, figsize = (18, 16), sharex = True)   
+c, r = 0, 0
+for j, el in enumerate(list(elements)):
+    cut_el = abs(labels[el]) < 10
+    cut_z_wedge = cut_z * wedge_n * cut_el
+    
+    mean_el_annulus = np.zeros_like(bin_start)
+    mean_teff_annulus = np.zeros_like(bin_start)
+    mean_logg_annulus = np.zeros_like(bin_start)
+    for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
+        cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+        if N_stars_annulus[i] > 0:
+            mean_el_annulus[i] = np.nanmean(labels[el][cut_annulus * cut_el])
+            mean_teff_annulus[i] = np.nanmean(labels['TEFF'][cut_annulus * cut_el])
+            mean_logg_annulus[i] = np.nanmean(labels['LOGG'][cut_annulus * cut_el])
+            
+    sc = ax[c, r].scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 20, rasterized = True, c = mean_teff_annulus, vmin = 3700, vmax = 3800)
+    #sc = ax[c, r].scatter(XS_cyl_true_n[cut_z_wedge, 0], labels[cut_z_wedge][el], s = 5, alpha = 0.5, rasterized = True, c = labels[cut_z_wedge]['TEFF'], vmin = 3500, vmax = 4500)     
+    ax[c, r].set_xlim(0, 30)
+    ax[c, r].set_ylim(np.percentile(labels[cut_z_wedge][el], 1), np.percentile(labels[cut_z_wedge][el], 99))
+    ax[c, r].set_ylabel(r'{}'.format(elements_latex[j]), fontsize = fsize)
+    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    ax[5, r].set_xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+    if r == 3: 
+        c += 1
+        r = 0    
+    else:
+        r += 1
+fig.subplots_adjust(wspace = 0.0)
+plt.tight_layout()
+fig.delaxes(ax[5, 2])
+fig.delaxes(ax[5, 3])
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$T_{\rm eff}$', fontsize = fsize)
+plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_TEFF.pdf'.format(stars_per_bin, name), bbox_inches = 'tight', pad_inches=.2)
+plt.close()
+
+
+fig, ax = plt.subplots(6, 4, figsize = (18, 16), sharex = True)   
+c, r = 0, 0
+for j, el in enumerate(list(elements)):
+    cut_el = abs(labels[el]) < 10
+    cut_z_wedge = cut_z * wedge_n * cut_el
+
+    mean_el_annulus = np.zeros_like(bin_start)
+    mean_logg_annulus = np.zeros_like(bin_start)
+    for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
+        cut_annulus = cut_z_wedge * cut_logg * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+        if N_stars_annulus[i] > 0:
+            mean_el_annulus[i] = np.nanmean(labels[el][cut_annulus * cut_el])
+            mean_logg_annulus[i] = np.nanmean(labels['LOGG'][cut_annulus * cut_el])
+            
+    #sc = ax[c, r].scatter(mean_XS_cyl_annulus[:, 0], mean_el_annulus, s = 20, rasterized = True, c = mean_logg_annulus, vmin = 0.75, vmax = 1.25)
+    sc = ax[c, r].scatter(XS_cyl_true_n[cut_z_wedge * cut_logg, 0], labels[cut_z_wedge * cut_logg][el], s = 5, alpha = 0.5, rasterized = True, c = labels[cut_z_wedge * cut_logg]['LOGG'], vmin = 0.75, vmax = 1.25)         
+    ax[c, r].set_xlim(0, 30)
+    ax[c, r].set_ylim(np.percentile(labels[cut_z_wedge][el], 1), np.percentile(labels[cut_z_wedge][el], 99))
+    ax[c, r].set_ylabel(r'{}'.format(elements_latex[j]), fontsize = fsize)
+    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    ax[5, r].set_xlabel(r'$\rm R_{GC}$', fontsize = fsize)
+    if r == 3: 
+        c += 1
+        r = 0    
+    else:
+        r += 1
+fig.subplots_adjust(wspace = 0.0)
+plt.tight_layout()
+fig.delaxes(ax[5, 2])
+fig.delaxes(ax[5, 3])
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\log g$', fontsize = fsize)
+plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_LOGG_unbinned.pdf'.format(stars_per_bin, name), bbox_inches = 'tight', pad_inches=.2)
+plt.close()
+
 
 # -------------------------------------------------------------------------------
 # radial profiles (in radial bins and individual stars)

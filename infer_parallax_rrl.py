@@ -15,6 +15,7 @@ from astropy.table import Column, Table, join, vstack, hstack
 from astropy.io import fits
 from scipy.stats import binned_statistic_2d
 import matplotlib.gridspec as gridspec
+from astropy import units as u
 
 # -------------------------------------------------------------------------------
 # plotting settings
@@ -28,8 +29,10 @@ fsize = 14
 # load spectra and labels
 # -------------------------------------------------------------------------------
 
+ps = True
 print('loading labels...')
-hdu = fits.open('data/RRL_GDR2_ALLWISE_full.fits')
+if ps: hdu = fits.open('data/RRL_PS1_Gaia_full.fits')
+else: hdu = fits.open('data/RRL_GDR2_ALLWISE_full.fits')
 labels = Table(hdu[1].data)
 
 offset = 0.029 # mas as per Lindegren et al. 2018
@@ -63,26 +66,45 @@ def check_H_func(x, y, A, lam1, lam2, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-name = 'N{0}_K{1}_rrl'.format(len(labels), Kfold)    
+name = 'N{0}_K{1}_rrl'.format(len(labels), Kfold)
+if ps: name += '_ps'   
 
-cut_finite = np.isfinite(labels['int_average_g']) * \
-             np.isfinite(labels['int_average_bp']) * \
-             np.isfinite(labels['int_average_rp']) * \
-             np.isfinite(labels['peak_to_peak_g']) * \
-             np.isfinite(labels['peak_to_peak_bp']) * \
-             np.isfinite(labels['peak_to_peak_rp']) * \
-             np.isfinite(labels['Jmag']) * \
-             np.isfinite(labels['Hmag']) * \
-             np.isfinite(labels['Kmag']) * \
-             np.isfinite(labels['W1mag']) * \
-             np.isfinite(labels['W2mag']) * \
-             np.isfinite(labels['pf']) * \
-             np.isfinite(labels['r21_g']) * \
-             np.isfinite(labels['r31_g']) 
-
-cut_clean = labels['num_clean_epochs_g'] > 40.
-cut_mag = labels['W1mag'] < 19
-cuts = cut_finite * cut_clean * cut_mag
+if ps:
+    cut_finite = np.isfinite(labels['phot_g_mean_mag']) * \
+                 np.isfinite(labels['phot_bp_mean_mag']) * \
+                 np.isfinite(labels['phot_rp_mean_mag']) * \
+                 np.isfinite(labels['P']) * \
+                 np.isfinite(labels['Ag']) * \
+                 np.isfinite(labels['Ar']) * \
+                 np.isfinite(labels['Ai']) * \
+                 np.isfinite(labels['Az']) * \
+                 np.isfinite(labels['gmag']) * \
+                 np.isfinite(labels['rmag']) * \
+                 np.isfinite(labels['imag']) * \
+                 np.isfinite(labels['zmag']) 
+else:             
+    cut_finite = np.isfinite(labels['int_average_g']) * \
+                 np.isfinite(labels['int_average_bp']) * \
+                 np.isfinite(labels['int_average_rp']) * \
+                 np.isfinite(labels['peak_to_peak_g']) * \
+                 np.isfinite(labels['peak_to_peak_bp']) * \
+                 np.isfinite(labels['peak_to_peak_rp']) * \
+                 np.isfinite(labels['Jmag']) * \
+                 np.isfinite(labels['Hmag']) * \
+                 np.isfinite(labels['Kmag']) * \
+                 np.isfinite(labels['W1mag']) * \
+                 np.isfinite(labels['W2mag']) * \
+                 np.isfinite(labels['pf']) * \
+                 np.isfinite(labels['r21_g']) * \
+                 np.isfinite(labels['r31_g']) 
+if ps: 
+    cut_ps = labels['RRab'] > .9
+    cut_clean = True
+else:
+    cut_clean = labels['num_clean_epochs_g'] > 40.
+    cut_ps = True
+cut_mag = True #labels['W1mag'] < 100
+cuts = cut_finite * cut_mag * cut_ps * cut_clean
 labels = labels[cuts]
     
 # data
@@ -92,9 +114,15 @@ ivar_all = yerr_all ** (-2)
 
 # design matrix
 AT_0 = np.vstack([np.ones_like(y_all)])
-AT_linear = np.vstack([labels['int_average_g'], labels['int_average_bp'], labels['int_average_rp'], \
+if ps:
+    AT_linear = np.vstack([labels['gmag'], labels['rmag'], labels['imag'], labels['zmag'], \
+#                       labels['Jmag'], labels['Hmag'], labels['Kmag'], \
+                       labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['P'], \
+                       labels['Ag'], labels['Ar'], labels['Ai'], labels['Az']])
+else:
+    AT_linear = np.vstack([labels['int_average_g'], labels['int_average_bp'], labels['int_average_rp'], \
                        labels['peak_to_peak_g'], labels['peak_to_peak_bp'], labels['peak_to_peak_rp'], \
-                       labels['Jmag'], labels['Hmag'], labels['Kmag'], \
+                       #labels['Jmag'], labels['Hmag'], labels['Kmag'], \
                        labels['W1mag'], labels['W2mag'], labels['pf'], \
                        labels['r21_g'], labels['r31_g']])
 A_all = np.vstack([AT_0, AT_linear]).T
@@ -186,6 +214,9 @@ for k in range(Kfold):
 
 spec_parallax = y_pred_all
 labels.add_column(spec_parallax, name='spec_parallax')
+spec_par = spec_parallax * u.mas
+distance = spec_par.to(u.parsec, equivalencies = u.parallax())
+labels.add_column(distance, name='distance')
 Table.write(labels, 'RRLyrae/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
 
 # -------------------------------------------------------------------------------
@@ -203,7 +234,7 @@ cut_inlier = labels['inlier'] > 0
 
 # make plots for parent, valid, and best sample
 valid = cut_vis * cut_par * cut_cal  * cut_inlier 
-best = valid * (labels['parallax_over_error'] >= 20) #* (labels['astrometric_gof_al'] < 10)
+best = valid * (labels['parallax_over_error'] >= 15) #* (labels['astrometric_gof_al'] < 10)
 parent = np.isfinite(labels['parallax'])
 samples = [parent, valid, best]
 samples_str = ['parent', 'validation', 'best']
@@ -223,10 +254,10 @@ for i, sam in enumerate(list(samples)):
         cb.set_label(r'visibility periods used', fontsize = fsize)
     ax[i].set_title(r'{} sample'.format(sam_i_str), fontsize = fsize)
     if i == 2:
-        ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 20$', fontsize = fsize)
+        ax[i].set_title(r'$\varpi/\sigma_{\varpi} \geq 15$', fontsize = fsize)
     ax[i].plot([-100, 100], [-100, 100], linestyle = '--', color = 'k')
-    ax[i].set_ylim(-0.5, 2)
-    ax[i].set_xlim(-0.5, 2)
+    ax[i].set_ylim(-0.5, 1)
+    ax[i].set_xlim(-0.5, 1)
     ax[i].legend(frameon = True, fontsize = fsize)
     if i == 0:
         ax[i].tick_params(axis=u'both', direction='in', which='both')

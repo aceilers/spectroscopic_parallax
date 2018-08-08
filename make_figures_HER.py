@@ -52,6 +52,15 @@ labels.rename_column('dec_1', 'dec')
 # Figure 1
 # -------------------------------------------------------------------------------
 
+# line parameters
+x = np.linspace(0, 8, 10)
+y1 = 0.4 + 0.45 * x
+y2 = -0.05 + 0. * x
+
+bprplim = (0.5, 6.0)
+jklim = (0.2, 2.7)
+hw2lim = (-0.2, 1.4)
+
 cm = 'viridis_r'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
 ax[0].scatter(labels['bp_rp'], labels['J']-labels['K'], c = labels['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, rasterized = True, s = 10, alpha = .5)
@@ -67,6 +76,12 @@ cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
 cb = fig.colorbar(sc, cax=cbar_ax)
 cb.set_label(r'$\log g$', fontsize = fsize)
 plt.tight_layout()
+ax[0].set_xlim(bprplim)
+ax[0].set_ylim(jklim)
+ax[1].set_xlim(bprplim)
+ax[1].set_ylim(hw2lim)
+ax[0].plot(x, y1, linestyle= '-', color = '0.6')
+ax[1].plot(x, y2, linestyle= '-', color = '0.6')
 plt.savefig('paper/parent_sample.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
@@ -93,13 +108,19 @@ cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
 cb = fig.colorbar(sc, cax=cbar_ax)
 cb.set_label(r'$\log g$', fontsize = fsize)
 plt.tight_layout()
+ax[0].plot(x, y1, linestyle= '-', color = '0.6')
+ax[1].plot(x, y2, linestyle= '-', color = '0.6')
+ax[0].set_xlim(bprplim)
+ax[0].set_ylim(jklim)
+ax[1].set_xlim(bprplim)
+ax[1].set_ylim(hw2lim)
 plt.savefig('paper/training_sample.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
 # Figure 3 (parallax vs. parallax for training and Gaia excellent, colored by SNR)
 # -------------------------------------------------------------------------------
 
-fig, ax = plt.subplots(1, 2, figsize = figsize, sharey = True)
+'''fig, ax = plt.subplots(1, 2, figsize = figsize, sharey = True)
 sc = ax[0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['SNR'][train], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
 ax[1].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['SNR'][best], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
 ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
@@ -107,8 +128,8 @@ ax[1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
 ax[0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
 ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax[0].set_aspect('equal')
-ax[1].set_aspect('equal')
+#ax[0].set_aspect('equal')
+#ax[1].set_aspect('equal')
 ax[0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
 ax[1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
 ax[0].set_xlim(-.35, 2)
@@ -118,7 +139,7 @@ ax[1].set_ylim(-.35, 2)
 ax[0].set_title('training set', fontsize = fsize)
 ax[1].set_title(r'$\varpi^{\rm (a)}/\sigma_{\varpi^{\rm (a)}} \geq 20$', fontsize = fsize)
 fig.subplots_adjust(right = 0.8)
-cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.75])
 cb = fig.colorbar(sc, cax=cbar_ax)
 cb.set_label(r'$\rm S/N$', fontsize = fsize)
 plt.tight_layout()
@@ -182,6 +203,9 @@ f1.close()
 f2 = open('optimization/opt_results_1_{}.pickle'.format(name), 'rb')
 res2 = pickle.load(f2)
 f2.close() 
+pixlist = np.loadtxt('data/pixtest8_dr13.txt', usecols = (0,), unpack = 1).astype(int)
+
+#wl = 
 
 fig, ax = plt.subplots(2, 1, figsize = figsize)
 ax[0].plot(res1.x)
