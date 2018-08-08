@@ -29,7 +29,7 @@ fsize = 14
 # -------------------------------------------------------------------------------
 
 # make plots?
-prediction = False
+prediction = True
 
 print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
@@ -37,6 +37,11 @@ labels = Table(hdu[1].data)
 
 offset = 0.029 # mas as per Lindegren et al. 2018
 labels['parallax'] += offset
+
+
+# NOTES:
+# lam = 30, 50, 70 (take best one here and then vary offset)
+# offset = 0.009, 0.029, 0.049, 0.069
 
 # -------------------------------------------------------------------------------
 # color_cuts
@@ -89,12 +94,13 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 70                      # hyperparameter -- needs to be tuned!
+lam = 50                      # hyperparameter -- needs to be tuned!
 name = 'N{0}_lam{1}_K{2}_parallax'.format(len(labels), lam, Kfold)
 
 # optimization schedule
 # 1. photometry only
 # 2. go down with lambda?
+
 steps = 2
 
 if prediction:        
