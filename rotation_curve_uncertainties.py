@@ -316,11 +316,32 @@ for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
         cut_feh = labels['FE_H'] > -100
         mean_feh_annulus[i] = np.nanmean(labels['FE_H'][cut_annulus * cut_feh])
         
+        
+# -------------------------------------------------------------------------------
+# Figure 7 for HER18
+# -------------------------------------------------------------------------------           
+
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))
+plt.quiver(XS_cart_true_n[cut_z, 0], XS_cart_true_n[cut_z, 1], XS_cart_true_n[cut_z, 3], XS_cart_true_n[cut_z, 4], 
+           np.clip(XS_cart_true_n[cut_z, 5], -10, 10), cmap = 'RdBu', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002, rasterized = True)
+cb = plt.colorbar(shrink = .8)
+cb.set_label(r'$v_z$', fontsize = 15)
+plt.xlim(-25, 5)
+plt.ylim(-10, 20)
+overplot_rings()
+overplot_rings_helio()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('paper/map.pdf', bbox_inches = 'tight')
+        
 # -------------------------------------------------------------------------------
 # calculate rotational velocity via Jeans equation (in patches)
 # -------------------------------------------------------------------------------        
 
-rho_R_exp = 3. # kpc
+'''rho_R_exp = 3. # kpc
 vrr_R_exp = 15. # kpc
 
 # velocity tensor!
@@ -562,7 +583,7 @@ plt.close()
 # plots with arrows!
 # -------------------------------------------------------------------------------
 
-'''fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
         np.clip(mean_HW2.flatten(), 0, 1.5), cmap = 'RdYlBu_r', scale_units='xy', \
            scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
@@ -654,7 +675,7 @@ fig.delaxes(ax[5, 3])
 plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight', dpi = 200)
 plt.close()
 
-# -------------------------------------------------------------------------------'''
+# -------------------------------------------------------------------------------
 # radial element profiles
 # -------------------------------------------------------------------------------        
 

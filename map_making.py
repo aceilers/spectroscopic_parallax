@@ -145,7 +145,11 @@ def KeplerianRotation(R):
 
 # take only stars in mid-plane 
 vz_cut = (abs(labels['b']) < 2) # * (abs(XS[:, 5]) < 20)
-  
+
+# -------------------------------------------------------------------------------
+# other plots
+# -------------------------------------------------------------------------------
+ 
 ## test to rotate system
 #x = (np.random.random(size = 10000) -0.5) * 100
 #y = (np.random.random(size = 10000) -0.5) * 100
@@ -314,6 +318,22 @@ ax.set_aspect('equal')
 plt.savefig('plots/maps/xy_parallax_over_error.pdf', bbox_inches = 'tight', dpi = 120)
 plt.close()
 
+fig, ax = plt.subplots(1, 1, figsize = (12, 12))
+plt.quiver(XS[vz_cut, 0], XS[vz_cut, 1], XS[vz_cut, 3], XS[vz_cut, 4], 
+           np.clip(XS[vz_cut, 5], -10, 10), cmap = 'RdBu', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
+cb = plt.colorbar(shrink = .85)
+cb.set_label(r'$v_z$', fontsize = 15)
+plt.xlim(Xlimits[0])
+plt.ylim(Xlimits[1])
+overplot_rings()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$', fontsize = fsize)
+plt.ylabel('$y$', fontsize = fsize)
+ax.set_aspect('equal')
+plt.savefig('plots/maps/xy_arrow.pdf', bbox_inches = 'tight')
+plt.close()
+
 AKs = 0.918 * (labels['H'] - labels['w2mpro'] - 0.08)
 HW2 = labels['H'] - labels['w2mpro']
 fig, ax = plt.subplots(1, 1, figsize = (10, 10))
@@ -355,22 +375,6 @@ plt.xlabel('$x$', fontsize = fsize)
 plt.ylabel('$z$', fontsize = fsize)
 ax.set_aspect('equal')
 plt.savefig('plots/maps/xz_vtan.pdf', bbox_inches = 'tight', dpi = 120)
-plt.close()
-
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))
-plt.quiver(XS[vz_cut, 0], XS[vz_cut, 1], XS[vz_cut, 3], XS[vz_cut, 4], 
-           np.clip(XS[vz_cut, 5], -10, 10), cmap = 'RdBu', scale_units='xy', 
-           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002)
-cb = plt.colorbar(shrink = .85)
-cb.set_label(r'$v_z$', fontsize = 15)
-plt.xlim(Xlimits[0])
-plt.ylim(Xlimits[1])
-overplot_rings()
-plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = fsize)
-plt.ylabel('$y$', fontsize = fsize)
-ax.set_aspect('equal')
-plt.savefig('plots/maps/xy_arrow.pdf', bbox_inches = 'tight')
 plt.close()
 
 # radial velocity!

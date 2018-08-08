@@ -221,12 +221,13 @@ hdu = fits.open('data/all_flux_norm_parent.fits')
 fluxes = hdu[0].data
 gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
 
-fig, ax = plt.subplots(2, 1, figsize = figsize, sharex = True)
+fig, ax = plt.subplots(2, 1, figsize = figsize, sharex = True, sharey = True)
 ax[0].plot(np.array(wl)[~gaps], res1.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
 ax[1].plot(np.array(wl)[~gaps], res2.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
 ax[1].set_xlabel(r'$\lambda~\rm[{\AA}]$', fontsize = 14)
+ax[0].set_xlim(min(np.array(wl)[~gaps]), max(np.array(wl)[~gaps]))
+ax[0].set_ylim(-0.8, 0.8)
 plt.savefig('paper/coefficients.pdf')
-
 
 # -------------------------------------------------------------------------------
 # Figure 7 (map of kinematics & abundances)
@@ -236,8 +237,7 @@ plt.savefig('paper/coefficients.pdf')
 # patch colored by metallicty, opacity proportional to number of stars
 # superimposed arrow color coded by v_z, opacity also proportional to number of stars
 
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))
-plt.savefig('paper/map.pdf')
+# run rotation_curve_uncertainties.py
 
 
 # -------------------------------------------------------------------------------'''
