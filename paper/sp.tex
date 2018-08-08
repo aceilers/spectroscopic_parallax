@@ -12,8 +12,7 @@
 % - check with WISE experts that we have the correct WISE photometry
 % - we need an uncertainty estimate or noise model for our outputs.
 % - general HWR point that we aren't putting in to the model any idea about how apparent magnitude varies with distance; this means that we rely on data for EVERYTHING.
-% - CODE: change cluster plots to color vs parallax scatter plots, points colored by logg.
-% - CODE: We probably should cut in color-color space. Probably in J-K vs B-R and in H-W2 vs B-R.
+% - HWR will deliver cluster memberships, and then we will improve the cluster plots.
 % - CODE: We will match axes on relevant plots.
 % - CODE: we need to look at how things change with the parallax offset (0.029). It is another hyper-par.
 % - CODE: we have set lambda = 50 by x-val -- final re-set?
@@ -54,8 +53,8 @@
 \newcommand{\T}{^{\mathsf{T}}}
 \DeclareMathOperator*{\argmin}{argmin}
 \newcommand{\logg}{\log g}
-\newcommand{\BP}{B\!P}
-\newcommand{\RP}{R\!P}
+\newcommand{\BP}{{G_\mathrm{BP}}}
+\newcommand{\RP}{{G_\mathrm{RP}}}
 \newcommand{\gparallax}{\varpi^{(\mathrm{a})}}
 \newcommand{\sparallax}{\varpi^{(\mathrm{sp})}}
 
@@ -510,14 +509,22 @@ reason, we define the Parent Sample to be the set of all stars that
 meet the \apogee\ and \gaia\ cuts and also
 have the complete set of photometry: $G_n$, $\BP_n$, $\RP_n$, $J_n$,
 $H_n$, $K_n$, $W_{1n}$, and $W_{2n}$ and also an \apogee\ spectrum.
-This Parent Sample contains ACE HOW MANY STARS? and is shown in \figurename~\ref{fig:parent}.
+In addition, we applied two light color cuts to remove stars with obviously
+contaminated or outlying photometry:
+\begin{eqnarray}
+(J_n - K_n) &<& (+0.4\,\mathrm{mag}) + 0.45 * (\BP_n - \RP_n)
+\\
+(H_n - W_{2n}) &>& (-0.05\,\mathrm{mag})
+\quad .
+\end{eqnarray}
+These cuts removed roughly 2~percent of the \apogee\ stars.
+This Parent Sample contains 44808 (HOGG CHECK) and is shown in \figurename~\ref{fig:parent}.
 \begin{figure}
 \includegraphics[width=\textwidth]{parent_sample.pdf}
-\caption{A visualization of the Parent Sample stars. The left panel
-  shows a color--color diagram for all XXXX stars in the combined Parent Sample, colored by
-  the \apogee\ pipeline estimates of surface gravity. The right
-  panel shows small spectral segments of four example stars,
-  chosen to span metallicity and surface gravity.\label{fig:parent}}
+\caption{Color--color diagrams for the Parent Sample stars.
+  The points are colored by
+  the \apogee\ pipeline estimates of surface gravity.
+  The color cuts used to trim outliers are shown as grey lines.\label{fig:parent}}
 \end{figure}
 
 Every Parent-Sample star gets, in addition, a randomly assigned binary
@@ -551,11 +558,20 @@ parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The Training Sets are shown in \figurename~\ref{fig:training}.
 \begin{figure}
 \includegraphics[width=\textwidth]{./training_sample.pdf}
-\caption{A visualization of the Training Set stars. The left panel shows
-  same color--color diagram as in \figurename~\ref{fig:parent}, but for
-  the Training Set only. Note [HOGG SOME DIFFERENCES]. The right panel
-  shows HOGG WHAT?\label{fig:training}}
+\caption{Color--color diagrams for the Training Set stars.
+  Note that there is less color range in the Training Set than in the
+  Parent Sample.\label{fig:training}}
 \end{figure}
+
+Comparison of {\figurename s}~\ref{fig:parent} and \ref{fig:training} shows
+that there is more color range in the Parent Sample than in the Training Set.
+This challenges the representativeness assumption in \sectionname~\ref{sec:assumptions}.
+The principal reason for the difference is that the \gaia\ quality cuts
+exclude stars preferentially from crowded regions, which also tend to be the
+most dust-obscured.
+The hope of the model assumptions is that the Training Set will contain sufficient
+dust variation that the model will naturally learn the dust corrections and extrapolate
+acceptably.
 
 For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
