@@ -35,7 +35,7 @@ print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
 
-offset = 0.009 # mas as per Lindegren et al. 2018
+offset = 0.029 # mas as per Lindegren et al. 2018
 labels['parallax'] += offset
 
 
@@ -51,21 +51,21 @@ cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
 cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
 labels = labels[cut_jk * cut_hw2]
 
-if prediction: 
-    
-    print('loading spectra...')
-
-    hdu = fits.open('data/all_flux_norm_parent.fits')
-    fluxes = hdu[0].data
-    fluxes = fluxes[:, cut_jk * cut_hw2]
-                          
-# -------------------------------------------------------------------------------
-# add pixel mask to remove gaps between chips! 
-# -------------------------------------------------------------------------------
-
-    print('removing chip gaps...')               
-    gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
-    fluxes = fluxes[~gaps, :]
+#if prediction: 
+#    
+#    print('loading spectra...')
+#
+#    hdu = fits.open('data/all_flux_norm_parent.fits')
+#    fluxes = hdu[0].data
+#    fluxes = fluxes[:, cut_jk * cut_hw2]
+#                          
+## -------------------------------------------------------------------------------
+## add pixel mask to remove gaps between chips! 
+## -------------------------------------------------------------------------------
+#
+#    print('removing chip gaps...')               
+#    gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
+#    fluxes = fluxes[~gaps, :]
 
 # -------------------------------------------------------------------------------
 # linear algebra
@@ -94,34 +94,52 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 30                      # hyperparameter -- needs to be tuned!
-name = 'N{0}_lam{1}_K{2}_offset{3}_parallax'.format(len(labels), lam, Kfold, offset)
+lam = 0                      # hyperparameter -- needs to be tuned!
+name = 'N{0}_lam{1}_K{2}_phot_only'.format(len(labels), lam, Kfold, offset)
 
 # optimization schedule
 # 1. photometry only
 # 2. go down with lambda?
 
 steps = 2
+cuts = (abs(labels['TEFF']) < 8000) * (abs(labels['LOGG']) < 10) * (abs(labels['FE_H']) < 10)
+labels = labels[cuts]
 
 if prediction:        
     
+    teff = (labels['TEFF'] - np.mean(labels['TEFF'])) / np.sqrt(np.var(labels['TEFF']))
+    logg = (labels['LOGG'] - np.mean(labels['LOGG'])) / np.sqrt(np.var(labels['LOGG']))
+    feh = (labels['FE_H'] - np.mean(labels['FE_H'])) / np.sqrt(np.var(labels['FE_H']))
+    
     # data
-    y_all = labels['parallax'] 
-    yerr_all = labels['parallax_error'] 
+    y_all = labels['parallax']
+    yerr_all = labels['parallax_error']
     ivar_all = yerr_all ** (-2)
     
     # design matrix
     AT_0 = np.vstack([np.ones_like(y_all)])
-    ln_fluxes = np.log(np.clip(fluxes, 0.01, 1.2))
+    #ln_fluxes = np.log(np.clip(fluxes, 0.01, 1.2))
     #ln_flux_err = sigmas / np.clip(fluxes, 0.01, 1.2)
-    AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], ln_fluxes])
+        
+    AT_linear = np.vstack([teff, logg, feh, \
+                           labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], \
+                           labels['J'], labels['H'], labels['K'], \
+                           labels['w1mpro'], labels['w2mpro']]) #, \
+#                           labels['C_FE'], labels['CI_FE'], labels['N_FE'], \
+#                           labels['O_FE'], labels['NA_FE'], labels['MG_FE'], \
+#                           labels['TI_FE'], labels['S_FE'], labels['SI_FE'], \
+#                           labels['P_FE'], labels['K_FE'], labels['CA_FE'], \
+#                           labels['TIII_FE'], labels['V_FE'], labels['CR_FE'], \
+#                           labels['CO_FE'], labels['NI_FE'], labels['MN_FE'], \
+#                           labels['AL_FE']])
+    
     #AT_linear_err = np.vstack([labels['phot_g_mean_mag_err'], labels['phot_bp_mean_mag_err'], labels['phot_rp_mean_mag_err'], labels['J_ERR'], labels['H_ERR'], labels['K_ERR'], labels['w1mpro_err'], labels['w2mpro_err'], ln_flux_err])
     A_all = np.vstack([AT_0, AT_linear]).T
     #A_all_err = np.vstack([np.zeros_like(y_all), AT_linear_err]).T
     
     # fucking brittle
-    lams = np.zeros_like(A_all[0])
-    lams[-len(fluxes):] = lam
+    #lams = np.zeros_like(A_all[0])
+    #lams[-len(fluxes):] = lam
        
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
@@ -158,7 +176,7 @@ if prediction:
         # more cuts? e.g. astrometric_gof_al should be low!
         
         foo, M = A_all.shape
-        x0 = np.zeros((M,)) + 0.001/M 
+        x0 = np.zeros((M,)) + 0.1/M 
         x_new = None
         for opt_step in range(steps):   
             if opt_step == 0:
@@ -175,7 +193,7 @@ if prediction:
                          
             # optimize H_func
             print('{} optimization...'.format(k+1))
-            res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+            res = op.minimize(H_func, x0, args=(y, A, lam, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
             print(res)   
             x_new = res.x  
             assert res.success

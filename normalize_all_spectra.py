@@ -49,9 +49,9 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
     i=0
     no_data = []
     no_data_i = np.ones((len(file_spectra),), dtype = bool)
-    for entry, destination in zip(file_spectra, destinations):
+    for entry, destination_i in zip(file_spectra, destinations):
         print(i)
-        destination = './data/spectra/' #+ str(destination) + '/'
+        destination = './data/spectra/' + str(destination_i) + '/'
         try:
             hdulist = fits.open(destination + entry.strip())
             if len(hdulist[1].data) < 8575: 
@@ -71,7 +71,7 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
             all_flux[i] = flux
             all_sigma[i] = sigma
         except:
-            entry = entry.replace('apStar', 'aspcapStar')
+            entry = entry.replace('apStar-r8', 'aspcapStar-r8-l31c.2')
             try:
                 hdulist = fits.open(destination + entry.strip())
                 if len(hdulist[1].data) < 8575: 
@@ -112,7 +112,7 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
 #    f = open('data/' + file_name, 'wt')
 #    pickle.dump(data_norm, f)
 #    f.close()
-    fits.writeto('data/' + file_name, data_norm[:, :, 1], overwrite = True)
+    fits.writeto('data/' + file_name, data_norm[:, :, 1:], overwrite = True)
     
     return data_norm, continuum, no_data_i
 
