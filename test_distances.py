@@ -35,9 +35,9 @@ fsize = 14
 # open inferred labels
 # -------------------------------------------------------------------------------
 
-N = 45787
+N = 44808 #45787
 Kfold = 2
-lam = 30
+lam = 50
 name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   

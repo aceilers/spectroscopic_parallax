@@ -210,7 +210,7 @@ def overplot_ring(r):
     xs = r * np.cos(thetas)
     ys = r * np.sin(thetas)
     plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = np.inf)
-    plt.scatter(0, 0, s = 10, color = 'k', alpha=0.2)
+    plt.scatter(0, 0, s = 20, color = 'k', alpha=0.2, marker = 'x')
     return
 
 def overplot_ring_helio(r):
@@ -321,27 +321,34 @@ for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
 # Figure 7 for HER18
 # -------------------------------------------------------------------------------           
 
-fig, ax = plt.subplots(1, 1, figsize = (12, 12))
-plt.quiver(XS_cart_true_n[cut_z, 0], XS_cart_true_n[cut_z, 1], XS_cart_true_n[cut_z, 3], XS_cart_true_n[cut_z, 4], 
-           np.clip(XS_cart_true_n[cut_z, 5], -10, 10), cmap = 'RdBu', scale_units='xy', 
-           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.002, rasterized = True)
-cb = plt.colorbar(shrink = .8)
-cb.set_label(r'$v_z$', fontsize = 15)
+cut_feh = abs(labels['FE_H']) < 10
+cuts = cut_z * cut_feh
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))
+sc = plt.quiver(XS_cart_true_n[cuts, 0], XS_cart_true_n[cuts, 1], XS_cart_true_n[cuts, 3], XS_cart_true_n[cuts, 4], 
+           np.clip(labels['FE_H'][cuts], -.7, .7), cmap = 'RdBu_r', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 5, width = 0.0015, rasterized = True)
+#cb = plt.colorbar(shrink = .8)
+#cb.set_label(r'$v_z$', fontsize = 15)
 plt.xlim(-25, 5)
 plt.ylim(-10, 20)
 overplot_rings()
 overplot_rings_helio()
 plt.tick_params(axis=u'both', direction='in', which='both')
-plt.xlabel('$x$', fontsize = fsize)
-plt.ylabel('$y$', fontsize = fsize)
+plt.xlabel('$x$ [kpc]', fontsize = fsize)
+plt.ylabel('$y$ [kpc]', fontsize = fsize)
 ax.set_aspect('equal')
-plt.savefig('paper/map.pdf', bbox_inches = 'tight')
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.08, 0.03, .86])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'[Fe/H]', fontsize = fsize)
+plt.savefig('paper/map.pdf', bbox_inches = 'tight', pad_inches=.2, dpi=250)
+plt.close()
         
 # -------------------------------------------------------------------------------
 # calculate rotational velocity via Jeans equation (in patches)
 # -------------------------------------------------------------------------------        
 
-'''rho_R_exp = 3. # kpc
+rho_R_exp = 3. # kpc
 vrr_R_exp = 15. # kpc
 
 # velocity tensor!
