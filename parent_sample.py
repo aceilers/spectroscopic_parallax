@@ -103,7 +103,7 @@ print('remove variable stars: {}'.format(len(training_labels)))
 # -------------------------------------------------------------------------------
 
 print('load and normalize spectra...')
-file_name = 'all_flux_norm_parent.fits'
+file_name = 'all_flux_sig_norm_parent.fits'
 data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'], file_name, training_labels['LOCATION_ID'])
             
  # remove entries from training labels, where no spectrum was found (for whatever reason...)!

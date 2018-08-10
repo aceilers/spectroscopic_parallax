@@ -242,6 +242,15 @@ plt.savefig('paper/coefficients.pdf')
 
 # -------------------------------------------------------------------------------'''
 
+xx = res1.x
+sigma = np.zeros_like(xx)
+sigma[9:] = 0.01
+sigma[1:9] = 0.05
+ln_par_err = np.sqrt(np.sum(sigma * sigma * xx * xx))
+
+
+
+
 
 
 
