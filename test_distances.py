@@ -37,8 +37,8 @@ fsize = 14
 
 N = 44808 #45787
 Kfold = 2
-lam = 50
-name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
+lam = 30
+name = 'N{0}_lam{1}_K{2}_offset0.049_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
@@ -324,12 +324,12 @@ for i, clus in enumerate(cluster_list):
     cut_clus = (abs(labels['ra'] - ra_clus) < .8) \
           * (abs(labels['dec'] - dec_clus) < .8) 
           
-    bins = np.linspace(-0.1, .8, 20)
+    bins = np.linspace(-0.1, .8, 40)
     ax[c, r].hist(labels['spec_parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 3, color = 'k', label = r'$\varpi^{\rm (sp)}$')
     ax[c, r].hist(labels['parallax'][cut_clus], normed = True, bins = bins, histtype = 'step', lw = 1, color = 'k', label = r'$\varpi^{\rm (a)}$')
     ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
     
-    ax[c, r].axvline(1./t['distance'][k][0], linestyle = '--', color = '#929591', lw = 2)
+    ax[c, r].axvline(1./t['distance'][k][0], color = 'r', lw = 2)
     ax[c, r].set_title(r'{0}, $\rm [Fe/H] = {1}$'.format(t['lat_name'][k][0], t['FE_H'][k][0]), fontsize = 13)
     ax[c, r].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
     ax[c, r].set_ylabel('normalized counts', fontsize = 14)
@@ -345,11 +345,83 @@ ax[3, 2].hist(labels_sgr['spec_parallax'], normed = True, bins = bins, histtype 
 ax[3, 2].hist(labels_sgr['parallax'], normed = True, bins = bins, histtype = 'step', lw=1, color='k', label = r'$\varpi^{(a)}$')
 ax[3, 2].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
 ax[3, 2].set_xlim(-0.1, .8)
-ax[3, 2].axvline(1./20, linestyle = '--', color = '#929591')
+ax[3, 2].axvline(1./20, color = 'r')#929591')
 ax[3, 2].set_title('Sagittarius')
 ax[3, 2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 #plt.savefig('plots/open_clusters/test_open_clusters_{}.pdf'.format(name))
 plt.savefig('paper/clusters.pdf')
+
+# -------------------------------------------------------------------------------
+# take members
+# -------------------------------------------------------------------------------
+
+hdu = fits.open('plots/open_clusters/NGC2862members')
+mem = Table(hdu[1].data)
+
+offset = 0.0483
+Kfold = 2
+lam = 30                      # hyperparameter -- needs to be tuned! CROSS VALIDATED (10.08.2018)
+N = 44784
+name = 'N{0}_lam{1}_K{2}_offset{3}_parallax'.format(N, lam, Kfold, offset)
+
+print('loading new labels...')   
+labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits') 
+
+cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
+cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
+cut_finite = (labels['J'] > -100) * (labels['H'] > -100) * (labels['K'] > -100) *\
+         (labels['J_ERR'] > 0) * (labels['H_ERR'] > 0) * (labels['K_ERR'] > 0) * \
+         np.isfinite(labels['w1mpro']) * np.isfinite(labels['w2mpro']) * \
+         (labels['w1mpro_error'] > 0) * (labels['w2mpro_error'] > 0)
+labels = labels[cut_jk * cut_hw2 * cut_finite]
+
+xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
+plt.errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', label = r'$\varpi^{\rm (sp)}$', zorder = 10)
+plt.errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', color = "y", label = r'$\varpi^{\rm (g)}$', zorder = 20)
+avg = np.sum(xx['spec_parallax_2'] / xx['spec_parallax_err'] ** 2) / np.sum(1. / xx['spec_parallax_err'] **2)
+plt.axvline(avg, color="k", alpha = 0.5, zorder = -10, label = 'avg')
+#distance = 6.4
+#plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
+plt.legend()
+plt.xlabel(r'$\varpi$ [mas]', fontsize = 14)
+plt.ylabel(r'$\log g$', fontsize = 14)
+plt.savefig('plots/open_clusters/ngc2862_new.pdf')
+
+
+cluster_list = ['M67', 'M71', 'M107', 'NGC2862']
+
+fig, ax = plt.subplots(2, 2, figsize = (12, 8), sharex = True, sharey = True)
+plt.subplots_adjust(wspace = 0.02, hspace = 0.02)
+c, r = 0, 0
+for i in range(4):
+    hdu = fits.open('plots/open_clusters/{}members'.format(cluster_list[i]))
+    mem = Table(hdu[1].data)
+
+    xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
+    ax[c, r].errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', color = "k", label = r'$\varpi^{\rm (sp)}$', zorder = 20)
+    ax[c, r].errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', color = '#929591', label = r'$\varpi^{\rm (g)}$', zorder = 10)
+    avg = np.sum(xx['spec_parallax_2'] / xx['spec_parallax_err'] ** 2) / np.sum(1. / xx['spec_parallax_err'] **2)
+    avg_gaia = np.sum(xx['parallax_2'] / xx['parallax_error_2'] ** 2) / np.sum(1. / xx['parallax_error_2'] **2)
+    ax[c, r].axvline(avg, color="k", lw = 0.8, zorder = -10, linestyle = ':')
+    ax[c, r].axvline(avg_gaia, color='#929591', lw = 0.8, zorder = -10, linestyle = ':')
+    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    ax[c, r].annotate('{}'.format(cluster_list[i]), (1.22, 0.75), fontsize = 13)
+    #distance = 6.4
+    #plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
+    ax[c, r]
+    if r == 1: 
+        c += 1
+        r = 0    
+    else:
+        r += 1
+ax[0, 0].legend(fontsize = 14)
+ax[1, 0].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
+ax[1, 1].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
+ax[0, 0].set_ylabel(r'$\log g$', fontsize = 14)
+ax[1, 0].set_ylabel(r'$\log g$', fontsize = 14)
+
+plt.savefig('paper/clusters.pdf')
+
 
 # -------------------------------------------------------------------------------
 # take Sagittarius region...

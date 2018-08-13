@@ -217,16 +217,23 @@ val = diff_wl * (len(flux)) + start_wl
 wl_full_log = np.arange(start_wl, val, diff_wl)
 wl = [10**aval for aval in wl_full_log]
 
+hdu = fits.open('data/linear_cannon.fits')
+parameters = hdu[0].data
+
 hdu = fits.open('data/all_flux_norm_parent.fits')
 fluxes = hdu[0].data
 gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
 
-fig, ax = plt.subplots(2, 1, figsize = figsize, sharex = True, sharey = True)
-ax[0].plot(np.array(wl)[~gaps], res1.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
-ax[1].plot(np.array(wl)[~gaps], res2.x[9:], drawstyle = 'steps-mid', lw = .8, color = 'k')
+fig, ax = plt.subplots(2, 1, figsize = (12, 12), sharex = True, sharey = True)
+ax[0].fill_between(np.array(wl)[~gaps], abs(res1.x[9:])) #, drawstyle = 'steps-mid', lw = .8, color = 'k')
+ax[1].fill_between(np.array(wl)[~gaps], abs(res2.x[9:])) #, drawstyle = 'steps-mid', lw = .8, color = 'k')
+for i in range(1, 2):
+    ax[0].fill_between(wl, abs(5 * parameters[:, i]), alpha = .5)
+    ax[1].fill_between(wl, abs(5 * parameters[:, i]), alpha = .5)
 ax[1].set_xlabel(r'$\lambda~\rm[{\AA}]$', fontsize = 14)
 ax[0].set_xlim(min(np.array(wl)[~gaps]), max(np.array(wl)[~gaps]))
-ax[0].set_ylim(-0.8, 0.8)
+ax[0].set_ylim(0., 0.5)
+ax[0].set_xlim(16700, 16900)
 plt.savefig('paper/coefficients.pdf')
 
 # -------------------------------------------------------------------------------
@@ -239,14 +246,33 @@ plt.savefig('paper/coefficients.pdf')
 
 # run rotation_curve_uncertainties.py
 
+# -------------------------------------------------------------------------------
+# Figure 8
+# -------------------------------------------------------------------------------
+
+apogee_table = fits.open('data/allStar-l31c.2.fits')
+apogee_data = apogee_table[1].data
+
+cmap = 'RdYlBu_r'
+fig, ax = plt.subplots(1, 1, figsize = (5, 5))
+plt.scatter(apogee_data['TEFF'], apogee_data['LOGG'], s = .5, color = '#929591', rasterized = True, alpha = .01)
+plt.scatter(labels['TEFF'], labels['LOGG'], c = labels['FE_H'], s = .5, cmap = cmap, rasterized = True, alpha = 1, vmin = -.8, vmax = .5)
+plt.xlim(5500, 3500)
+plt.ylim(3.8, -.2)
+plt.xlabel(r'$T_{\rm eff}$', fontsize = 14)
+plt.ylabel(r'$\log g$', fontsize = 14)
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.savefig('paper/HRD.pdf')
+
+# color-color diagram?
+#plt.scatter(apogee_data['TEFF'], apogee_data['LOGG'], s = 1, color = '#929591', rasterized = True, alpha = .01)
+#plt.scatter(labels['TEFF'], labels['LOGG'], c = labels['FE_H'], s = 1, cmap = cmap, rasterized = True, alpha = .1, vmin = -.8, vmax = .5)
+#plt.xlim(5500, 3500)
+#plt.ylim(4, -.2)
+#plt.savefig('paper/HRD.pdf')
+
 
 # -------------------------------------------------------------------------------'''
-
-xx = res1.x
-sigma = np.zeros_like(xx)
-sigma[9:] = 0.01
-sigma[1:9] = 0.05
-ln_par_err = np.sqrt(np.sum(sigma * sigma * xx * xx))
 
 
 
