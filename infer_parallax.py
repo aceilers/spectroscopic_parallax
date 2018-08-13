@@ -35,7 +35,7 @@ print('loading labels...')
 hdu = fits.open('data/training_labels_parent.fits')
 labels = Table(hdu[1].data)
 
-offset = 0.009 # mas as per Lindegren et al. 2018
+offset = 0.0483 # mas our best fit (10.08.2018)! # NO LONGER: as per Lindegren et al. 2018
 labels['parallax'] += offset
 
 
@@ -49,15 +49,21 @@ labels['parallax'] += offset
 
 cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
 cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
-labels = labels[cut_jk * cut_hw2]
+cut_finite = (labels['J'] > -100) * (labels['H'] > -100) * (labels['K'] > -100) *\
+             (labels['J_ERR'] > 0) * (labels['H_ERR'] > 0) * (labels['K_ERR'] > 0) * \
+             np.isfinite(labels['w1mpro']) * np.isfinite(labels['w2mpro']) * \
+             (labels['w1mpro_error'] > 0) * (labels['w2mpro_error'] > 0)
+labels = labels[cut_jk * cut_hw2 * cut_finite]
 
 if prediction: 
     
     print('loading spectra...')
 
-    hdu = fits.open('data/all_flux_norm_parent.fits')
-    fluxes = hdu[0].data
-    fluxes = fluxes[:, cut_jk * cut_hw2]
+    hdu = fits.open('data/all_flux_sig_norm_parent.fits')
+    fluxes = hdu[0].data[:, :, 0]
+    sigmas = hdu[0].data[:, :, 1]
+    fluxes = fluxes[:, cut_jk * cut_hw2 * cut_finite]
+    sigmas = sigmas[:, cut_jk * cut_hw2 * cut_finite]
                           
 # -------------------------------------------------------------------------------
 # add pixel mask to remove gaps between chips! 
@@ -66,6 +72,7 @@ if prediction:
     print('removing chip gaps...')               
     gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
     fluxes = fluxes[~gaps, :]
+    sigmas = sigmas[~gaps, :]
 
 # -------------------------------------------------------------------------------
 # linear algebra
@@ -94,7 +101,7 @@ def check_H_func(x, y, A, lams, ivar):
 # -------------------------------------------------------------------------------
 
 Kfold = 2
-lam = 30                      # hyperparameter -- needs to be tuned!
+lam = 30                      # hyperparameter -- needs to be tuned! CROSS VALIDATED (10.08.2018)
 name = 'N{0}_lam{1}_K{2}_offset{3}_parallax'.format(len(labels), lam, Kfold, offset)
 
 # optimization schedule
@@ -110,14 +117,18 @@ if prediction:
     yerr_all = labels['parallax_error'] 
     ivar_all = yerr_all ** (-2)
     
+    phot_g_mean_mag_err = 1.09 * labels['phot_g_mean_flux_error'] / labels['phot_g_mean_flux']
+    phot_bp_mean_mag_err = 1.09 * labels['phot_bp_mean_flux_error'] / labels['phot_bp_mean_flux']
+    phot_rp_mean_mag_err = 1.09 * labels['phot_rp_mean_flux_error'] / labels['phot_rp_mean_flux']
+    
     # design matrix
     AT_0 = np.vstack([np.ones_like(y_all)])
     ln_fluxes = np.log(np.clip(fluxes, 0.01, 1.2))
-    #ln_flux_err = sigmas / np.clip(fluxes, 0.01, 1.2)
+    ln_flux_err = np.clip(sigmas, 0, 0.05) / np.clip(fluxes, 0.01, 1.2) # 0.05 IS MAGIC NUMBER -- ERRORS DO DEPEND ON IT!
     AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], ln_fluxes])
-    #AT_linear_err = np.vstack([labels['phot_g_mean_mag_err'], labels['phot_bp_mean_mag_err'], labels['phot_rp_mean_mag_err'], labels['J_ERR'], labels['H_ERR'], labels['K_ERR'], labels['w1mpro_err'], labels['w2mpro_err'], ln_flux_err])
+    AT_linear_err = np.vstack([phot_g_mean_mag_err, phot_bp_mean_mag_err, phot_rp_mean_mag_err, labels['J_ERR'], labels['H_ERR'], labels['K_ERR'], labels['w1mpro_error'], labels['w2mpro_error'], ln_flux_err])
     A_all = np.vstack([AT_0, AT_linear]).T
-    #A_all_err = np.vstack([np.zeros_like(y_all), AT_linear_err]).T
+    A_all_err = np.vstack([np.zeros_like(y_all), AT_linear_err]).T
     
     # fucking brittle
     lams = np.zeros_like(A_all[0])
@@ -182,10 +193,10 @@ if prediction:
                                
         # prediction
         y_pred = np.exp(np.dot(A_all[valid, :], x_new))
-        #y_pred_err = y_pred * np.sqrt(np.dot(A_all_err[valid, :] ** 2, x_new ** 2)) # Hogg made this up
+        y_pred_err = y_pred * np.sqrt(np.dot(A_all_err[valid, :] ** 2, x_new ** 2)) # Hogg made this up
 
         y_pred_all[valid] = y_pred
-        #y_pred_all_err[valid] = y_pred_err
+        y_pred_all_err[valid] = y_pred_err
         
         plt.scatter(labels[valid]['parallax'], y_pred, alpha = .1)
         plt.xlim(-1, 3)
@@ -196,9 +207,9 @@ if prediction:
         f.close()   
     
     spec_parallax = y_pred_all
-    #spec_parallax_err = y_pred_all_err
+    spec_parallax_err = y_pred_all_err
     labels.add_column(spec_parallax, name='spec_parallax')
-    #labels.add_column(spec_parallax_err, name='spec_parallax_err')
+    labels.add_column(spec_parallax_err, name='spec_parallax_err')
     Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
     
 # -------------------------------------------------------------------------------
@@ -208,26 +219,104 @@ if prediction:
 if not prediction:
     
     print('loading new labels...')   
-    labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
+    labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits') 
+
+    cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
+    cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
+    cut_finite = (labels['J'] > -100) * (labels['H'] > -100) * (labels['K'] > -100) *\
+             (labels['J_ERR'] > 0) * (labels['H_ERR'] > 0) * (labels['K_ERR'] > 0) * \
+             np.isfinite(labels['w1mpro']) * np.isfinite(labels['w2mpro']) * \
+             (labels['w1mpro_error'] > 0) * (labels['w2mpro_error'] > 0)
+    labels = labels[cut_jk * cut_hw2 * cut_finite]
     
-    # cuts in Q
-    #cut_Q = labels['Q_K'] < 0.5   
-    # visibility periods used
+    hdu = fits.open('data/all_flux_sig_norm_parent.fits')
+    fluxes = hdu[0].data[:, :, 0]
+    sigmas = hdu[0].data[:, :, 1]
+    fluxes = fluxes[:, cut_jk * cut_hw2 * cut_finite]
+    sigmas = sigmas[:, cut_jk * cut_hw2 * cut_finite]
+    print('removing chip gaps...')               
+    gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
+    fluxes = fluxes[~gaps, :]
+    sigmas = sigmas[~gaps, :]
+    
     cut_vis = labels['visibility_periods_used'] >= 8    
-    # cut in parallax_error
-    cut_par = labels['parallax_error'] < 0.1            
-    # cut in astrometric_gof_al
-    #cut_gof = labels['astrometric_gof_al'] < 5 
-    # other cuts?    
+    cut_par = labels['parallax_error'] < 0.1             
     cut_cal = (labels['astrometric_chi2_al'] / np.sqrt(labels['astrometric_n_good_obs_al']-5)) <= 35         
-                                  
-    
+                                      
     # make plots for parent, valid, and best sample
     valid = cut_vis * cut_par * cut_cal  
     best = valid * (labels['parallax_over_error'] >= 20) #* (labels['astrometric_gof_al'] < 10)
     parent = np.isfinite(labels['parallax'])
     samples = [parent, valid, best]
     samples_str = ['parent', 'validation', 'best']
+    
+    # design matrix
+    AT_0 = np.vstack([np.ones_like(labels['K'])])
+    ln_fluxes = np.log(np.clip(fluxes, 0.01, 1.2))
+    ln_flux_err = np.clip(sigmas, 0, .05) / np.clip(fluxes, 0.01, 1.2)
+    #ln_flux_err1 = np.clip(sigmas, 0, .1) / np.clip(fluxes, 0.01, 1.2)
+    AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], ln_fluxes])
+    AT_linear_err = np.vstack([phot_g_mean_mag_err, phot_bp_mean_mag_err, phot_rp_mean_mag_err, labels['J_ERR'], labels['H_ERR'], labels['K_ERR'], labels['w1mpro_error'], labels['w2mpro_error'], ln_flux_err])
+    #AT_linear_err1 = np.vstack([phot_g_mean_mag_err, phot_bp_mean_mag_err, phot_rp_mean_mag_err, labels['J_ERR'], labels['H_ERR'], labels['K_ERR'], labels['w1mpro_error'], labels['w2mpro_error'], ln_flux_err1])
+    A_all = np.vstack([AT_0, AT_linear]).T
+    A_all_err = np.vstack([np.zeros_like(labels['K']), AT_linear_err]).T
+    #A_all_err1 = np.vstack([np.zeros_like(labels['K']), AT_linear_err1]).T
+    
+    # FLAG IF ERROR WITH SIGMA-CLIP = 0.1 and SIGMA_CLIP = 0.05 differs by X, raise flag
+    A_all_err1 = 1. * A_all_err
+    A_all_err1[:, :9] = 0
+    A_all_err2 = 1. * A_all_err
+    A_all_err2[:, 9:] = 0
+    
+    # cut down to valid!
+    #valid = valid * (np.random.uniform(size = len(labels['K'])) < 0.05)
+    #A_all = A_all[valid, :]
+    #A_all_err = A_all_err[valid, :]
+    #labels = labels[valid]
+    #x_new = res.x
+    #A_all_err = np.clip(A_all_err, 0, .05)
+    
+    y_pred = np.exp(np.dot(A_all, x_new))
+    y_pred_err = y_pred * np.sqrt(np.dot(A_all_err ** 2, x_new ** 2)) # Hogg made this up
+    y_pred_err1 = y_pred * np.sqrt(np.dot(A_all_err1 ** 2, x_new ** 2)) # Hogg made this up
+    y_pred_err2 = y_pred * np.sqrt(np.dot(A_all_err2 ** 2, x_new ** 2)) # Hogg made this up
+
+    # intrinsic scatter plot
+    delta_par = np.array(labels['spec_parallax']) - np.array(labels['parallax'])    
+    par_err = np.sqrt(np.array(y_pred_err) ** 2 + np.array(labels['parallax_error']) ** 2)
+    par_err1 = np.sqrt(np.array(y_pred_err1) ** 2 + np.array(labels['parallax_error']) ** 2)
+    chi = delta_par/par_err
+    chi2 = np.median(delta_par ** 2 / par_err ** 2) * len(delta_par)
+    chi21 = np.median(delta_par ** 2 / par_err1 ** 2) * len(delta_par)
+    
+    cmap = 'RdBu'
+    fig, ax = plt.subplots(1, 1, figsize = (10, 5))
+    sc = plt.scatter(labels['spec_parallax'], delta_par, c = (y_pred_err1 - y_pred_err2) /(y_pred_err1 + y_pred_err2) , vmin = -1, vmax = 1, cmap = cmap)
+    plt.axhline(0, linestyle = ':', color = '#929591')
+    plt.colorbar(sc)
+    
+    cmap = 'plasma_r'
+    fig, ax = plt.subplots(1, 1, figsize = (10, 5))
+    sc = plt.scatter(labels['spec_parallax'], delta_par, c = A_all_err[:, 1], vmin = 0, vmax = 0.05, cmap = cmap)
+    plt.axhline(0, linestyle = ':', color = '#929591')
+    plt.colorbar(sc)
+    #plt.ylim(-.1, .1)
+    plt.title(r'$N_{{\rm stars}} = {0}, \, \chi^2 = {1}$'.format(len(delta_par), chi2), fontsize = 14)
+
+# -----------------------------------------------    
+    # intrinsic scatter plot
+    delta_par = np.array(labels[valid]['spec_parallax']) - np.array(labels[valid]['parallax'])    
+    par_err = np.sqrt(np.array(labels['spec_parallax_err'][valid]) ** 2 + np.array(labels['parallax_error'][valid]) ** 2)
+    par_err[~np.isfinite(par_err)] = np.inf
+    labels['spec_parallax_err'][~np.isfinite(labels['spec_parallax_err'])] = 1e12
+    chi = delta_par/par_err
+    chi2 = np.sum(delta_par ** 2 / par_err ** 2)
+    fig, ax = plt.subplots(1, 1, figsize = (10, 5))
+    plt.scatter(labels[valid]['spec_parallax'], delta_par, c = chi)
+    plt.axhline(0, linestyle = ':', color = '#929591')
+    #plt.ylim(-.1, .1)
+    plt.title(r'$N_{{\rm stars}} = {0}, \, \chi^2 = {1}$'.format(len(delta_par), chi2), fontsize = 14)
+    plt.savefig('plots/parallax/intrinsic_scatter_{}.pdf'.format(name))
 
     # make this a density plot!
     fig, ax = plt.subplots(1, 3, figsize = (17, 5))

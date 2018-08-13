@@ -181,9 +181,40 @@ fig.subplots_adjust(wspace = 0.0)
 plt.tight_layout()
 #fig.delaxes(ax[5, 2])
 #fig.delaxes(ax[5, 3])
-plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_bins_payne.pdf'.format(stars_per_bin, split_label), bbox_inches = 'tight', dpi = 200)
+#plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_bins_payne.pdf'.format(stars_per_bin, split_label), bbox_inches = 'tight', dpi = 200)
 
-    
-    
+# -------------------------------------------------------------------------------
+# v_z vs. z
+# -------------------------------------------------------------------------------   
+
+XS = np.vstack([xs, ys, zs, vxs, vys, vzs]).T.value
+
+labels = Table.read('data/Eilers_Payne_Apogee.fits' , format = 'fits') 
+labels.rename_column('pmra_2a', 'pmra')
+labels.rename_column('pmdec_2a', 'pmdec') 
+labels.rename_column('ra_1', 'ra')
+labels.rename_column('dec_1', 'dec')
+ 
+el = 'O_FE'
+cmap = 'RdYlBu_r'
+cut_x = (XS[:, 0] < -5) * (XS[:, 0] > -11)
+fig, ax = plt.subplots(1, len(logg_bins)-1, figsize = (20, 5), sharex = True, sharey = True)   
+for i in range(len(logg_bins) - 1):    
+    inside = (labels[split_label] > logg_bins[i]) * (labels[split_label] < logg_bins[i+1])    
+    ax[i].scatter(XS[inside * cut_x, 2], XS[inside * cut_x, 5], s = 2, c = labels[el][inside * cut_x], vmin = -.05, vmax = .3, cmap = cmap)
+    ax[i].set_title(r'${0} \approx {1}$'.format(latex_label, round(logg_bin_centers[i], 3)))
+    ax[i].set_xlabel(r'$z$ [kpc]', fontsize = 14)
+ax[0].set_xlim(-2, 2)
+ax[0].set_ylim(-75, 75)
+ax[0].set_ylabel(r'$v_z$ [km/s]', fontsize = 14)
+plt.tight_layout()
+
+#plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_bins_payne.pdf'.format(stars_per_bin, split_label), bbox_inches = 'tight', dpi = 200)
+cmap = 'RdYlBu_r'
+plt.scatter(XS[cut_x, 2], XS[cut_x, 5], s = 1, c = labels[el][cut_x], vmin = -.5, vmax = .3, cmap = cmap)
+plt.xlim(-2, 2)
+plt.ylim(-75, 75) 
+plt.ylabel(r'$v_z$ [km/s]', fontsize = 14) 
+plt.xlabel(r'$z$ [kpc]', fontsize = 14)
     
 # -------------------------------------------------------------------------------'''
