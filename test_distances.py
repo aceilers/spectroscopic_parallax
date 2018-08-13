@@ -390,7 +390,7 @@ plt.savefig('plots/open_clusters/ngc2862_new.pdf')
 
 cluster_list = ['M67', 'M71', 'M107', 'NGC2862']
 
-fig, ax = plt.subplots(2, 2, figsize = (12, 8), sharex = True, sharey = True)
+fig, ax = plt.subplots(2, 2, figsize = (12, 5), sharex = True, sharey = True)
 plt.subplots_adjust(wspace = 0.02, hspace = 0.02)
 c, r = 0, 0
 for i in range(4):
@@ -398,14 +398,14 @@ for i in range(4):
     mem = Table(hdu[1].data)
 
     xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
-    ax[c, r].errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', color = "k", label = r'$\varpi^{\rm (sp)}$', zorder = 20)
-    ax[c, r].errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', color = '#929591', label = r'$\varpi^{\rm (g)}$', zorder = 10)
+    ax[c, r].errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', markersize = 5, color = "k", label = r'$\varpi^{\rm (sp)}$', zorder = 20)
+    ax[c, r].errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', markersize = 5, color = '#929591', label = r'$\varpi^{\rm (g)}$', zorder = 10)
     avg = np.sum(xx['spec_parallax_2'] / xx['spec_parallax_err'] ** 2) / np.sum(1. / xx['spec_parallax_err'] **2)
     avg_gaia = np.sum(xx['parallax_2'] / xx['parallax_error_2'] ** 2) / np.sum(1. / xx['parallax_error_2'] **2)
     ax[c, r].axvline(avg, color="k", lw = 0.8, zorder = -10, linestyle = ':')
     ax[c, r].axvline(avg_gaia, color='#929591', lw = 0.8, zorder = -10, linestyle = ':')
     ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-    ax[c, r].annotate('{}'.format(cluster_list[i]), (1.22, 0.75), fontsize = 13)
+    ax[c, r].annotate('{}'.format(cluster_list[i]), (1.22, 0.75), fontsize = 13) #, bbox = ('ec' = '0.5'))
     #distance = 6.4
     #plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
     ax[c, r]
@@ -420,7 +420,7 @@ ax[1, 1].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
 ax[0, 0].set_ylabel(r'$\log g$', fontsize = 14)
 ax[1, 0].set_ylabel(r'$\log g$', fontsize = 14)
 
-plt.savefig('paper/clusters.pdf')
+plt.savefig('paper/clusters.pdf', bbox_inches = 'tight')
 
 
 # -------------------------------------------------------------------------------
