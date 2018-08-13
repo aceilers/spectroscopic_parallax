@@ -7,6 +7,10 @@
 % - check with WISE experts that we have the correct WISE photometry
 % - write words about other linear models we have made or could make, probably in the discusssion.
 % - are we citing all the proper DR2 papers we need to cite?
+% - HWR: Footnote to explain the use of the word ``feature'' for astronomers.
+% - HWR: Figures 1 and 2 need to be combined to directly compare Parent and Training.
+% - HWR: Figure 3: Note that the y-axis is positive-definite!
+% - HWR: Figure 7: Caption needs to say what arrows represent.
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -75,34 +79,36 @@ Accurate distances for luminous red-giant stars
 \affiliation{Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17, 69117 Heidelberg, Germany}
 
 \begin{abstract}\noindent
+% context
 With contemporary infrared spectroscopic surveys like \apogee,
 red-giant stars can be observed to distances and extinctions
-at which geometric parallaxes are not precisely measured by \gaia.
-Here we use the \apogee--\gaia\ overlap to train a purely linear model of
-continuum-normalized \apogee\ spectroscopy
-(plus \gaia, \zmass, and \wise\ photometry)
-that predicts distance modulus (logarithmic parallax or distance)
-for red stars with $0<\logg<2.2$.
-The training makes use of a justified likelihood function for the \gaia\ parallaxes,
-so that we never take the inverse or logarithm of a parallax, and so that
-the training can be performed with full use of uncertainties and
-without any cuts on parallax or parallax signal-to-noise ratio.
-There are no physical inputs to the model; it is a pure regression designed
-to accurately predict astrometric parallaxes.
-The model includes an L1 regularization that zeros out the contributions of
-most spectral pixels to the parallax estimates.
+at which \gaia\ parallaxes are not informative.
+Yet the combination of effective temperature, surface gravity, composition, and age---all
+accessible through spectroscopy---determines a giant's luminosity.
+Therefore spectroscopy plus photometry should enable 
+precise spectrophotometric distance estimates.
+% aims
+Here we use the \apogee--\gaia\ overlap to train a data-driven model
+to predict parallaxes for red-giant branch stars with $0<\logg<2.2$.
+% methods
+We employ (the exponentiation of)
+a linear function of \apogee\ spectral pixel intensities and multi-band photometry
+to predict a parallax spectrophotometrically.
+The data-driven-model training involves no logarithms or inverses of the \gaia\ parallaxes,
+and needs no cut on the \gaia\ parallax signal-to-noise ratio.
+It includes an L1 regularization to zero out the contributions of
+uninformative pixels.
 The training is performed
 with leave-out subsamples such that no star's astrometry is used even indirectly in its
 spectrophotometric parallax estimate.
-The model is flexible enough---and has enough photometric information---to
-correct for extinction by dust without any
-input of explicit extinction or reddening estimates.
-We re-label each star in the sample with a new spectrophotometric parallax;
-these new parallaxes have uncertainties of a few to 15 percent, depending on data quality,
+% results
+The model implicitly performs a reddening and extinction correction in its parallax prediction,
+without any explicit dust model.
+We assign to each star in the sample a new spectrophotometric parallax estimate;
+these parallaxes have uncertainties of a few to 15 percent, depending on data quality,
 which is more precise than the \gaia\ parallax for the vast majority of targets.
-These distance estimates open up great opportunities for
-mapping the Milky Way disk with the next
-generation of spectroscopic surveys, and especially \sdssv.
+We can now get 10-percent distance estimates out to heliocentric distances of 20\,kpc,
+allowing truly global maps of the Milky Way's disk.
 \end{abstract}
 
 \keywords{%
