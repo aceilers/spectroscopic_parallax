@@ -10,7 +10,6 @@
 % - related: Put in an explanation of how it is that we aren't really modeling luminosity or distance but really just generating parallaxes.
 % - does the model need a cute name, like The Swan?
 % - check with WISE experts that we have the correct WISE photometry
-% - we need an uncertainty estimate or noise model for our outputs.
 % - general HWR point that we aren't putting in to the model any idea about how apparent magnitude varies with distance; this means that we rely on data for EVERYTHING.
 % - write words about the setting of Lambda and the parallax offset (currently 0.0483 +/- 0.012 mas)
 % - we have shown that outliers in sp - gaia tend to have large H-W2 or excess flux like in crowded regions, but there are some exceptions. Our error estimates are consistent with no intrinsic scatter if we use a robust chi-squared estimate. That is, chi-squared is dominated by outliers. We clipped the bad apogee spectral pixels at an error of 0.05 in normalized flux. Our uncertainty estimates are sensitive to this. The reader is asked to suck it.
@@ -521,7 +520,7 @@ contaminated or outlying photometry:
 \quad .
 \end{eqnarray}
 These cuts removed roughly 2~percent of the \apogee\ stars.
-This Parent Sample contains 44808 (HOGG CHECK) and is shown in \figurename~\ref{fig:parent}.
+This Parent Sample contains 44808 stars and is shown in \figurename~\ref{fig:parent}.
 \begin{figure}
 \includegraphics[width=\textwidth]{parent_sample.pdf}
 \caption{Color--color diagrams for the Parent Sample stars.
@@ -535,7 +534,6 @@ label (A or B).
 This is used for two-fold validation and jackknife.
 In short, we will use the model trained on the A data to assign luminosities
 and distances to the B data and \foreign{vice versa}.
-The Parent Sample A has HOGG entries and Parent Sample B has HOGG entries.
 
 For training, we need A and B Training Sets.
 We define the Training Set stars to be Parent-Sample stars that also
@@ -553,11 +551,16 @@ Indeed it would be necessarily biased if ever we did cut on parallax or
 parallax signal-to-noise.
 
 In detail,
-for each star $n$ in the Training Sets, we take from \gaia\ DR2
+for each star $n$ in the Training Sets, we take from \gaia\ \acronym{DR2} (\citealt{gaiadr2})
 the astrometric parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
-offset of $0.029$\,mas to adjust for the under-estimation of
+offset $\varpi_0$ to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
+The \gaia\ recommended value of $\varpi_0=0.029$\,mas (\citealt{lindegren}),
+but we adopt a value of $\varpi_0 = 0.048$\,mas because that value
+optimizes our cross-validation likelihood.
+The spectrophotometric parallaxes do not depend strongly on this choice, except
+for small differences at very small parallax (large distance).
 The Training Sets are shown in \figurename~\ref{fig:training}.
 \begin{figure}
 \includegraphics[width=\textwidth]{./training_sample.pdf}
@@ -638,6 +641,11 @@ regions or at lower metallicities.
 \figurename~\ref{fig:residuals} shows that
 there is no suggestion of any such trends when we color the residuals by metallicity
 or $H-W_2$ color (which is a reddening proxy).
+However, that figure does show that stars with greater reddening do appear to have
+larger scatter against the \gaia\ parallaxes.
+Additional tests confirm that our spectroscopic parallaxes have largest scatter
+in the dustiest and most crowded regions, as expected given the relatively low angular resolution
+photometry.
 \begin{figure}
 \includegraphics[width=\textwidth]{./residuals_training.pdf}
 \caption{Prediction residuals colored by relevant features.
@@ -649,20 +657,26 @@ or $H-W_2$ color (which is a reddening proxy).
 Another validation of the results can be obtained by looking at known
 clusters or spatially compact objects in the data.
 In \figurename~\ref{fig:clusters}, we show the parallax distribution from \gaia\ and
-the spectrophotometric-parallax distribution from this work for stars in
-angular proximity to known stellar clusters and the Sagittarius dwarf
-galaxy.
+the spectrophotometric-parallax distribution from this work for stars that are
+astrometrically confirmed members of known stellar clusters.
 These clusters span some range in metallicity and age, and therefore test
 the accuracy of the method for different kinds of populations.
-They show that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
+With the exception of \acronym{M71}, these figures 
+indicate that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
 for these clusters and the range in abundances and ages they represent.
-HOGG: DO WE NEED TO ADDRESS whether why not these clusters show 9-percent spreads?
+The case of cluster \acronym{M71} is troubling, but after searching for trends with
+housekeeping data (also see \figurename~\ref{fig:residuals}) we don't find any correlates
+with parallax offsets.
 \begin{figure}
 \includegraphics[width=\textwidth]{clusters.pdf}
 \caption{The histograms of \gaia\ astrometric parallaxes $\gparallax_n$
-  and spectrophotometric parallaxes $\sparallax_n$ for stars in angular proximity
-  to various stellar clusters in the \apogee\ observing footprint. In each panel,
-  the expected parallax of the cluster is shown as a vertical line.\label{fig:clusters}}
+  and spectrophotometric parallaxes $\sparallax_n$ for member stars for
+  four stellar clusters in the \apogee\ observing footprint. The spectroscopic
+  parallaxes and their inverse-variance-weighted mean and the astrometric parallaxes
+  and their inverse-variance-weighted mean
+  the expected parallax of the cluster is shown as a vertical line.
+  Cluster members were identified to be close to the cluster in celestial coordinates
+  and comoving in proper motion.\label{fig:clusters}}
 \end{figure}
 
 The linear model we use has a big limitation: Linear models are inflexible.
@@ -703,14 +717,14 @@ joining the table to the \sdssiv\ Catalog on the \zmass\ ID (name).
 \caption{The generated spectrophotometric parallaxes.\label{tab:output}}
 \end{table}
 
-In order to use these outputs in a probabilistic inference or forward model,
-an investigator needs a noise (uncertainty) model.
 The linear model permits straightforward propagation of uncertainty from the
-feature inputs.
-However, these propagated uncertainties clearly under-predict the scatter between
-the spectrophotometric parallaxes $\sparallax_m$ and the \gaia\ astrometric
-parallaxes $\gparallax_m$.
-Our recommendation for an uncertainty model is HOGG WAT?
+feature inputs to the spectrophotometric parallaxes.
+Although the model fundamentally assumes that the prediction features are noise-free
+(see the ``good features'' assumption in \sectionname~\ref{sec:assumptions}),
+there are in fact small uncertainties on the features that we can propagate to 
+make uncertainty estimates on the spectroscopic parallaxes.
+We perform this propagation; these uncertainties are also given in
+\tablename~\ref{tab:output}.
 
 \section{Discussion}
 
@@ -791,14 +805,7 @@ be similar, observationally, in the spectral space.
 That would have lead to a clean sample and made the project independent completely
 of stellar models.
 
-One significant limitation of the model is that it does not produce a sensible or
-useful noise estimate or error bar on each spectrophotometric parallax estimate.
-Although the linear model does permit simple noise propagation, that noise propagation
-seriously under-estimates the scatter between the spectrophotometric parallaxes
-and the best of the \gaia\ \acronym{DR2} astrometric parallaxes.
-We thus used an empirical noise estimate to get our HOGG DETAIL HERE.
-In principle it might have been better to build a noise model for our outputs,
-and learned that noise model along with the coefficients.
+HOGG SOMETHING ABOUT THE CLUSTER M71 BEING CONCERNING AND OUR EXPLANATIONS.
 
 Because of our train-and-test framework, each star is given a spectrophotometric
 parallax based on coefficients derived from training on a complementary Training Set sample, of
