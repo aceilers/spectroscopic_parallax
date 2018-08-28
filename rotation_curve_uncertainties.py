@@ -28,19 +28,19 @@ from plotting_helpers import histcont
 # plotting settings
 # -------------------------------------------------------------------------------
 
-matplotlib.rcParams['ytick.labelsize'] = 14
-matplotlib.rcParams['xtick.labelsize'] = 14
+matplotlib.rcParams['ytick.labelsize'] = 18
+matplotlib.rcParams['xtick.labelsize'] = 18
 matplotlib.rc('text', usetex=True)
-fsize = 14
+fsize = 18
 
 # -------------------------------------------------------------------------------
 # open inferred labels
 # -------------------------------------------------------------------------------
 
-N = 45787
+N = 44784
 Kfold = 2
 lam = 30
-name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
@@ -82,13 +82,11 @@ XS_cyl_true_n = np.zeros((N, 6))
 # RADIAL VELOCITY UNCERTAINTY?
 floor_rv = 0.1 # km/s
 
-fractional_parallax_error = 0.09
-
-for i in range(N):
+for i in range(23697, N):
     
     if i%1000 == 0: print('working on star {0} out of {1}'.format(i, N))
-    spec_par = np.random.normal(labels['spec_parallax'][i], scale = fractional_parallax_error * labels['spec_parallax'][i], size = N_sample) * u.mas
-    assert np.all(spec_par > 0)
+    spec_par = np.random.normal(labels['spec_parallax'][i], scale = labels['spec_parallax_err'][i], size = N_sample) * u.mas
+    #assert np.all(spec_par > 0)
     distance = spec_par.to(u.parsec, equivalencies = u.parallax())
     distance_true = (labels['spec_parallax'][i] * u.mas).to(u.parsec, equivalencies = u.parallax())
     
@@ -204,32 +202,39 @@ XS_cyl_true_n = hdu[0].data
 # for plotting
 # -------------------------------------------------------------------------------   
 
-def overplot_ring(r):
+def overplot_ring(r, ax = None):
     tiny = 1e-4
     thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
     xs = r * np.cos(thetas)
     ys = r * np.sin(thetas)
-    plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = np.inf)
-    plt.scatter(0, 0, s = 20, color = 'k', alpha=0.2, marker = 'x')
+    if ax:
+        ax.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = np.inf)
+        ax.scatter(0, 0, s = 20, color = 'k', alpha=0.2, marker = 'x')
+    else:
+        plt.plot(xs, ys, "k-", alpha=0.2, lw=1, zorder = np.inf)
+        plt.scatter(0, 0, s = 20, color = 'k', alpha=0.2, marker = 'x')
     return
 
-def overplot_ring_helio(r):
+def overplot_ring_helio(r, ax = None):
     tiny = 1e-4
     thetas = np.arange(0., 2*np.pi + tiny, 0.001 * np.pi)
     xs = r * np.cos(thetas) - X_GC_sun_kpc
     ys = r * np.sin(thetas)
-    plt.plot(xs, ys, "k:", alpha=0.2, lw=1, zorder = -np.inf)
+    if ax:
+        ax.plot(xs, ys, "k:", alpha=0.2, lw=1, zorder = -np.inf)
+    else:
+        plt.plot(xs, ys, "k:", alpha=0.2, lw=1, zorder = -np.inf)
     # plt.scatter(-X_GC_sun_kpc, 0, s = 10, color = 'k', alpha=0.2)
     return
 
-def overplot_rings():
+def overplot_rings(ax = None):
     for r in [5, 10, 15, 20, 25, 30]:
-        overplot_ring(r)
+        overplot_ring(r, ax = ax)
     return
 
-def overplot_rings_helio():
+def overplot_rings_helio(ax = None):
     for r in [5, 10, 15, 20, 25, 30]:
-        overplot_ring_helio(r)
+        overplot_ring_helio(r, ax = ax)
     return
 
 Xlimits = [[-25, 10], [-12, 23], [-20, 20], 
@@ -241,8 +246,9 @@ Xlimits = [[-25, 10], [-12, 23], [-20, 20],
 
 # take wegde in z 
 deg_wedge_in_z = 6.
+cut_vz = (XS_cart_true_n[:, 5] < 100)
 wedge_z = (np.abs(XS_cyl_true_n[:, 2])/(XS_cyl_true_n[:, 0])) < np.tan(deg_wedge_in_z/360. * 2. * np.pi)
-cut_z = np.logical_or(abs(mean_XS_cyl_n[:, 2]) < 0.5, wedge_z)
+cut_z = np.logical_or(abs(mean_XS_cyl_n[:, 2]) < 0.5, wedge_z * cut_vz)
 
 box_size = .5               # that's just half of the box size
 all_x = np.arange(-30., 30.01, box_size)
@@ -285,19 +291,36 @@ XS_cyl_true_n[:, 1][XS_cyl_true_n[:, 1] < -np.pi] += 2. * np.pi
 
 # calculate annuli only in 30 degree wedge!  
 deg_wedge = 30.
-wedge = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
+cut_vz = (XS_cyl_true_n[:, 5] < 100)
+wedge1d = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi) * cut_vz
 
 dz = 1. # kpc
 bins_start = np.array([0.])
 bins_end = np.array([40.])
 
-cut_z_wedge = wedge * cut_z 
+cut_z_wedge = wedge1d * cut_z 
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
 stars_per_bin = 32
 bin_start = 0.5 * (foo[::stars_per_bin] + bar[::stars_per_bin])
-bin_end = bin_start[1:]
-bin_start = bin_start[:-1]
+#bin_end = bin_start[1:]
+#bin_start = bin_start[:-1]
+
+# this spacing until 20 kpc, then smaller spacing...
+new_bins = []
+d_max = 1. #kpc
+for i in range(len(bin_start)-1):
+    if (bin_start[i+1] - bin_start[i]) <= d_max:
+        new_bins.append(bin_start[i])
+    elif (bin_start[i+1] - bin_start[i]) > d_max:
+        new_bins.append(bin_start[i] + d_max)  
+    if i == (len(bin_start)-2):
+        print('here')
+        while new_bins[-1] < 50:
+            new_bins.append(new_bins[-1] + d_max)
+            
+bin_end = new_bins[1:]
+bin_start = new_bins[:-1]
 
 N_stars_annulus = np.zeros_like(bin_start)
 mean_XS_cyl_annulus = np.zeros((len(bin_start), 6)) - np.inf
@@ -314,15 +337,15 @@ for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
         error_var_XS_cyl_annulus[i, :, :] = np.nanmean(var_XS_cyl_n[cut_annulus], axis=0)
         vvT_cyl_annulus[i, :, :] = np.dot(XS_cyl_true_n[cut_annulus, 3:].T, XS_cyl_true_n[cut_annulus, 3:]) / (N_stars_annulus[i])
         cut_feh = labels['FE_H'] > -100
-        mean_feh_annulus[i] = np.nanmean(labels['FE_H'][cut_annulus * cut_feh])
+        mean_feh_annulus[i] = np.nanmean(labels['FE_H'][cut_annulus * cut_feh])  
         
-        
+               
 # -------------------------------------------------------------------------------
 # Figure 7 for HER18
 # -------------------------------------------------------------------------------           
 
 cut_feh = abs(labels['FE_H']) < 10
-cuts = cut_z * cut_feh
+cuts = cut_z * cut_feh * cut_vz
 fig, ax = plt.subplots(1, 1, figsize = (8, 8))
 sc = plt.quiver(XS_cart_true_n[cuts, 0], XS_cart_true_n[cuts, 1], XS_cart_true_n[cuts, 3], XS_cart_true_n[cuts, 4], 
            np.clip(labels['FE_H'][cuts], -.7, .7), cmap = 'RdBu_r', scale_units='xy', 
@@ -349,24 +372,66 @@ plt.close()
 # -------------------------------------------------------------------------------        
 
 rho_R_exp = 3. # kpc
-vrr_R_exp = 15. # kpc
+vrr_R_exp = 25. # kpc
 
 # velocity tensor!
 vtilde = vvT_cyl - error_var_XS_cyl
-for i in range(3):
-    vtilde[:, :, i, i] = np.clip(vtilde[:, :, i, i], 0., np.Inf)
+#for i in range(3):
+#    vtilde[:, :, i, i] = np.clip(vtilde[:, :, i, i], 0., np.Inf) # uncomment??
 dlnrho_dlnR = (-mean_XS_cyl[:, :, 0]) / rho_R_exp
 dlnvR2_dlnR = (-mean_XS_cyl[:, :, 0]) / vrr_R_exp
 HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
 vc = np.sqrt(vtilde[:, :, 1, 1] - HWRnumber * vtilde[:, :, 0, 0])  
-         
+
+# -------------------------------------------------------------------------------
+# calculate Jeans equation in annuli
+# -------------------------------------------------------------------------------
+
+vtilde_annulus = vvT_cyl_annulus - error_var_XS_cyl_annulus
+#for i in range(3):
+#    vtilde_annulus[:, i, i] = np.clip(vtilde_annulus[:, i, i], 0., np.inf)
+dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / rho_R_exp
+dlnvR2_dlnR = (-mean_XS_cyl_annulus[:, 0]) / vrr_R_exp
+HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
+vc_annulus = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0])
+
+def Bootstrap(XS, var_XS, n_sample):  
+    
+    vtilde_sample = np.zeros((n_sample, 3, 3))
+    vc_annulus_sample = np.zeros((n_sample))
+    
+    for i in range(n_sample):
+        ind = np.arange(len(XS))
+        ind_sample = np.random.choice(ind, size = len(XS))
+        XS_sample = XS[ind_sample, :]
+        var_XS_sample = var_XS[ind_sample, :]
+    
+        error_var_XS_sample = np.nanmean(var_XS_sample, axis=0)
+        vvT_sample = np.dot(XS_sample[:, 3:].T, XS_sample[:, 3:]) / (len(XS))    
+        vtilde_sample[i, :, :] = vvT_sample - error_var_XS_sample
+        HWRnumber = 1 + np.nanmean(XS_sample[:, 0]) / rho_R_exp + np.nanmean(XS_sample[:, 0]) / vrr_R_exp
+        vc_annulus_sample[i] = np.sqrt(vtilde_sample[i, 1, 1] - HWRnumber * vtilde_sample[i, 0, 0]) 
+
+    vtilde_annulus_vrr_err = np.nanpercentile(vtilde_sample[:, 0, 0], (16, 50, 84))
+    vtilde_annulus_vpp_err = np.nanpercentile(vtilde_sample[:, 1, 1], (16, 50, 84))
+    vc_annulus_err = np.nanpercentile(vc_annulus_sample, (16, 50, 84))
+    
+    return vtilde_annulus_vrr_err, vtilde_annulus_vpp_err, vc_annulus_err
+
+all_vtilde_annulus_vrr_err = np.zeros((len(bin_start), 3))
+all_vtilde_annulus_vpp_err = np.zeros((len(bin_start), 3))
+all_vc_annulus_err = np.zeros((len(bin_start), 3))
+for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
+    cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)    
+    all_vtilde_annulus_vrr_err[i, :], all_vtilde_annulus_vpp_err[i, :], all_vc_annulus_err[i, :] = Bootstrap(mean_XS_cyl_n[cut_annulus], var_XS_cyl_n[cut_annulus], 100)
+        
 # -------------------------------------------------------------------------------
 # maps (x,y) for patches!
 # -------------------------------------------------------------------------------        
 
 # 30 degree wedge
 deg_wedge = 30.
-wedge = (mean_XS_cart[:, :, 0] <= 0) * (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
+wedge2d = (mean_XS_cart[:, :, 0] <= 0) * (abs(mean_XS_cart[:, :, 1]) <= ((-mean_XS_cart[:, :, 0]) * np.tan(deg_wedge/360. * 2*np.pi)))
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
 overplot_rings()
@@ -437,10 +502,10 @@ fig, ax = plt.subplots(1, 1, figsize = (12, 12))
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 0, 0].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
+sc = plt.scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = vtilde[wedge2d, 0, 0].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
 cbar.set_label(r'$\overline{v^2_{rr}}$', rotation=270, fontsize=14, labelpad=30)
-plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -454,10 +519,10 @@ fig, ax = plt.subplots(1, 1, figsize = (12, 12))
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 1, 1].flatten(), vmin = 0, vmax = 100000, s=20, cmap=cm, alpha = .8)
+sc = plt.scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = vtilde[wedge2d, 1, 1].flatten(), vmin = 0, vmax = 100000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
 cbar.set_label(r'$\overline{v^2_{\varphi\varphi}}$', rotation=270, fontsize=14, labelpad=30)
-plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -471,10 +536,10 @@ fig, ax = plt.subplots(1, 1, figsize = (12, 12))
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vtilde[wedge, 2, 2].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
+sc = plt.scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = vtilde[wedge2d, 2, 2].flatten(), vmin = 0, vmax = 8000, s=20, cmap=cm, alpha = .8)
 cbar = plt.colorbar(sc, shrink = .85)
 cbar.set_label(r'$\overline{v^2_{zz}}$', rotation=270, fontsize=14, labelpad=30)
-plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+plt.scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
 plt.tick_params(axis=u'both', direction='in', which='both')
@@ -488,9 +553,9 @@ fig, ax = plt.subplots(1, 1, figsize = (12, 12))
 overplot_rings()
 overplot_rings_helio()
 cm = plt.cm.get_cmap('viridis')
-sc = plt.scatter(mean_XS_cart[wedge, 0].flatten(), mean_XS_cart[wedge, 1].flatten(), c = vc[wedge].flatten(), vmin = 100, vmax = 300, s=20, cmap=cm)
+sc = plt.scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = vc[wedge2d].flatten(), vmin = 100, vmax = 300, s=20, cmap=cm)
 cbar = plt.colorbar(sc, shrink = .85)
-plt.scatter(mean_XS_cart[~wedge, 0].flatten(), mean_XS_cart[~wedge, 1].flatten(), c = '#929591', s = 20, alpha = .3) #np.ones_like(mean_XS_cart[~wedge, 1].flatten()) * 0.5)
+plt.scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) #np.ones_like(mean_XS_cart[~wedge, 1].flatten()) * 0.5)
 cbar.set_label(r'$v_{\rm circ}$', rotation=270, fontsize=14, labelpad=15)
 plt.xlim(Xlimits[0])
 plt.ylim(Xlimits[1])
@@ -558,7 +623,7 @@ plt.savefig('plots/rotation_curve/vpvz_{}.pdf'.format(name), bbox_inches = 'tigh
 plt.close()
 
 fig, ax = plt.subplots(1, 1, figsize = (8, 6))        
-sc = plt.scatter(mean_XS_cyl[wedge, 0].flatten(), vc[wedge].flatten(), c = (mean_XS_cyl[wedge, 1].flatten() + .5) % 2*np.pi, s = 10, cmap = 'viridis_r')
+sc = plt.scatter(mean_XS_cyl[wedge2d, 0].flatten(), vc[wedge2d].flatten(), c = (mean_XS_cyl[wedge2d, 1].flatten() + .5) % 2*np.pi, s = 10, cmap = 'viridis_r')
 cbar = plt.colorbar(sc)
 cbar.set_label(r'$\varphi + 0.5$', rotation=270, fontsize=14, labelpad=15)
 plt.ylim(50, 250)
@@ -622,6 +687,29 @@ ax.set_aspect('equal')
 plt.savefig('plots/rotation_curve/xy_arrow_averaged_{}_feh.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
+## plot for application
+#matplotlib.rc('text', usetex=False)
+#matplotlib.rcParams['ytick.labelsize'] = 15
+#matplotlib.rcParams['xtick.labelsize'] = 15
+#fig, ax = plt.subplots(1, 1, figsize = (8, 8))        
+#plt.quiver(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), mean_XS_cart[:, :, 3].flatten(), mean_XS_cart[:, :, 4].flatten(), \
+#        np.clip(mean_feh.flatten(), -.5, .3), cmap = 'RdBu_r', scale_units='xy', \
+#           scale=200, alpha =.8, headwidth = 3, headlength = 4, width = 0.0025)
+#cb = plt.colorbar(shrink = .85)
+#cb.set_label(r'stellar metallicity [Fe/H]', fontsize = 15)
+#plt.xlim(Xlimits[0])
+#plt.ylim(Xlimits[1])
+#overplot_rings()
+#plt.tick_params(axis=u'both', direction='in', which='both')
+#plt.xlabel('$x\,$ [kpc]', fontsize = 15)
+#plt.ylabel('$y\,$ [kpc]', fontsize = 15)
+#ax.set_aspect('equal')
+#plt.savefig('../applications/proposal/xy_arrow_averaged_feh.pdf', bbox_inches = 'tight')
+#
+#matplotlib.rc('text', usetex=True)
+#matplotlib.rcParams['ytick.labelsize'] = 18
+#matplotlib.rcParams['xtick.labelsize'] = 18
+
 # plot with arrows!
 mu_par = np.clip(mean_sigma_mu, 0, 10) / np.clip(mean_sigma_par, 1e-3, 0.2)
 fig, ax = plt.subplots(1, 1, figsize = (12, 12))        
@@ -640,11 +728,11 @@ ax.set_aspect('equal')
 plt.savefig('plots/rotation_curve/xy_arrow_averaged_{}_sigma_mu_par.pdf'.format(name), bbox_inches = 'tight')
 plt.close()
 
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 # maps of metallicty, etc.
 # -------------------------------------------------------------------------------        
 
-# plot [FE/H] vs. radius (for annuli and individual stars)
+'''# plot [FE/H] vs. radius (for annuli and individual stars)
 print('abundances...')
 deg_wedge = 30.
 wedge_n = np.abs(XS_cyl_true_n[:, 1]) < (deg_wedge/360. * 2. * np.pi)
@@ -764,19 +852,9 @@ plt.savefig('plots/rotation_curve/abundances/all_vs_R_annulus_{0}_{1}_LOGG_unbin
 plt.close()
 
 
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 # radial profiles (in radial bins and individual stars)
 # -------------------------------------------------------------------------------        
-
-# calculate Jeans equation in annuli
-vtilde_annulus = vvT_cyl_annulus - error_var_XS_cyl_annulus
-for i in range(3):
-    vtilde_annulus[:, i, i] = np.clip(vtilde_annulus[:, i, i], 0., np.inf)
-dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / rho_R_exp
-dlnvR2_dlnR = (-mean_XS_cyl_annulus[:, 0]) / vrr_R_exp
-HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
-vc_annulus = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0])
-
 
 bins_dr = mean_XS_cyl_annulus[:, 0]
 idx5 = sum(bins_dr < 5)
@@ -860,4 +938,155 @@ plt.xlim(0, 37)
 plt.savefig('plots/rotation_curve/vpvz_R_annuli_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
 plt.close()
 
+# -------------------------------------------------------------------------------
+# plots for paper
+# -------------------------------------------------------------------------------  
+
+fig, ax = plt.subplots(1, 3, figsize = (18, 6), sharex = True, sharey = True)        
+cm = plt.cm.get_cmap('viridis')
+sc = ax[0].scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = np.sqrt(vtilde[wedge2d, 0, 0].flatten()), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+ax[1].scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = np.sqrt(vtilde[wedge2d, 1, 1].flatten()), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+ax[2].scatter(mean_XS_cart[wedge2d, 0].flatten(), mean_XS_cart[wedge2d, 1].flatten(), c = vc[wedge2d].flatten(), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+overplot_rings(ax[0])
+#overplot_rings_helio(ax[0])
+overplot_rings(ax[1])
+#overplot_rings_helio(ax[1])
+overplot_rings(ax[2])
+#overplot_rings_helio(ax[2])
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.05, 0.02, 0.92])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$v~\rm [km\, s^{-1}]$', rotation=270, fontsize=18, labelpad=30)
+ax[0].scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+ax[1].scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+ax[2].scatter(mean_XS_cart[~wedge2d, 0].flatten(), mean_XS_cart[~wedge2d, 1].flatten(), c = '#929591', s = 20, alpha = .3) 
+ax[0].set_xlim(Xlimits[0])
+ax[0].set_ylim(Xlimits[1])
+ax[0].tick_params(axis=u'both', direction='in', which='both')
+ax[1].tick_params(axis=u'both', direction='in', which='both')
+ax[2].tick_params(axis=u'both', direction='in', which='both')
+ax[0].set_xlabel('$x$', fontsize = fsize)
+ax[1].set_xlabel('$x$', fontsize = fsize)
+ax[2].set_xlabel('$x$', fontsize = fsize)
+ax[0].set_ylabel('$y$', fontsize = fsize)
+ax[0].set_aspect('equal')
+ax[1].set_aspect('equal')
+ax[2].set_aspect('equal')
+ax[0].annotate(r'$\sqrt{\overline{v^2_{RR}}}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[1].annotate(r'$\sqrt{\overline{v^2_{\varphi\varphi}}}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[2].annotate(r'$v_{\rm circ}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+plt.tight_layout()
+plt.savefig('paper_rotation_curve/maps_wedge_{0}.pdf'.format(name), bbox_inches = 'tight', pad_inches=.2)
+
+fig, ax = plt.subplots(1, 3, figsize = (18, 6), sharex = True, sharey = True)        
+cm = plt.cm.get_cmap('viridis')
+sc = ax[0].scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = np.sqrt(vtilde[:, :, 0, 0].flatten()), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+ax[1].scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = np.sqrt(vtilde[:, :, 1, 1].flatten()), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+ax[2].scatter(mean_XS_cart[:, :, 0].flatten(), mean_XS_cart[:, :, 1].flatten(), c = vc.flatten(), vmin = 50, vmax = 250, s=20, cmap=cm, alpha = .8)
+overplot_rings(ax[0])
+#overplot_rings_helio(ax[0])
+overplot_rings(ax[1])
+#overplot_rings_helio(ax[1])
+overplot_rings(ax[2])
+#overplot_rings_helio(ax[2])
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.05, 0.02, 0.92])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$v~\rm [km\, s^{-1}]$', rotation=270, fontsize=14, labelpad=30)
+ax[0].set_xlim(Xlimits[0])
+ax[0].set_ylim(Xlimits[1])
+ax[0].tick_params(axis=u'both', direction='in', which='both')
+ax[1].tick_params(axis=u'both', direction='in', which='both')
+ax[2].tick_params(axis=u'both', direction='in', which='both')
+ax[0].set_xlabel('$x$', fontsize = fsize)
+ax[1].set_xlabel('$x$', fontsize = fsize)
+ax[2].set_xlabel('$x$', fontsize = fsize)
+ax[0].set_ylabel('$y$', fontsize = fsize)
+ax[0].set_aspect('equal')
+ax[1].set_aspect('equal')
+ax[2].set_aspect('equal')
+ax[0].annotate(r'$\overline{v_{RR}}$', (6, -10), fontsize = 15, bbox=dict(boxstyle="square", fc="w"))
+ax[1].annotate(r'$\overline{v_{\varphi\varphi}}$', (6, -10), fontsize = 15, bbox=dict(boxstyle="square", fc="w"))
+ax[2].annotate(r'$v_{\rm circ}$', (6, -10), fontsize = 15, bbox=dict(boxstyle="square", fc="w"))
+plt.tight_layout()
+plt.savefig('paper_rotation_curve/maps_{0}.pdf'.format(name), bbox_inches = 'tight', pad_inches=.2)
+
+vvT_cyl_n = np.zeros((XS_cyl_true_n.shape[0], 3, 3))
+for i in range(XS_cyl_true_n.shape[0]):
+    vvT_cyl_n[i, :, :] = np.outer(XS_cyl_true_n[i, 3:], XS_cyl_true_n[i, 3:])  # outer product!!
+vtilde_n = vvT_cyl_n - var_XS_cyl_n
+dlnrho_dlnR_n = (-mean_XS_cyl_n[:, 0]) / rho_R_exp
+dlnvR2_dlnR_n = (-mean_XS_cyl_n[:, 0]) / vrr_R_exp
+HWRnumber_n = 1 + dlnrho_dlnR_n + dlnvR2_dlnR_n
+vc_n = np.sqrt(vtilde_n[:, 1, 1] - HWRnumber_n * vtilde_n[:, 0, 0])
+
+plot_R = np.arange(0, 30, .1)
+#v2 = 55. * np.exp(-plot_R / vrr_R_exp)
+
+def exp_fit(theta, R):
+    fit = theta[0] * np.exp(-R / theta[1])
+    return fit
+
+def chi2(theta, R_obs, v_obs):
+    fit = exp_fit(theta, R_obs)
+    return np.nansum((fit - v_obs)**2)
+
+# exponential fitto v_RR  
+x0 = np.array([50, 10])  
+res = op.minimize(chi2, x0, args=(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 0, 0])), method='L-BFGS-B', options={'maxfun':50000}) 
+print(res)
+theta_fit = res.x
+
+fig, ax = plt.subplots(1, 3, figsize = (18, 6), sharex = True)        
+ax[2].scatter(bins_dr[:idx5], vc_annulus[:idx5], facecolors='none', edgecolors='#3778bf', zorder = 20)
+ax[2].scatter(bins_dr[idx5:], vc_annulus[idx5:], facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
+ax[0].scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 0, 0]), facecolors='none', edgecolors='#3778bf', zorder = 20)
+ax[0].scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 0, 0]), facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
+ax[1].scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 1, 1]), facecolors='none', edgecolors='#3778bf', zorder = 20)
+ax[1].scatter(bins_dr[idx5:], np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
+ax[0].scatter(XS_cyl_true_n[wedge1d, 0], np.sqrt(vtilde_n[wedge1d, 0, 0]), c = '#929591', s = 15, alpha = .05, zorder = -np.inf, rasterized = True)
+ax[1].scatter(XS_cyl_true_n[wedge1d, 0], np.sqrt(vtilde_n[wedge1d, 1, 1]), c = '#929591', s = 15, alpha = .05, zorder = -np.inf, rasterized = True)
+ax[2].scatter(XS_cyl_true_n[wedge1d, 0], vc_n[wedge1d], c = '#929591', s = 15, alpha = .05, zorder = -np.inf, rasterized = True)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$y = {0} \cdot \exp(-R/{1})$'.format(round(theta_fit[0], 2), round(theta_fit[1], 2))) #'#c44240'
+ax[0].set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
+ax[1].set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
+ax[2].set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
+ax[2].set_ylabel(r'$v_{\rm circ}~\rm [km\,s^{-1}]$', fontsize = fsize)
+ax[0].set_ylabel(r'$\sqrt{\overline{v^2_{RR}}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
+ax[1].set_ylabel(r'$\sqrt{\overline{v^2_{\varphi\varphi}}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
+ax[0].set_ylim(0, 325)
+ax[1].set_ylim(0, 325)
+ax[2].set_ylim(0, 325)
+ax[0].set_xlim(0, 25)
+ax[0].legend(fontsize = 16, frameon = True)
+plt.tight_layout()
+plt.savefig('paper_rotation_curve/radial_profile_n_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight', pad_inches=.2)
+
+f = open('data/rot_curve.txt', 'w')
+np.savetxt(f, np.vstack([bins_dr, vc_annulus]))
+f.close()
+
+#fig, ax = plt.subplots(1, 1, figsize = (9, 6), sharex = True)        
+#plt.scatter(bins_dr[:idx5], vc_annulus[:idx5], facecolors='none', edgecolors='#3778bf', zorder = 20)
+#plt.scatter(bins_dr[idx5:], vc_annulus[idx5:], facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
+#plt.ylim(0, 300)
+#plt.xlim(0, 25)
+#plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+#plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
+#plt.ylabel(r'$v_{\rm circ}~\rm [km\,s^{-1}]$', fontsize = fsize)
+#plt.tight_layout()
+#plt.savefig('paper_rotation_curve/rotation_curve_{0}_{1}.pdf'.format(stars_per_bin, name), bbox_inches = 'tight')
+
+  
+fig = plt.subplots(1, 1, figsize = (6, 6), sharex = True)        
+plt.hist(XS_cyl_true_n[wedge1d, 0], bins = np.linspace(0, 25, 50))
+plt.xlim(0, 25)
+plt.yscale('log')
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.savefig('paper_rotation_curve/data_hist.pdf')
+
 # -------------------------------------------------------------------------------'''
+      

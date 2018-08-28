@@ -355,7 +355,7 @@ plt.savefig('paper/clusters.pdf')
 # take members
 # -------------------------------------------------------------------------------
 
-hdu = fits.open('plots/open_clusters/NGC2862members')
+hdu = fits.open('plots/open_clusters/M71members')
 mem = Table(hdu[1].data)
 
 offset = 0.0483
@@ -377,20 +377,22 @@ labels = labels[cut_jk * cut_hw2 * cut_finite]
 
 xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
 plt.errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', label = r'$\varpi^{\rm (sp)}$', zorder = 10)
-plt.errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', color = "y", label = r'$\varpi^{\rm (g)}$', zorder = 20)
+plt.errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', color = '#929591', label = r'$\varpi^{\rm (g)}$', zorder = 20)
 avg = np.sum(xx['spec_parallax_2'] / xx['spec_parallax_err'] ** 2) / np.sum(1. / xx['spec_parallax_err'] **2)
-plt.axvline(avg, color="k", alpha = 0.5, zorder = -10, label = 'avg')
-#distance = 6.4
-#plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
+avg_gaia = np.sum(xx['parallax_2'] / xx['parallax_error_2'] ** 2) / np.sum(1. / xx['parallax_error_2'] **2)
+plt.axvline(avg_gaia, color='#929591', lw = 0.8, zorder = -10, linestyle = ':')
+plt.axvline(avg, color='b', linestyle = ':', lw= 0.8, zorder = -10, label = 'avg')
+distance = 4.
+plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
 plt.legend()
 plt.xlabel(r'$\varpi$ [mas]', fontsize = 14)
 plt.ylabel(r'$\log g$', fontsize = 14)
-plt.savefig('plots/open_clusters/ngc2862_new.pdf')
+plt.savefig('plots/open_clusters/m71_new.pdf')
 
 
 cluster_list = ['M67', 'M71', 'M107', 'NGC2862']
 
-fig, ax = plt.subplots(2, 2, figsize = (12, 5), sharex = True, sharey = True)
+fig, ax = plt.subplots(4, 1, figsize = (9, 9), sharex = True, sharey = True)
 plt.subplots_adjust(wspace = 0.02, hspace = 0.02)
 c, r = 0, 0
 for i in range(4):
@@ -398,27 +400,27 @@ for i in range(4):
     mem = Table(hdu[1].data)
 
     xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
-    ax[c, r].errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', markersize = 5, color = "k", label = r'$\varpi^{\rm (sp)}$', zorder = 20)
-    ax[c, r].errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', markersize = 5, color = '#929591', label = r'$\varpi^{\rm (g)}$', zorder = 10)
+    ax[c].errorbar(xx['spec_parallax_2'], xx['LOGG_2'], xerr = xx['spec_parallax_err'], fmt = 'o', markersize = 4, color = "k", label = r'spectrophotometric parallax $\varpi^{\rm (sp)}$', zorder = 20)
+    ax[c].errorbar(xx['parallax_2'], xx['LOGG_2'], xerr = xx['parallax_error_2'], fmt = 'o', markersize = 4, color = '#929591', label = r'Gaia DR2 parallax $\varpi^{\rm (a)}$', zorder = 10)
     avg = np.sum(xx['spec_parallax_2'] / xx['spec_parallax_err'] ** 2) / np.sum(1. / xx['spec_parallax_err'] **2)
     avg_gaia = np.sum(xx['parallax_2'] / xx['parallax_error_2'] ** 2) / np.sum(1. / xx['parallax_error_2'] **2)
-    ax[c, r].axvline(avg, color="k", lw = 0.8, zorder = -10, linestyle = ':')
-    ax[c, r].axvline(avg_gaia, color='#929591', lw = 0.8, zorder = -10, linestyle = ':')
-    ax[c, r].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-    ax[c, r].annotate('{}'.format(cluster_list[i]), (1.22, 0.75), fontsize = 13) #, bbox = ('ec' = '0.5'))
+    print(cluster_list[i], avg, avg_gaia)
+    ax[c].axvline(avg, color="k", lw = 0.8, zorder = -10, linestyle = ':')
+    ax[c].axvline(avg_gaia, color='#929591', lw = 0.8, zorder = -10, linestyle = ':')
+    ax[c].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+    ax[c].annotate('{}'.format(cluster_list[i]), (1.25, 0.75), fontsize = 14) #, bbox = ('ec' = '0.5'))
+    ax[c].set_ylabel(r'$\log g$', fontsize = 14)
+    ax[c].set_ylim(0.6, 2.4)
     #distance = 6.4
     #plt.axvline(1./distance, color = 'r', linestyle = ':', label = 'distance')
-    ax[c, r]
-    if r == 1: 
-        c += 1
-        r = 0    
-    else:
-        r += 1
-ax[0, 0].legend(fontsize = 14)
-ax[1, 0].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
-ax[1, 1].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
-ax[0, 0].set_ylabel(r'$\log g$', fontsize = 14)
-ax[1, 0].set_ylabel(r'$\log g$', fontsize = 14)
+#    if r == 1: 
+#        c += 1
+#        r = 0    
+#    else:
+#        r += 1
+    c += 1
+ax[0].legend(fontsize = 13)
+ax[-1].set_xlabel(r'$\varpi$ [mas]', fontsize = 14)
 
 plt.savefig('paper/clusters.pdf', bbox_inches = 'tight')
 
