@@ -11,6 +11,12 @@
 % - HWR: Figures 1 and 2 need to be combined to directly compare Parent and Training.
 % - HWR: Figure 3: Note that the y-axis is positive-definite!
 % - HWR: Figure 7: Caption needs to say what arrows represent.
+% - Make the comparison with Cannon as a function of L1 strength and maybe look at correlation coefficients between parameter vectors.
+% - Get model running on ASPCAP outputs and compare in Discussion.
+% - Make sure we incorporate / respond to Ness comments from Aug 13 email.
+% - Thank APOGEE telecon and add paragraph about AGB stars and the color-magnitude diagram in the discussion.
+% - Describe how we ran The Cannon; discussion of how we compare to The Cannon.
+% - Cite and describe Eilers et al.
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -89,12 +95,12 @@ Therefore spectroscopy plus photometry should enable
 precise spectrophotometric distance estimates.
 % aims
 Here we use the \apogee--\gaia\ overlap to train a data-driven model
-to predict parallaxes for red-giant branch stars with $0<\logg<2.2$.
+to predict parallaxes for red-giant branch stars with $0<\logg\leq2.2$.
 % methods
 We employ (the exponentiation of)
 a linear function of \apogee\ spectral pixel intensities and multi-band photometry
 to predict a parallax spectrophotometrically.
-The data-driven-model training involves no logarithms or inverses of the \gaia\ parallaxes,
+The model training involves no logarithms or inverses of the \gaia\ parallaxes,
 and needs no cut on the \gaia\ parallax signal-to-noise ratio.
 It includes an L1 regularization to zero out the contributions of
 uninformative pixels.
@@ -146,10 +152,9 @@ and show us how and where stars form, and how they migrate around (and out of) t
 disk with time.
 
 As we operate these spectroscopic surveys,
-the \gaia\ Mission (\citealt{gaia}) has been revolutionizing our view of the disk.
+the \gaia\ Mission (\citealt{gaia}) has also been revolutionizing our view of the disk.
 It delivers good proper motions everywhere,
-and extremely valuable parallax information
-locally.
+and extremely valuable parallax information locally.
 However, it does not deliver precise geometric parallaxes over a large fraction of
 the disk, and certainly not in the dusty and crowded regions.
 For these reasons, the value of \gaia\ in these infrared spectroscopy projects is not
@@ -815,6 +820,9 @@ are statistically independent of the \gaia\ parallaxes and can be combined with 
 na\"ive ways, for example in inverse-variance-weighted averages.
 
 HOGG: ADD HERE a couple of sentences in the discussion about the setting of Lambda and the parallax offset (currently $0.0483\pm 0.012$\,mas).
+
+ACE: ADD HERE the Color-magnitude diagrams for high snr and training set.
+HOGG: DIscussion here of CMD and AGB stars.
 
 What is this useful for and how do you use them safely?
 HOGG: Show a map of the kinematic rotation of the Galaxy as a function of
