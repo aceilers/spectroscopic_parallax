@@ -40,7 +40,7 @@ figsize = (8, 4.5)
 # load rotation curve
 # -------------------------------------------------------------------------------
 
-f = open('data/rot_curve_part2.txt', 'r')
+f = open('data/rot_curve.txt', 'r')
 xx = np.loadtxt(f)
 f.close()
 
@@ -51,6 +51,18 @@ vc_annulus_err_p = xx[3, :]
 sigmas = 0.5 * (vc_annulus_err_m + vc_annulus_err_p)
 
 idx5 = sum(bins_dr < 5)
+
+f = open('data/rot_curve_part1.txt', 'r')
+xx1 = np.loadtxt(f)
+f.close()
+idx5a = sum(xx1[0, :] < 5)
+
+
+f = open('data/rot_curve_part2.txt', 'r')
+xx2 = np.loadtxt(f)
+f.close()
+idx5b = sum(xx2[0, :] < 5)
+
 
 # -------------------------------------------------------------------------------
 # profiles
@@ -329,17 +341,19 @@ lopez = Table.read('data/data_lopezcorredoira2014_cleaned.txt', format = 'ascii'
 draws = 100
 np.random.seed(42)
 # LINES IN DARK GREY/BLACK!
-fig, ax = plt.subplots(1, 1, figsize = (9.5, 7.2), sharex = True)        
+fig, ax = plt.subplots(1, 1, figsize = (9.3, 7.2), sharex = True)        
 plt.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300, label = r'Eilers et al.\ 2018 (this work)')
+#plt.plot(xx1[0, idx5a:], xx1[1, idx5a:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+#plt.plot(xx2[0, idx5b:], xx2[1, idx5b:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
 plt.ylim(0, 400) #310
 plt.xlim(0, 25.2)
 plt.xticks([0, 5, 10, 15, 20, 25])
 plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-plt.xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-plt.ylabel(r'$v_{\rm circ}~\rm [km\,s^{-1}]$', fontsize = fsize)
-plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm circ}}$: linear fit')
+plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+plt.ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm c}}$: linear fit')
 plt.plot(R, vc_halo, '#feb308', label = r'halo: NFW-profile fit', zorder = 40)
-plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm circ}$: all stellar components + halo')
+plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm c}$: all stellar components + halo')
 for i in range(draws):
     d = np.random.choice(np.arange(len(samples_halo)))
     vc_halo_i = vc_NFW_old(R, 0, samples_halo[d, 0], samples_halo[d, 1], rho_c)
@@ -358,9 +372,9 @@ ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor 
 handles, labels = ax.get_legend_handles_labels()
 hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
 lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
-plt.legend(hand, lab, frameon = True, fontsize = 13, ncol = 3, loc = 2)
+plt.legend(hand, lab, frameon = True, fontsize = 13, ncol = 3, loc = 1)
 plt.tight_layout()
-plt.savefig('paper_rotation_curve/rotation_curve_fit_paper_literature_part2.pdf', bbox_inches = 'tight')
+plt.savefig('paper_rotation_curve/rotation_curve_fit_paper_literature_part1.pdf', bbox_inches = 'tight')
 
 
 # -------------------------------------------------------------------------------

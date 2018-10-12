@@ -75,6 +75,27 @@ N = len(labels) # 33044 stars!
 N_sample = 256
 np.random.seed(42)
 
+# -------------------------------------------------------------------------------
+# new plot
+# -------------------------------------------------------------------------------           
+distance = (labels['spec_parallax'] * u.mas).to(u.parsec, equivalencies = u.parallax())
+
+fig, ax = plt.subplots(1, 1, figsize = (7, 6))        
+cm = plt.cm.get_cmap('viridis')
+sc = ax.scatter(labels['phot_g_mean_mag'], distance/1000., c = labels['parallax_error']/labels['spec_parallax_err'], s=20, cmap=cm, alpha = .8, vmin = 0, vmax = 20)
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.05, 0.02, 0.92])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\sigma_{\varpi}^{(a)}/\sigma_{\varpi}^{(sp)}$', rotation=90, fontsize=18, labelpad=30)
+plt.tight_layout()
+ax.set_xlabel(r'$G$ [mag]', fontsize = fsize)
+ax.set_ylabel(r'distance [kpc]', fontsize = fsize)
+ax.tick_params(axis=u'both', direction='in', which='both')
+ax.set_ylim(0, 65)
+plt.savefig('paper/precicion.pdf', bbox_inches = 'tight', pad_inches=.2)
+
+
+
 ## -------------------------------------------------------------------------------
 ## HRD plot
 ## -------------------------------------------------------------------------------           
@@ -271,7 +292,7 @@ Xlimits = [[-25.2, 10], [-12, 23], [-20, 20],
 deg_wedge_in_z = 6.
 cut_vz = (XS_cart_true_n[:, 5] < 100)
 wedge_z = (np.abs(mean_XS_cyl_n[:, 2])/(mean_XS_cyl_n[:, 0])) < np.tan(deg_wedge_in_z/360. * 2. * np.pi)
-cut_z = np.logical_or(abs(mean_XS_cyl_n[:, 2]) < 0.5, wedge_z * cut_vz)
+cut_z = np.logical_or(abs(mean_XS_cyl_n[:, 2]) < 0.5, wedge_z) * cut_vz
 
 box_size = .5               # that's just half of the box size
 all_x = np.arange(-30., 30.01, box_size)
@@ -372,10 +393,10 @@ XS_cyl_true_n[:, 1][XS_cyl_true_n[:, 1] < -np.pi] += 2. * np.pi
 mean_XS_cyl_n[:, 1] = mean_XS_cyl_n[:, 1] - np.pi 
 mean_XS_cyl_n[:, 1][mean_XS_cyl_n[:, 1] < -np.pi] += 2. * np.pi
 
-# calculate annuli only in 30 degree wedge!  
+# calculate annuli only in 60 degree wedge!  
 deg_wedge = 30.
-#wedge1d = abs(mean_XS_cyl_n[:, 1]) < (deg_wedge/360. * 2. * np.pi) * cut_vz
-wedge1d = (mean_XS_cyl_n[:, 1] < (deg_wedge/360. * 2. * np.pi)) * (mean_XS_cyl_n[:, 1] > 0) * cut_vz
+wedge1d = abs(mean_XS_cyl_n[:, 1]) < (deg_wedge/360. * 2. * np.pi) * cut_vz
+#wedge1d = (mean_XS_cyl_n[:, 1] < (deg_wedge/360. * 2. * np.pi)) * (mean_XS_cyl_n[:, 1] > 0) * cut_vz
 #wedge1d = (-mean_XS_cyl_n[:, 1] < (deg_wedge/360. * 2. * np.pi)) * (mean_XS_cyl_n[:, 1] < 0) * cut_vz
 
 dz = 1. # kpc
@@ -536,10 +557,10 @@ vc_annulus_err_m = 1. / vc_annulus * np.sqrt(mean_XS_cyl_annulus[:, 4]**2 * (vt_
 vc_annulus_err_p = 1. / vc_annulus * np.sqrt(mean_XS_cyl_annulus[:, 4]**2 * (vt_ann_err_pp[:, 2] - vt_ann_err_pp[:, 1])**2 + HWRnumber**2 * mean_XS_cyl_annulus[:, 3]**2 * (vt_ann_err_rr[:, 2] - vt_ann_err_rr[:, 1])**2)
 
 t = Table()
-rgc_table = Column(np.round(mean_XS_cyl_annulus[:, 0], 2), name = 'R_{\rm GC}')
-vc_table = Column(np.round(vc_annulus, 2), name = 'v_{\rm circ}')
-vc_err_m_table = Column(np.round(vc_annulus_err_m, 2), name = '\sigma_{v^-_{\rm circ}}')
-vc_err_p_table = Column(np.round(vc_annulus_err_p, 2), name = '\sigma_{v^+_{\rm circ}}')
+rgc_table = Column(np.round(mean_XS_cyl_annulus[:, 0], 2), name = 'R')
+vc_table = Column(np.round(vc_annulus, 2), name = 'v_{\rm c}')
+vc_err_m_table = Column(np.round(vc_annulus_err_m, 2), name = '\sigma_{v^-_{\rm c}}')
+vc_err_p_table = Column(np.round(vc_annulus_err_p, 2), name = '\sigma_{v^+_{\rm c}}')
 t.add_column(rgc_table)
 t.add_column(vc_table)
 t.add_column(vc_err_m_table)
@@ -614,11 +635,11 @@ ax[0].set_ylabel(r'$y\,\rm [kpc]$', fontsize = fsize)
 ax[0].set_aspect('equal')
 ax[1].set_aspect('equal')
 ax[2].set_aspect('equal')
-ax[0].annotate(r'$\sqrt{\overline{v^2_{RR}}}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
-ax[1].annotate(r'$\sqrt{\overline{v^2_{\varphi\varphi}}}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
-ax[2].annotate(r'$v_{\rm circ}$', (4.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[0].annotate(r'$\overline{v_{r}}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[1].annotate(r'$\overline{v_{\varphi}}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[2].annotate(r'$v_{\rm c}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
 plt.tight_layout()
-plt.savefig('paper_rotation_curve/maps_wedge_part2.pdf', bbox_inches = 'tight', pad_inches=.2)
+plt.savefig('paper_rotation_curve/maps_wedge.pdf', bbox_inches = 'tight', pad_inches=.2)
 plt.close()
 
 vvT_cyl_n = np.zeros((mean_XS_cyl_n.shape[0], 3, 3))
@@ -633,7 +654,7 @@ vc_n2 = np.sqrt(vtilde_n[:, 1, 1] - HWRnumber_n * (exp_fit(theta_fit, mean_XS_cy
 
 plot_R = np.arange(0, 30, .1)
 
-f = open('data/rot_curve_part2.txt', 'w')
+f = open('data/rot_curve.txt', 'w')
 np.savetxt(f, np.vstack([bins_dr, vc_annulus, vc_annulus_err_m, vc_annulus_err_p]))
 f.close()
 
@@ -664,17 +685,17 @@ ax0.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 
 ax1.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax2.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on', labelbottom = 'off')
 ax3.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax0.plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$\sqrt{{\overline{{v^2_{{RR}}}}}}\propto \exp\left(-\frac{{R_{{\rm GC}}}}{{{1}\,\rm kpc}}\right)$'.format(round(theta_fit[0], 2), int(round(theta_fit[1])))) #'#c44240'
-ax0.set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-ax1.set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-ax3.set_xlabel(r'$R_{\rm GC}\,\rm [kpc]$', fontsize = fsize)
-ax2.set_ylabel(r'$v_{\rm circ}~\rm [km\,s^{-1}]$', fontsize = fsize)
-ax0.set_ylabel(r'$\sqrt{\overline{v^2_{RR}}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
-ax1.set_ylabel(r'$\sqrt{\overline{v^2_{\varphi\varphi}}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
+ax0.plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$\overline{{v_{{r}}}}(R)\propto \exp\left(-\frac{{R}}{{{1}\,\rm kpc}}\right)$'.format(round(theta_fit[0], 2), int(round(theta_fit[1])))) #'#c44240'
+ax0.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+ax1.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+ax3.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+ax2.set_ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+ax0.set_ylabel(r'$\overline{v_{r}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
+ax1.set_ylabel(r'$\overline{v_{\varphi}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
 #ax3.scatter(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
 # with errorbars
 ax3.errorbar(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), yerr = [np.array(vc_vpp[idx5:, 0]), np.array(vc_vpp[idx5:, 1])], fmt = 'o', markersize = 4, capsize=3, mfc='k', mec='k', ecolor = 'k', zorder = 30)
-ax3.set_ylabel(r'$\left(v_{\rm circ} - \sqrt{\overline{v^2_{\varphi\varphi}}}\right)$', fontsize = 12) 
+ax3.set_ylabel(r'$v_{\rm c} - \overline{v_{\varphi}}$', fontsize = fsize) 
 ax0.set_ylim(0, 325)
 ax1.set_ylim(0, 325)
 ax2.set_ylim(120, 250)
@@ -686,8 +707,8 @@ ax0.set_xticks([0, 5, 10, 15, 20, 25])
 ax1.set_xticks([0, 5, 10, 15, 20, 25])
 ax2.set_xticks([0, 5, 10, 15, 20, 25])
 ax3.set_xticks([0, 5, 10, 15, 20, 25])
-ax0.legend(fontsize = 14, frameon = True)
-plt.savefig('paper_rotation_curve/radial_profile_sub_part2.pdf', bbox_inches = 'tight', pad_inches=.2)
+ax0.legend(fontsize = 16, frameon = True)
+plt.savefig('paper_rotation_curve/radial_profile_sub.pdf', bbox_inches = 'tight', pad_inches=.2)
 
 
 
