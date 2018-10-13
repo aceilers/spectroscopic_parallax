@@ -544,7 +544,7 @@ For training, we need A and B Training Sets.
 We define the Training Set stars to be Parent-Sample stars that also
 have a measured \gaia\ parallax.
 The Training-Set stars, in addition to meeting all Parent-Sample cuts,
-also must meet ACE WHAT ADDITIONAL CUTS to ensure that the parallax
+also must meet $\sigma_{\varpi^{(\rm a)}} < 0.1$, it must be observed by \gaia\ for more than $8$ individual times, i.e. \code{visibility_periods_used}~$\geq~8$, as well as meet the additional quality criterion $\code{astrometric_chi2_al}/\sqrt{\code{astrometric_n_good_obs_al}-5} \leq 35$, which eliminates detections that are not consistent with a single PSF \citep[see][]{calj}, to ensure that the parallax
 measurements are good.
 These cuts leave 28226 stars total in the Training Sets.
 But---as we have emphasized above---we do not cut ever on parallax or
