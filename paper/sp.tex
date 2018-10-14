@@ -380,7 +380,6 @@ The model and log-likelihood function can be expressed heuristically as
 \gparallax_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
 \\
 \chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[\gparallax_n - \exp(\theta\cdot x_n)]^2}{\sigma_n^2}
-\quad ,
 \end{eqnarray}
 where
 $\gparallax_n$ is the \gaia\ measurement (adjusted; see below) of the astrometric parallax of star $n$,
@@ -400,7 +399,7 @@ In addition, we assume that many entries in the parameter $D$-vector $\theta$ wi
 In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
 \hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + \lambda\,||P\cdot\theta||_1^1\right]
-\label{eq:objective}\quad ,
+\label{eq:objective}
 \end{eqnarray}
 where
 $\lambda$ is a regularization parameter,
@@ -434,7 +433,6 @@ $\sparallax_m$ for any star $m$ in the validation or test set is
 assigned according to
 \begin{eqnarray}
 \sparallax_m &\leftarrow& \exp(\hat{\theta}\cdot x_m)
-\quad ,
 \end{eqnarray}
 where
 $\hat{\theta}$ is the optimal parameter vector according
@@ -545,11 +543,20 @@ For training, we need A and B Training Sets.
 We define the Training Set stars to be Parent-Sample stars that also
 have a measured \gaia\ parallax.
 The Training-Set stars, in addition to meeting all Parent-Sample cuts,
-also must meet $\sigma_{\varpi^{(\rm a)}} < 0.1$, it must be observed by \gaia\ for more than $8$ individual times, i.e. \code{visibility_periods_used}~$\geq~8$, as well as meet the additional quality criterion $\code{astrometric_chi2_al}/\sqrt{\code{astrometric_n_good_obs_al}-5} \leq 35$, which eliminates detections that are not consistent with a single PSF \citep[see][]{calj}, to ensure that the parallax
-measurements are good.
+also must meet $\sigma_{\varpi^{(\rm a)}} < 0.1$, it must be observed by
+more than $8$ (widely separated) times
+\begin{equation}
+\code{visibility_periods_used >= 8}
+\end{equation}
+as well as meet the additional quality criterion
+\begin{equation}
+\code{astrometric_chi2_al / sqrt(astrometric_n_good_obs_al - 5) <= 35}
+\end{equation}
+which eliminates detections that are not consistent with a single PSF \citep[see][]{calj},
+to ensure that the parallax measurements are good.
 These cuts leave 28226 stars total in the Training Sets.
 But---as we have emphasized above---we do not cut ever on parallax or
-parallax error or their ratio. For this reason, most of the training set
+parallax error or their ratio. For this reason, most of the Training-Set stars
 do not have significantly measured parallaxes and more than 2~percent even have
 negative parallaxes!
 But we will perform our training such that it will be unbiased in these
@@ -590,7 +597,6 @@ For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
 \begin{eqnarray}
 x_n\T &\equiv& [1, G_n, \BP_n, \RP_n, J_n, H_n, K_n, W_{1n}, W_{2n}, \ln f_{1n}, \ln f_{2n}, \cdots, \ln f_{Ln}]
-\quad ,
 \end{eqnarray}
 where the 1 permits a linear offset,
 the photometry is from \gaia, \zmass, and \wise, respectively,
