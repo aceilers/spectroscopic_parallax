@@ -8,17 +8,13 @@
 % - write words about other linear models we have made or could make, probably in the discusssion.
 % - are we citing all the proper DR2 papers we need to cite?
 % - HWR: Footnote to explain the use of the word ``feature'' for astronomers.
-% - HWR: Figures 1 and 2 need to be combined to directly compare Parent and Training.
 % - HWR: Figure 3: Note that the y-axis is positive-definite!
 % - HWR: Figure 7: Caption needs to say what arrows represent.
-% - Make the comparison with Cannon as a function of L1 strength and maybe look at correlation coefficients between parameter vectors.
-% - Get model running on ASPCAP outputs and compare in Discussion.
-% - Make sure we incorporate / respond to Ness comments from Aug 13 email. And thank Ness.
-% - Thank APOGEE telecon and add paragraph about AGB stars and the color-magnitude diagram in the discussion.
-% - Describe how we ran The Cannon; discussion of how we compare to The Cannon.
+% - Make sure we incorporate / respond to Ness comments from Aug 13 email.
+% - add paragraph about AGB stars and the color-magnitude diagram in the discussion.
 % - Cite and describe Eilers et al.
 % - comment on parallax offset being a function of position and color
-% - remove Cannon plot for the moment
+% - remove Cannon plot and all references for the moment
 % - comment on new plot of new precision on parallax compared to Gaia's precision
 % - write caption and paragraph about the new figure showing how much better we are than Gaia at large distance
 % - need a snippet for Table 1.
@@ -461,6 +457,7 @@ there are in fact small uncertainties on the features that we can propagate to
 make uncertainty estimates on the spectrophotometric parallaxes.
 \begin{eqnarray}
 \ssigma_m^2 &\leftarrow& \sparallax_m^2\,\hat{\theta}^T\cdot C_m\cdot\hat{\theta}
+\label{eq:unc}
 \end{eqnarray}
 where $\ssigma_m$ is the uncertainty on the inferred (or predicted)
 spectrophotometric parallax $\sparallax_m$,
@@ -546,13 +543,19 @@ contaminated or outlying photometry:
 \quad .
 \end{eqnarray}
 These cuts removed roughly 2~percent of the \apogee\ stars.
-This Parent Sample contains 44784 stars and is shown in \figurename~\ref{fig:parent}.
+This Parent Sample contains 44784 stars and is shown in \figurename~\ref{fig:samples}.
 \begin{figure}
-\includegraphics[width=\textwidth]{parent_sample.pdf}
-\caption{Color--color diagrams for the 44784 Parent Sample stars.
+\includegraphics[width=\textwidth]{./parent_sample.pdf}\\
+\includegraphics[width=\textwidth]{./training_sample.pdf}
+\caption{\textsl{top:}
+  Color--color diagrams for the 44784 Parent Sample stars.
   The points are colored by
   the \apogee\ pipeline estimates of surface gravity.
-  The color cuts used to trim outliers are shown as grey lines.\label{fig:parent}}
+  The color cuts used to trim outliers are shown as grey lines.
+  \textsl{bottom:}
+  The same but for the 28226 Training Set stars.
+  Note that there is less color range in the Training Set than in the
+  Parent Sample.\label{fig:samples}}
 \end{figure}
 
 Every Parent-Sample star gets, in addition, a randomly assigned binary
@@ -605,15 +608,9 @@ HOGG CITE STASSUN MAYBE AND OTHERS?
 The spectrophotometric parallaxes we generate
 do not depend strongly on this choice, except
 for small differences at very small parallax (large distance).
-The Training Sets are shown in \figurename~\ref{fig:training}.
-\begin{figure}
-\includegraphics[width=\textwidth]{./training_sample.pdf}
-\caption{Color--color diagrams for the 28226 Training Set stars.
-  Note that there is less color range in the Training Set than in the
-  Parent Sample.\label{fig:training}}
-\end{figure}
+The Training Sets are shown in the bottom panels of \figurename~\ref{fig:samples}.
 
-Comparison of {\figurename s}~\ref{fig:parent} and \ref{fig:training} shows
+Comparison of the top and bottom panels of {\figurename}~\ref{fig:samples} shows
 that there is more color range in the Parent Sample than in the Training Set.
 This challenges the representativeness assumption in \sectionname~\ref{sec:assumptions}.
 The principal reason for the difference is that the \gaia\ quality cuts
@@ -788,8 +785,6 @@ In particular, since our model is linear in the logarithm of the parallax, it is
 also linear in any kind of apparent magnitude at fixed distance and also linear
 in distance modulus at fixed luminosity.
 Our feature decisions were highly motivated by these kinds of considerations.
-And the derived model parameters shown in \figurename~\ref{fig:spectral} do indicate that
-the model is capturing some or all of the expected information in the spectra, at least.
 
 However, our choice of features is very rigid:
 In principle the data themselves should tell us what features to include.
@@ -809,7 +804,7 @@ This is absurd: Stars are not linear objects!
 There are two questions to ask about the linearity.
 One is: Why did it work? The other is: Could we have done better?
 The answer to the first is that we have taken such a small part of stellar parameter
-space with our surface gravity cut, that the linearized model of stellar
+space with our surface-gravity cut, that the linearized model of stellar
 spectrophotometry is not a bad approximation.
 Also, because our linear model included photometry in magnitudes (that is, logarithmic)
 and was exponentiated to make the parallax prediction, we knew in advance that much
@@ -831,7 +826,10 @@ of that capacity it really needs.
 A more complex model might have had edge issues: Very flexible models don't extrapolate
 outside the convex hull of their training data, and our training data was not
 balanced in terms of parallax and dust attenuation.
-And finally, the complex model would have been harder to visualize and interpret;
+In the  linear model it is also---unlike in more flexible models---trivial to propagate
+uncertainties from the feature space to the prediction.
+We used that, above, to propagate uncertainty in \equationname~(\ref{eq:unc}).
+And finally---in principle---linear models are better for visualization and interpretation;
 the linear model contains essentially only first derivatives in the data space, which are
 relatively easy to understand.
 
