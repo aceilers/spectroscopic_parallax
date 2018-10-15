@@ -3,21 +3,11 @@
 
 % To-do items
 % -----------
-% - Coryn's point that we should carefully explain how our model is geometric.
+% - need a snippet for Table 1.
 % - check with WISE experts that we have the correct WISE photometry
-% - write words about other linear models we have made or could make, probably in the discusssion.
-% - are we citing all the proper DR2 papers we need to cite?
-% - HWR: Footnote to explain the use of the word ``feature'' for astronomers.
-% - HWR: Figure 3: Note that the y-axis is positive-definite!
 % - HWR: Figure 7: Caption needs to say what arrows represent.
 % - Make sure we incorporate / respond to Ness comments from Aug 13 email.
-% - add paragraph about AGB stars and the color-magnitude diagram in the discussion.
 % - Cite and describe Eilers et al.
-% - comment on parallax offset being a function of position and color
-% - remove Cannon plot and all references for the moment
-% - comment on new plot of new precision on parallax compared to Gaia's precision
-% - write caption and paragraph about the new figure showing how much better we are than Gaia at large distance
-% - need a snippet for Table 1.
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -115,8 +105,9 @@ The model implicitly performs a reddening and extinction correction in its paral
 without any explicit dust model.
 We assign to each star in the sample a new spectrophotometric parallax estimate;
 these parallaxes have uncertainties of a few to 15 percent, depending on data quality,
-which is more precise than the \gaia\ parallax for the vast majority of targets.
-We can now get 10-percent distance estimates out to heliocentric distances of 20\,kpc,
+which is more precise than the \gaia\ parallax for the vast majority of targets, and
+certainly any stars more than a few kpc distance.
+We obtain 10-percent distance estimates out to heliocentric distances of 20\,kpc,
 and make global maps of the Milky Way's disk.
 \end{abstract}
 
@@ -273,7 +264,12 @@ it delivers correct or best results \emph{under its particular assumptions}.
 In that spirit, we present here the assumptions of the method
 explicitly.
 \begin{description}
-\item[features] Perhaps our most fundamental assumption is that the parallax
+\item[features]\footnote{Here and everywhere in this \documentname, we
+  use the word ``feature'' to refer to an input or predictor or
+  independent variable for the regression.
+  That is, our parallax predictions will be linear combinations of features.
+  This is not common terminology in astrophysics, but it is standard in the machine-learning literature.}
+Perhaps our most fundamental assumption is that the parallax
 of a star can be predicted from the features we provide, which are
 the full set of (pseudo-continuum-normalized) pixels from the \apogee\ (\citealt{apogee}) spectrum,
 plus the $G$, $\BP$, and $\RP$ photometry from \gaia\ (\citealt{gaia}),
@@ -662,7 +658,9 @@ and a scatter of less than 9~percent.
   subset of stars with very high astrometric parallax signal-to-noise. This latter
   set plays no particular role in the method, but it can be used to demonstrate or
   assess the prediction precision. The fractional precision of the prediction in the
-  right panel is better than 9 percent.\label{fig:xval}}
+  right panel is better than 9 percent. Note that by construction, there can be no negative
+  spectrophotometric parallaxes; that is, the quantity plotted on the vertical axis is
+  positive-definite.\label{fig:xval}}
 \end{figure}
 
 We used this cross-validation framework to adjust the regularization parameter $\Lambda$.
@@ -692,7 +690,8 @@ photometry.
 \caption{Prediction validation colored by relevant features.
   Each panel shows the predicted parallax \foreign{vs} the
   spectrophotometric parallax colored by a different
-  data feature that might be relevant to the residual.\label{fig:residuals}}
+  data feature that might be relevant to the residual.
+  Again the quantity plotted on vertical axis is positive-definite.\label{fig:residuals}}
 \end{figure}
 
 Another validation of the results can be obtained by looking at known
