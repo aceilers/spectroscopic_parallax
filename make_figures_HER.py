@@ -38,10 +38,15 @@ figsize = (8, 4.5)
 # open inferred labels
 # -------------------------------------------------------------------------------
 
-N = 45787
+#N = 45787
+#Kfold = 2
+#lam = 30
+#name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
+
+N = 44784
 Kfold = 2
 lam = 30
-name = 'N{0}_lam{1}_K{2}_parallax'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    

@@ -80,21 +80,25 @@ np.random.seed(42)
 # -------------------------------------------------------------------------------           
 distance = (labels['spec_parallax'] * u.mas).to(u.parsec, equivalencies = u.parallax())
 
-fig, ax = plt.subplots(1, 1, figsize = (7, 6))        
-cm = plt.cm.get_cmap('viridis')
-sc = ax.scatter(labels['phot_g_mean_mag'], distance/1000., c = labels['parallax_error']/labels['spec_parallax_err'], s=20, cmap=cm, alpha = .8, vmin = 0, vmax = 20)
-fig.subplots_adjust(right = 0.8)
-cbar_ax = fig.add_axes([1, 0.05, 0.02, 0.92])
-cb = fig.colorbar(sc, cax=cbar_ax)
-cb.set_label(r'$\sigma_{\varpi}^{(a)}/\sigma_{\varpi}^{(sp)}$', rotation=90, fontsize=18, labelpad=30)
+fig, ax = plt.subplots(1, 1, figsize = (8, 4))        
+cm = plt.cm.get_cmap('RdBu_r')
+sc = ax.scatter(labels['phot_g_mean_mag'], distance/1000., c = np.log10(labels['parallax_error']/labels['spec_parallax_err']), s=5, cmap=cm, alpha = .8, vmin = -1, vmax = 1, rasterized = True)
+cb = fig.colorbar(sc)
+cb.set_label(r'$\log_{10}(\sigma_{\varpi}^{(\rm a)}/\sigma_{\varpi}^{(\rm sp)})$', rotation=90, fontsize=18, labelpad=30)
 plt.tight_layout()
-ax.set_xlabel(r'$G$ [mag]', fontsize = fsize)
-ax.set_ylabel(r'distance [kpc]', fontsize = fsize)
+ax.set_xlabel(r'$G\,\rm [mag]$', fontsize = fsize)
+ax.set_ylabel(r'$\rm spectrophotometric\,distance\,[kpc]$', fontsize = fsize)
 ax.tick_params(axis=u'both', direction='in', which='both')
-ax.set_ylim(0, 65)
-plt.savefig('paper/precicion.pdf', bbox_inches = 'tight', pad_inches=.2)
+ax.set_ylim(0, 20)
+plt.savefig('paper/precision.pdf', bbox_inches = 'tight', pad_inches=.2)
 
-
+#dis = (distance/1000.).value
+#precision = labels['parallax_error']/labels['spec_parallax_err']
+#mag = (labels['phot_g_mean_mag'] > (14 - 0.5)) * (labels['phot_g_mean_mag'] <= (14 + 0.5))
+#for i in range(20):    
+#    row = (dis[mag] > (i - 0.5)) * (dis[mag] <= (i + 0.5))
+#    prec = np.median(precision[mag][row])
+#    print(i, prec)
 
 ## -------------------------------------------------------------------------------
 ## HRD plot
