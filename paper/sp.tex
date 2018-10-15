@@ -3,23 +3,9 @@
 
 % To-do items
 % -----------
-% - Coryn's point that we should carefully explain how our model is geometric.
+% - need a snippet for Table 1.
 % - check with WISE experts that we have the correct WISE photometry
-% - write words about other linear models we have made or could make, probably in the discusssion.
-% - are we citing all the proper DR2 papers we need to cite?
-% - HWR: Footnote to explain the use of the word ``feature'' for astronomers.
-% - HWR: Figures 1 and 2 need to be combined to directly compare Parent and Training.
-% - HWR: Figure 3: Note that the y-axis is positive-definite!
-% - HWR: Figure 7: Caption needs to say what arrows represent.
-% - Make the comparison with Cannon as a function of L1 strength and maybe look at correlation coefficients between parameter vectors.
-% - Get model running on ASPCAP outputs and compare in Discussion.
-% - Make sure we incorporate / respond to Ness comments from Aug 13 email.
-% - Thank APOGEE telecon and add paragraph about AGB stars and the color-magnitude diagram in the discussion.
-% - Describe how we ran The Cannon; discussion of how we compare to The Cannon.
-% - Cite and describe Eilers et al.
-% - comment on parallax offset being a function of position and color
-% - remove Cannon plot for the moment
-% - comment on new plot of new precision on parallax compared to Gaia's precision
+% - ACE: What fraction of spectral pixels are (typically, or in each training set) zeroed out?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -59,8 +45,10 @@
 \newcommand{\logg}{\log g}
 \newcommand{\BP}{{G_\mathrm{BP}}}
 \newcommand{\RP}{{G_\mathrm{RP}}}
-\newcommand{\gparallax}{\varpi^{(\mathrm{a})}}
-\newcommand{\sparallax}{\varpi^{(\mathrm{sp})}}
+\newcommand{\gparallax}{{\varpi^{(\mathrm{a})}}}
+\newcommand{\sparallax}{{\varpi^{(\mathrm{sp})}}}
+\newcommand{\gsigma}{{\sigma^{(\mathrm{a})}}}
+\newcommand{\ssigma}{{\sigma^{(\mathrm{sp})}}}
 
 % tweak the modern style -- trust in Hogg
 \setlength{\parindent}{1.0\baselineskip}
@@ -91,18 +79,18 @@ Accurate distances for luminous red-giant stars
 % context
 With contemporary infrared spectroscopic surveys like \apogee,
 red-giant stars can be observed to distances and extinctions
-at which \gaia\ parallaxes are not informative.
+at which \gaia\ parallaxes are not highly informative.
 Yet the combination of effective temperature, surface gravity, composition, and age---all
 accessible through spectroscopy---determines a giant's luminosity.
 Therefore spectroscopy plus photometry should enable 
 precise spectrophotometric distance estimates.
 % aims
-Here we use the \apogee--\gaia\ overlap to train a data-driven model
+Here we use the \apogee--\gaia--\zmass--\wise\ overlap to train a data-driven model
 to predict parallaxes for red-giant branch stars with $0<\logg\leq2.2$.
 % methods
 We employ (the exponentiation of)
 a linear function of \apogee\ spectral pixel intensities and multi-band photometry
-to predict a parallax spectrophotometrically.
+to predict parallax spectrophotometrically.
 The model training involves no logarithms or inverses of the \gaia\ parallaxes,
 and needs no cut on the \gaia\ parallax signal-to-noise ratio.
 It includes an L1 regularization to zero out the contributions of
@@ -115,9 +103,10 @@ The model implicitly performs a reddening and extinction correction in its paral
 without any explicit dust model.
 We assign to each star in the sample a new spectrophotometric parallax estimate;
 these parallaxes have uncertainties of a few to 15 percent, depending on data quality,
-which is more precise than the \gaia\ parallax for the vast majority of targets.
-We can now get 10-percent distance estimates out to heliocentric distances of 20\,kpc,
-allowing truly global maps of the Milky Way's disk.
+which is more precise than the \gaia\ parallax for the vast majority of targets, and
+certainly any stars more than a few kpc distance.
+We obtain 10-percent distance estimates out to heliocentric distances of 20\,kpc,
+and make global maps of the Milky Way's disk.
 \end{abstract}
 
 \keywords{%
@@ -151,7 +140,7 @@ These arguments motivate the \apogee\ (\citealt{apogee}),
 projects, which take spectra in the infrared, and deliver detailed abundances
 along the entire red-giant branch up to the tip.
 The maps made with these data will reveal the dynamics of the Milky Way and its disk,
-and show us how and where stars form, and how they migrate around (and out of) the
+and show us how and where stars form, and how they migrate around the
 disk with time.
 
 As we operate these spectroscopic surveys,
@@ -166,7 +155,7 @@ which then deliver distance information through relationships between stellar
 luminosities and spectral characteristics.
 
 Luminous red-giant stars are valuable for mapping the Milky Way disk for a number
-lf reasons, only one of which is their great luminosities (and hence brightnesses
+of reasons, only one of which is their great luminosities (and hence brightnesses
 even at large distance).
 They are extremely common (frequent) stars, much more common than distance-indicating
 stars like Cepheids.
@@ -181,7 +170,7 @@ And finally, in physical models of red giants, their predicted luminosities are 
 functions of composition, surface gravity, temperature, and age.
 Thus, if we can measure these properties of red giants, we can (in principle) predict
 their luminosities and use them as standard candles.
-That is---like type Ia supernovae---red giants are standardizable candles.
+That is, red giants are standardizable candles.
 
 In this project, we develop purely data-driven techniques to predict
 red-giant parallaxes or distances with spectroscopy and photometry.
@@ -196,7 +185,7 @@ photometry (including colors), and parallax (or distance).
 
 Data-driven models are very often more accurate than physical models of stars
 for this kind of work, because they have the flexibility to discover
-regularities or offsets in the data that are not captured by the physical
+regularities or offsets in the data that are not adequately captured by the physical
 models.
 They do better than physical models when there are lots of training data
 with properties that are good for performing regressions.
@@ -273,7 +262,12 @@ it delivers correct or best results \emph{under its particular assumptions}.
 In that spirit, we present here the assumptions of the method
 explicitly.
 \begin{description}
-\item[features] Perhaps our most fundamental assumption is that the parallax
+\item[features]\footnote{Here and everywhere in this \documentname, we
+  use the word ``feature'' to refer to an input or predictor or
+  independent variable for the regression.
+  That is, our parallax predictions will be linear combinations of features.
+  This is not common terminology in astrophysics, but it is standard in the machine-learning literature.}
+Perhaps our most fundamental assumption is that the parallax
 of a star can be predicted from the features we provide, which are
 the full set of (pseudo-continuum-normalized) pixels from the \apogee\ (\citealt{apogee}) spectrum,
 plus the $G$, $\BP$, and $\RP$ photometry from \gaia\ (\citealt{gaia}),
@@ -314,10 +308,14 @@ surface gravity, but this assumption is strong, and limits strongly the
 flexibility or capacity of the model.
 We make it to ensure that our method is easy to optimize, and the results are easy
 to interpret.
+It is also the case that linear models extrapolate better than higher-order or more
+flexible models; this is not extremely important to the present work, but it does
+protect our predictions at the edges (in terms of temperature, surface gravity,
+and chemical abundances) of our sample.
 
 \item[likelihood] We assume that the \gaia\ parallaxes are generated by a particular
 stochastic process, in which the difference between the \gaia-Catalog parallax (plus
-a small \gaia-recommended offset; \citealt{lindegren}) and the true parallax is effectively drawn from a
+a small offset, which we learn below) and the true parallax is effectively drawn from a
 Gaussian with a width set by the \gaia-Catalog uncertainty on the parallax.
 This is the standard assumption in all properly probabilistic \gaia-Mission inferences
 to date, but it subsumes a number of related assumptions, like that the \gaia\ noise
@@ -378,8 +376,7 @@ The model and log-likelihood function can be expressed heuristically as
 \begin{eqnarray}
 \gparallax_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
 \\
-\chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[\gparallax_n - \exp(\theta\cdot x_n)]^2}{\sigma_n^2}
-\quad ,
+\chi^2(\theta) &\equiv& \sum_{n=1}^N \frac{[\gparallax_n - \exp(\theta\cdot x_n)]^2}{\gsigma_n^2}
 \end{eqnarray}
 where
 $\gparallax_n$ is the \gaia\ measurement (adjusted; see below) of the astrometric parallax of star $n$,
@@ -387,7 +384,7 @@ the model is that the logarithm of the true parallax
 can be expressed as a linear combination of the components
 of some $D$-dimensional feature vector $x_n$,
 $\theta$ is a $D$-vector of linear coefficients,
-$\sigma_n$ is the \gaia\ estimate of the uncertainty on the parallax measurement,
+$\gsigma_n$ is the \gaia\ estimate of the uncertainty on the parallax measurement,
 and $\chi^2(\theta)$ is (twice) the negative-log-likelihood for the parameters $\theta$
 under the assumption of known Gaussian noise and
 that there are $N$ independently measured stars $n$.
@@ -396,10 +393,11 @@ in the pseudo-continuum-normalized \apogee\ spectrum, so $D$ is on the order of 
 
 In addition, we assume that many entries in the parameter $D$-vector $\theta$ will be zero
 (the ``sparsity'' assumption).
-In order to encourage this, we optimize not $\chi^2$ but a regularized objective function
+In order to represent this expectation,
+we optimize not $\chi^2$ but a regularized objective function
 \begin{eqnarray}
 \hat{\theta} &\leftarrow& \argmin_{\theta}\left[\frac{1}{2}\,\chi^2(\theta) + \lambda\,||P\cdot\theta||_1^1\right]
-\label{eq:objective}\quad ,
+\label{eq:objective}
 \end{eqnarray}
 where
 $\lambda$ is a regularization parameter,
@@ -424,7 +422,7 @@ good first guess or initialization for the full optimization.
 This method works because in the limit of high signal-to-noise, the problem asymptotically approaches
 the convex problem of L1-regularized linear least-square fitting.
 Optimization is performed with \code{scipy.optimize} using the
-\acronym{L-BFGS-B} algorithm (HOGG CITE).
+\acronym{L-BFGS-B} algorithm (\citealt{lbfgsb}).
 
 Once the model is optimized, the output of the model is a prediction of the parallax,
 or really what we will call the \emph{spectrophotometric parallax}.
@@ -433,18 +431,37 @@ $\sparallax_m$ for any star $m$ in the validation or test set is
 assigned according to
 \begin{eqnarray}
 \sparallax_m &\leftarrow& \exp(\hat{\theta}\cdot x_m)
-\quad ,
 \end{eqnarray}
 where
 $\hat{\theta}$ is the optimal parameter vector according
 to \equationname~(\ref{eq:objective}),
 and
 $x_m$ is the feature $D$-vector for star $m$.
-Thus the model can be trained on a training set of stars and applied to
+The model can be trained on a training set of stars and applied to
 a validation set or a test set to make predictions.
 The only requirements are that every test-set object $m$  must have a full feature
 vector $x_m$ just as every training-set object $n$ must have a full feature
 vector $x_n$.
+
+The linear model permits straightforward propagation of uncertainty from the
+feature inputs to the spectrophotometric parallaxes.
+Although the model fundamentally assumes that the prediction features are noise-free
+(see the ``good features'' assumption in \sectionname~\ref{sec:assumptions}),
+there are in fact small uncertainties on the features that we can propagate to 
+make uncertainty estimates on the spectrophotometric parallaxes.
+\begin{eqnarray}
+\ssigma_m^2 &\leftarrow& \sparallax_m^2\,\hat{\theta}^T\cdot C_m\cdot\hat{\theta}
+\label{eq:unc}
+\end{eqnarray}
+where $\ssigma_m$ is the uncertainty on the inferred (or predicted)
+spectrophotometric parallax $\sparallax_m$,
+the right-hand side is a scalar product,
+and $C_m$ is the covariance matrix of the input
+features.
+In what follows we don't actually instantiate the full covariance matrix; we presume
+that input features are independently measured;
+that is, we make $C_m$ is a diagonal matrix with the uncertainty variances of the elements
+of $x_m$ along the diagonal.
 
 One final detail: We perform all of the fitting in a two-fold train-and-test framework,
 in which the data are split into two disjoint subsets, A and B.
@@ -496,7 +513,7 @@ We used the \gaia\ (\citealt{gaia}) \acronym{DR2} (\citealt{gaiadr2}) Data Archi
 official matches (\citealt{xmatch}) to match the \apogee+\zmass\ stars
 to the \wise\ Catalog (\citealt{wise}),
 according to the \gaia\ Archive internal match criteria.
-This gives, fore each matching star $n$,
+This gives, for each matching star $n$,
 mid-infrared photometry $W_{1n}$ and $W_{2n}$ at 3.6 and 4.5\,$\mu$m
 In detail we use the \code{w1mpro} and \code{w2mpro} Catalog entries.
 
@@ -522,13 +539,19 @@ contaminated or outlying photometry:
 \quad .
 \end{eqnarray}
 These cuts removed roughly 2~percent of the \apogee\ stars.
-This Parent Sample contains 44784 stars and is shown in \figurename~\ref{fig:parent}.
+This Parent Sample contains 44784 stars and is shown in \figurename~\ref{fig:samples}.
 \begin{figure}
-\includegraphics[width=\textwidth]{parent_sample.pdf}
-\caption{Color--color diagrams for the 44784 Parent Sample stars.
+\includegraphics[width=\textwidth]{./parent_sample.pdf}\\
+\includegraphics[width=\textwidth]{./training_sample.pdf}
+\caption{\textsl{top:}
+  Color--color diagrams for the 44784 Parent Sample stars.
   The points are colored by
   the \apogee\ pipeline estimates of surface gravity.
-  The color cuts used to trim outliers are shown as grey lines.\label{fig:parent}}
+  The color cuts used to trim outliers are shown as grey lines.
+  \textsl{bottom:}
+  The same but for the 28226 Training Set stars.
+  Note that there is less color range in the Training Set than in the
+  Parent Sample.\label{fig:samples}}
 \end{figure}
 
 Every Parent-Sample star gets, in addition, a randomly assigned binary
@@ -544,11 +567,23 @@ For training, we need A and B Training Sets.
 We define the Training Set stars to be Parent-Sample stars that also
 have a measured \gaia\ parallax.
 The Training-Set stars, in addition to meeting all Parent-Sample cuts,
-also must meet $\sigma_{\varpi^{(\rm a)}} < 0.1$, it must be observed by \gaia\ for more than $8$ individual times, i.e. \code{visibility_periods_used}~$\geq~8$, as well as meet the additional quality criterion $\code{astrometric_chi2_al}/\sqrt{\code{astrometric_n_good_obs_al}-5} \leq 35$, which eliminates detections that are not consistent with a single PSF \citep[see][]{calj}, to ensure that the parallax
-measurements are good.
+also must meet an uncertainty criterion $\gsigma_n < 0.1\,\mathrm{mas}$,
+\begin{equation}
+\code{parallax_error < 0.1}
+\end{equation}
+it must be observed by more than $8$ (widely separated) times
+\begin{equation}
+\code{visibility_periods_used >= 8}
+\end{equation}
+as well as meet the additional quality criterion
+\begin{equation}
+\code{astrometric_chi2_al / sqrt(astrometric_n_good_obs_al - 5) <= 35}
+\end{equation}
+which eliminates detections that are not consistent with a single PSF \citep[see][]{calj},
+to ensure that the parallax measurements are good.
 These cuts leave 28226 stars total in the Training Sets.
 But---as we have emphasized above---we do not cut ever on parallax or
-parallax error or their ratio. For this reason, most of the training set
+or the ratio to its uncertainty. For this reason, most of the Training-Set stars
 do not have significantly measured parallaxes and more than 2~percent even have
 negative parallaxes!
 But we will perform our training such that it will be unbiased in these
@@ -558,24 +593,22 @@ parallax signal-to-noise.
 
 In detail,
 for each star $n$ in the Training Sets, we take from \gaia\ \acronym{DR2} (\citealt{gaiadr2})
-the astrometric parallax $\gparallax_n$ and its uncertainty $\sigma_n$.
+the astrometric parallax $\gparallax_n$ and its uncertainty $\gsigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset $\varpi_0$ to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The \gaia\ recommended value is $\varpi_0=0.029$\,mas (\citealt{lindegren}),
 but we adopt $\varpi_0 = 0.048$\,mas because that value
 optimizes our cross-validation objective.
-The spectrophotometric parallaxes do not depend strongly on this choice, except
+It also happens to be in the range of other values found in the literature (\citealt{arenou, zinn}).
+Of course we really expect the offset to be a function of sky position and color (at least),
+so the offset we find is not recommended for further use as any kind of universal value.
+The spectrophotometric parallaxes we generate
+do not depend strongly on this choice, except
 for small differences at very small parallax (large distance).
-The Training Sets are shown in \figurename~\ref{fig:training}.
-\begin{figure}
-\includegraphics[width=\textwidth]{./training_sample.pdf}
-\caption{Color--color diagrams for the 28226 Training Set stars.
-  Note that there is less color range in the Training Set than in the
-  Parent Sample.\label{fig:training}}
-\end{figure}
+The Training Sets are shown in the bottom panels of \figurename~\ref{fig:samples}.
 
-Comparison of {\figurename s}~\ref{fig:parent} and \ref{fig:training} shows
+Comparison of the top and bottom panels of {\figurename}~\ref{fig:samples} shows
 that there is more color range in the Parent Sample than in the Training Set.
 This challenges the representativeness assumption in \sectionname~\ref{sec:assumptions}.
 The principal reason for the difference is that the \gaia\ quality cuts
@@ -589,7 +622,6 @@ For every star $n$ in the full Parent Sample we construct the feature
 vector $x_n$ as
 \begin{eqnarray}
 x_n\T &\equiv& [1, G_n, \BP_n, \RP_n, J_n, H_n, K_n, W_{1n}, W_{2n}, \ln f_{1n}, \ln f_{2n}, \cdots, \ln f_{Ln}]
-\quad ,
 \end{eqnarray}
 where the 1 permits a linear offset,
 the photometry is from \gaia, \zmass, and \wise, respectively,
@@ -600,7 +632,7 @@ and we have taken logarithms of those fluxes.
 These feature vectors live in a $D$-dimensional space where $D=7414$.
 For every star $n$ in either of the Training Sets we additionally require---in
 addition to these feature vectors---a \gaia-measured astrometric parallax $\gparallax_n$
-and uncertainty $\sigma_n$.
+and uncertainty $\gsigma_n$.
 
 \section{Results and validation}
 
@@ -624,7 +656,9 @@ and a scatter of less than 9~percent.
   subset of stars with very high astrometric parallax signal-to-noise. This latter
   set plays no particular role in the method, but it can be used to demonstrate or
   assess the prediction precision. The fractional precision of the prediction in the
-  right panel is better than 9 percent.\label{fig:xval}}
+  right panel is better than 9 percent. Note that by construction, there can be no negative
+  spectrophotometric parallaxes; that is, the quantity plotted on the vertical axis is
+  positive-definite.\label{fig:xval}}
 \end{figure}
 
 We used this cross-validation framework to adjust the regularization parameter $\Lambda$.
@@ -634,8 +668,8 @@ of the cross validation being prediction accuracy.
 We get a prediction accuracy of better than 9 percent 
 at the optimal setting of the regularization strength.
 
-This 9-percent precision estimate is conservative in the sense that it does not deconvolve
-the contributions from the \gaia\ noise model.
+This 9-percent precision estimate is conservative in the sense that it does not
+deconvolve or correct for the contributions from the \gaia\ noise.
 However it is also not fully conservative, in that the test is performed with
 \gaia's best stars, which are bright, nearby, in low extinction regions, and
 (because of these things) near Solar metallicity.
@@ -651,17 +685,11 @@ in the dustiest and most crowded regions, as expected given the relatively low a
 photometry.
 \begin{figure}
 \includegraphics[width=\textwidth]{./residuals_training.pdf}
-\caption{Prediction residuals colored by relevant features.
-  Each panel shows the prediction residuals (\gaia\ astrometric parallax minus
-  spectrophotometric parallax $\gparallax_n-\sparallax_n$) colored by a different
-  data feature that might be relevant to the residual.\label{fig:residuals}}
-\end{figure}
-
-% HOGG: NEW FIGURE -- put some words in the text about the figure. 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{./precision.pdf}
-\caption{some smart words :) \label{fig:precision}}
+\caption{Prediction validation colored by relevant features.
+  Each panel shows the predicted parallax \foreign{vs} the
+  spectrophotometric parallax colored by a different
+  data feature that might be relevant to the residual.
+  Again the quantity plotted on vertical axis is positive-definite.\label{fig:residuals}}
 \end{figure}
 
 Another validation of the results can be obtained by looking at known
@@ -669,55 +697,52 @@ clusters or spatially compact objects in the data.
 In \figurename~\ref{fig:clusters}, we show the parallax distribution from \gaia\ and
 the spectrophotometric-parallax distribution from our model for stars that are
 astrometrically confirmed members of known stellar clusters.
+The cluster members were found by hand, looking at sky and proper-motion distributions
+centered on literature values.
+In each case we are plotting only very securely identified cluster members; that
+is, membership is conservative.
 These clusters span some range in metallicity and age, and therefore test
 the accuracy of the method for different kinds of populations.
 With the exception of \acronym{M71}, these figures 
 indicate that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
 for these clusters and the range in abundances and ages they represent.
 The case of cluster \acronym{M71} is troubling, but after searching for trends with
-housekeeping data (also see \figurename~\ref{fig:residuals}) we don't find any correlates
+housekeeping data (also see \figurename~\ref{fig:residuals}) we don't find any correlations
 with parallax offsets.
 \begin{figure}
-\includegraphics[width=\textwidth]{clusters.pdf}
-\caption{The histograms of \gaia\ astrometric parallaxes $\gparallax_n$
+~\hfill\includegraphics[width=0.7\textwidth]{clusters.pdf}\hfill~
+\caption{The \gaia\ astrometric parallaxes $\gparallax_n$
   and spectrophotometric parallaxes $\sparallax_n$ for member stars for
   four stellar clusters in the \apogee\ observing footprint. The spectrophotometric
   parallaxes and their inverse-variance-weighted mean and the astrometric parallaxes
   and their inverse-variance-weighted mean
-  the expected parallax of the cluster is shown as a vertical line.
+  are shown as vertical lines.
   Cluster members were identified to be close to the cluster in celestial coordinates
   and comoving in proper motion.\label{fig:clusters}}
 \end{figure}
 
-The linear model we use has a big limitation: Linear models are inflexible.
-However, it has a great advantage over more general methods,
-which is that it is easy to look inside
-the linear model and check whether the dependencies represented there make sense.
-The feature vector $x_n$ for star $n$
-contains a set of photometry in magnitudes.
-Linear combinations of these photometric measurements are like complex synthetic
-magnitudes or colors.
-Since the model was trained to deliver luminosities of stars given training data
-of different metallicities and extinctions, the synthetic photometry developed
-by the model should be, in some sense, metallicity- and extinction-independent
-photometry for luminous red-giant stars!
-In detail this synthetic magnitude is something like HOGG PUT EQUATION HERE AND
-SAY SOMETHING ABOUT IT. HOGG: Maybe plot this synthetic photometry against dust
-and metallicity.
-
-HOGG: Similarly, the spectral part of the model should also be
-interpretable. HOGG DESCRIBE \figurename~\ref{fig:spectral} THAT
-DEMONSTRATES THIS, qualitatively.
+It is interesting and valuable to compare the spectrophotometric parallax precision to
+the astrometric parallax precision.
+\figurename~\ref{fig:precision} compares uncertainties between the spectrophotometric
+outputs and the astrometric inputs
+(and recall that information is proportional to the inverse square of the uncertainty).
+The brief summary is that the spectrophotometric parallaxes are more precise (and even
+far more precise) than the astrometric parallaxes for stars further than a few kpc from
+the Sun.
+This is not unexpected; \gaia\ parallax uncertainties are in the 0.1-mas range, whereas
+our uncertainties are in the ten-percent range.
 \begin{figure}
-\includegraphics[width=\textwidth]{coefficients.pdf}
-\caption{HOGG: THIS FIGURE ISN'T READY YET:
-  The coefficients of the spectral part of the linear model.
-  Also shown are derivatives with respect to labels for a \project{Cannon}-like
-  linear regression for the Training Set data.\label{fig:spectral}}
+\centering
+~\hfill\includegraphics[width=0.8\textwidth]{./precision.pdf}\hfill~
+\caption{Comparison of precisions between the spectrophotometric parallaxes and
+the photometric parallaxes, as a function of magnitude and heliocentric distance.
+Note that the spectrophotometric estimates are more precise for most stars.
+The information content of a parallax estimate (or any measurement)
+is proportional to the inverse-square of the uncertainty.\label{fig:precision}}
 \end{figure}
 
-In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$ for
-every star $m$.
+In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$
+and uncertainty $\ssigma_m$ for every star $m$.
 \tablename~\ref{tab:output} shows a snippet of this output, with the full output available
 as an electronic data table associated with this \documentname.
 In order to use this output with \gaia\ astrometry, we recommend joining the table to the
@@ -725,17 +750,9 @@ In order to use this output with \gaia\ astrometry, we recommend joining the tab
 In order to use this output with \apogee\ radial velocities and element abundances, we recommend
 joining the table to the \sdssiv\ Catalog on the \zmass\ ID (name).
 \begin{table}
-\caption{HOGG TBD: The generated spectrophotometric parallaxes.\label{tab:output}}
+\caption{HOGG and ACE TBD: The generated spectrophotometric parallaxes.
+This table is just a snippet; the full table is available online (HOGG HOW?)\label{tab:output}}
 \end{table}
-
-The linear model permits straightforward propagation of uncertainty from the
-feature inputs to the spectrophotometric parallaxes.
-Although the model fundamentally assumes that the prediction features are noise-free
-(see the ``good features'' assumption in \sectionname~\ref{sec:assumptions}),
-there are in fact small uncertainties on the features that we can propagate to 
-make uncertainty estimates on the spectrophotometric parallaxes.
-We perform this propagation; these uncertainties are also given in
-\tablename~\ref{tab:output}.
 
 \section{Discussion}
 
@@ -753,15 +770,13 @@ We make some comments there, but we emphasize some particulars here:
 
 One strong assumption of this work is that our set of features is sufficient to
 build a predictive model for distance.
-Our arguments for our included features is that they ought to be sufficient to
+Our argument for our included features is that they ought to be sufficient to
 estimate a dust-independent apparent magnitude and the stellar parameters (especially
 age and surface gravity) that are sensitive to luminosity.
 In particular, since our model is linear in the logarithm of the parallax, it is
 also linear in any kind of apparent magnitude at fixed distance and also linear
 in distance modulus at fixed luminosity.
 Our feature decisions were highly motivated by these kinds of considerations.
-And the derived model parameters shown in \figurename~\ref{fig:spectral} do indicate that
-the model is capturing some or all of the expected information in the spectra, at least.
 
 However, our choice of features is very rigid:
 In principle the data themselves should tell us what features to include.
@@ -781,7 +796,7 @@ This is absurd: Stars are not linear objects!
 There are two questions to ask about the linearity.
 One is: Why did it work? The other is: Could we have done better?
 The answer to the first is that we have taken such a small part of stellar parameter
-space with our surface gravity cut, that the linearized model of stellar
+space with our surface-gravity cut, that the linearized model of stellar
 spectrophotometry is not a bad approximation.
 Also, because our linear model included photometry in magnitudes (that is, logarithmic)
 and was exponentiated to make the parallax prediction, we knew in advance that much
@@ -803,9 +818,23 @@ of that capacity it really needs.
 A more complex model might have had edge issues: Very flexible models don't extrapolate
 outside the convex hull of their training data, and our training data was not
 balanced in terms of parallax and dust attenuation.
-And finally, the complex model would have been harder to visualize and interpret;
+In the  linear model it is also---unlike in more flexible models---trivial to propagate
+uncertainties from the feature space to the prediction.
+We used that, above, to propagate uncertainty in \equationname~(\ref{eq:unc}).
+And finally---in principle---linear models are better for visualization and interpretation;
 the linear model contains essentially only first derivatives in the data space, which are
 relatively easy to understand.
+
+Another  advantage of a linear model over more general methods (like deep learning, say),
+is that it is possible to look inside
+the linear model and check whether the dependencies represented there make sense.
+For example, the feature vector $x_n$ for star $n$
+contains a set of photometry in magnitudes.
+Linear combinations of these photometric measurements are like complex synthetic
+magnitudes or colors.
+Similarly, linear combinations of spectral pixels are like a projection of the spectral space.
+Brief inspection of these linear combinations showed them to be sensible, but it is out of
+scope here to interpret them in detail.
 
 Although the model, training, and prediction make no use whatsoever of stellar
 models, we did use stellar models indirectly to select the Parent Sample of stars:
@@ -816,9 +845,29 @@ be similar, observationally, in the spectral space.
 That would have lead to a clean sample and made the project independent completely
 of stellar models.
 
-HOGG: CRITICISE OUR NOISE ESTIMATION, in two parts:
-HOGG: TURN THIS WORD SALAD INTO A PARAGRAPH: we have shown that outliers in sp - gaia tend to have large $H-W_2$ or excess flux like in crowded regions, but there are some exceptions. Our error estimates are consistent with no intrinsic scatter if we use a robust chi-squared estimate. That is, chi-squared is dominated by outliers. We clipped the bad apogee spectral pixels at an error of 0.05 in normalized flux. Our uncertainty estimates are sensitive to this. The reader is asked to suck it. Combine with M71 discussion and write a paragraph.
-HOGG SOMETHING ABOUT THE CLUSTER M71 BEING CONCERNING AND OUR EXPLANATIONS.
+Our uncertainty estimation is very naive; it presumes that the features are measured
+with no intrinsic correlations (probably not true for neighboring pixels in the \apogee\ spectra,
+for example) and it does not allow for any biases in the feature inputs.
+What's shown in \figurename~\ref{fig:residuals} is that the biggest deviations are for
+stars with large (red) $H-W_2$ colors.
+These are in dusty and crowded regions; we expect that is the crowding that's causing the
+greatest problem, because both \gaia\ and \wise\ (and probably also \zmass) photometry is
+affected by overlapping and blended sources.
+
+We validated the uncertainty estimates by looking at the chi-squared statistic and robust
+variations of it.
+We find that chi-squared is larger than expected if the errors are treated naively.
+However, robust estimates show that this is driven by outliers;
+median absolute differences are consistent with our expectations under this very naive noise model.
+We also find that the outliers that drive up the chi-squared statistic tend to be red
+in $H-W_2$.
+
+\figurename~\ref{fig:clusters} suggests that there may be some hidden biases in
+the results; the cluster M71 looks inconsistent between the \gaia\ and the spectrophotometric
+parallaxes.
+We have looked at colors, sky position, and cluster properties, and we don't have any
+simple explanation for the discrepancy.
+This is left as a caveat for the reader and our users.
 
 Because of our train-and-test framework, each star is given a spectrophotometric
 parallax based on coefficients derived from training on a complementary Training Set sample, of
@@ -829,33 +878,39 @@ That means that the parallax estimates generated here and given in \tablename~\r
 are statistically independent of the \gaia\ parallaxes and can be combined with them in
 na\"ive ways, for example in inverse-variance-weighted averages.
 
-HOGG: ADD HERE a couple of sentences in the discussion about the setting of Lambda and the parallax offset (currently $0.0483\pm 0.012$\,mas).
-
 ACE: ADD HERE the Color-magnitude diagrams for high snr and training set.
-HOGG: DIscussion here of CMD and AGB stars.
+HOGG: Discussion here of CMD and AGB stars.
 
-What is this useful for and how do you use them safely?
-HOGG: Show a map of the kinematic rotation of the Galaxy as a function of
-x and y, colored by metallicity in \figurename~\ref{fig:disk}.
-We see the kinematic center of the Galaxy! We see the rotation curve.
-We see the chemical gradients. HOGG WHY CAN YOU NOT JUST READ OFF THINGS FROM THIS PLOT?
+This \documentname\ and project delivers greatly improved distance estimates for
+luminous red-giant stars.
+The purpose of all this is to make global maps of the Milky Way.
+Just as a demonstration, we show kinematics and element abundances for stars as a function
+of position in the Milky Way disk in \figurename~\ref{fig:disk}.
+In this visualization, it is possible to see the rotation of the disk and the
+kinematic center of the Galaxy; that might even provide a distance estimate to the Galactic
+Center.
+It also shows extremely strong chemical gradients.
 \begin{figure}
 \includegraphics[width=\textwidth]{map.pdf}
 \caption{A map of the kinematics and element abundances in the Milky Way disk.
+  Each arrow represents the three-space Galactocentric velocity of each star
+  in the sample, projected onto the Galactic disk plane.
+  To make these velocities, raw \gaia\ proper motions and \apogee\ radial velocities
+  were used (in a standard Galactocentric transformation), so they are
+  not in any way noise-deconvolved.
+  Each arrow has a color corresponding to the \apogee\ reported metallicity.
   This map shows the rotation of the Galaxy out to large radius, and also
   indicates the kinematic center of the disk rotation. Interpretation of
-  the quantitative information in this plot requires care (see text).\label{fig:disk}}
+  the quantitative information in this plot requires care.\label{fig:disk}}
 \end{figure}
+In a companion paper (\citealt{eilers}), we are using this information to estimate
+the (asymmetric-drift-corrected) circular-velocity curve for the Milky Way.
 
-\figurename~\ref{fig:disk} shows that this sample of spectrophotometric parallaxes is useful for
-mapping the Milky Way.
-How does an investigator use these spectrophotometric parallaxes wisely?
-How do you build a proper probabilistic model using these?
-The answer is similar to the answer to the same question for the \gaia\ \acronym{DR2} data
-themselves (\citealt{gaialf}): A likelihood function must be constructed for each of the
-spectrophotometric parallaxes, given assumptions about the noise in those values.
-The sensible likelihood function for star $m$ would be HOGG PUT HERE.
-Model fitting can then be built on those likelihood functions.
+Finally, one comment on the use of these spectrophotometric parallaxes.
+They are noisy.
+Precise use of these involves building a likelihood function and performing inference,
+just as the precise use of the \gaia\ data presented here required the same.
+We recommend making analogous inferences when using these outputs.
 
 \acknowledgements
 It is a pleasure to thank
@@ -864,7 +919,9 @@ It is a pleasure to thank
   Andy L. Jones,
   Daniel Michalik (\acronym{ESTEC}),
   Melissa Ness (Columbia),
+  Joel Zinn (OSU),
   and the participants in the \acronym{MPIA} Milky Way Group Meeting
+  and the \apogee\ Science Telecon,
 for help with this project.
 This project was developed in part at the
 2018 \acronym{NYC} Gaia Sprint, hosted by the Center for Computational Astrophysics of
@@ -923,11 +980,14 @@ Vanderbilt University, and Yale University.
 \begin{thebibliography}{}
 \bibitem[Abolfathi \etal(2018)]{dr14} Abolfathi, B., Aguado, D.~S., Aguilar, G., \etal\ 2018, \apjs, 235, 42 
 \bibitem[Allende Prieto \etal(2008)]{aapogee} Allende Prieto, C., Majewski, S.~R., Schiavon, R., \etal\ 2008, Astronomische Nachrichten, 329, 1018 
+\bibitem[Arenou \etal(2018)]{arenou} Arenou, F., Luri, X., Babusiaux, C., et al.\ 2018, \aap, 616, A17 
 \bibitem[Astropy Collaboration \etal(2013)]{astropy} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., \etal\ 2013, \aap, 558, A33 
 \bibitem[Astropy Collaboration \etal(2018)]{astropy2} The Astropy Collaboration, Price-Whelan, A.~M., Sip{\H o}cz, B.~M., \etal\ 2018, arXiv:1801.02634 
 \bibitem[Bailer-Jones \etal(2018)]{calj} Bailer-Jones, C.~A.~L., Rybizki, J., Fouesneau, M., Mantelet, G., \& Andrae, R.\ 2018, \aj, 156, 58 
 \bibitem[Blanton \etal(2017)]{sdssiv} Blanton, M.~R., Bershady, M.~A., Abolfathi, B., \etal\ 2017, \aj, 154, 28 
+\bibitem[Byrd \etal(1995)]{lbfgsb} Byrd, R.~H., Lu,~P., Nocedal,~J., \& Zhu,~C. 1995, SIAM J. Sci. Comput., 16, 1190
 \bibitem[Casey \etal(2016)]{casey} Casey, A.~R., Hogg, D.~W., Ness, M., \etal\ 2016, arXiv:1603.03040 
+\bibitem[Eilers \etal(2018)]{eilers} Eilers,~A.~C., Hogg, D.~W., Rix, H.-W., \& Ness, M. 2018, in preparation
 \bibitem[Gaia Collaboration \etal(2016)]{gaia} Gaia Collaboration, Prusti, T., de Bruijne, J.~H.~J., \etal\ 2016, \aap, 595, A1 
 \bibitem[Gaia Collaboration \etal(2018)]{gaiadr2} Gaia Collaboration, Brown, A.~G.~A., Vallenari, A., \etal\ 2018, arXiv:1804.09365 
 \bibitem[Garc{\'{\i}}a P{\'e}rez \etal(2016)]{aspcap} Garc{\'{\i}}a P{\'e}rez, A.~E., Allende Prieto, C., Holtzman, J.~A., \etal\ 2016, \aj, 151, 144 
@@ -950,6 +1010,7 @@ Vanderbilt University, and Yale University.
 \bibitem[Skrutskie \etal(2006)]{zmass} Skrutskie, M.~F., Cutri, R.~M., Stiening, R., \etal\ 2006, \aj, 131, 1163 
 \bibitem[Wilson \etal(2010)]{wapogee} Wilson, J.~C., Hearty, F., Skrutskie, M.~F., \etal\ 2010, \procspie, 7735, 77351C 
 \bibitem[Wright \etal(2010)]{wise} Wright, E.~L., Eisenhardt, P.~R.~M., Mainzer, A.~K., \etal\ 2010, \aj, 140, 1868 
+\bibitem[Zinn \etal(2018)]{zinn} Zinn, J.~C., Pinsonneault, M.~H., Huber, D., \& Stello, D.\ 2018, arXiv:1805.02650 
 \end{thebibliography}
 
 \end{document}
