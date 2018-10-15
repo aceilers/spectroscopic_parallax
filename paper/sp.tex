@@ -695,13 +695,6 @@ photometry.
   data feature that might be relevant to the residual.\label{fig:residuals}}
 \end{figure}
 
-% HOGG: NEW FIGURE -- put some words in the text about the figure. 
-\begin{figure}
-\centering
-~\hfill\includegraphics[width=0.8\textwidth]{./precision.pdf}\hfill~
-\caption{some smart words :) \label{fig:precision}}
-\end{figure}
-
 Another validation of the results can be obtained by looking at known
 clusters or spatially compact objects in the data.
 In \figurename~\ref{fig:clusters}, we show the parallax distribution from \gaia\ and
@@ -725,6 +718,26 @@ with parallax offsets.
   are shown as vertical lines.
   Cluster members were identified to be close to the cluster in celestial coordinates
   and comoving in proper motion.\label{fig:clusters}}
+\end{figure}
+
+It is interesting and valuable to compare the spectrophotometric parallax precision to
+the astrometric parallax precision.
+\figurename~\ref{fig:precision} compares uncertainties between the spectrophotometric
+outputs and the astrometric inputs
+(and recall that information is proportional to the inverse square of the uncertainty).
+The brief summary is that the spectrophotometric parallaxes are more precise (and even
+far more precise) than the astrometric parallaxes for stars further than a few kpc from
+the Sun.
+This is not unexpected; \gaia\ parallax uncertainties are in the 0.1-mas range, whereas
+our uncertainties are in the ten-percent range.
+\begin{figure}
+\centering
+~\hfill\includegraphics[width=0.8\textwidth]{./precision.pdf}\hfill~
+\caption{Comparison of precisions between the spectrophotometric parallaxes and
+the photometric parallaxes, as a function of magnitude and heliocentric distance.
+Note that the spectrophotometric estimates are more precise for most stars.
+The information content of a parallax estimate (or any measurement)
+is proportional to the inverse-square of the uncertainty.\label{fig:precision}}
 \end{figure}
 
 In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$
