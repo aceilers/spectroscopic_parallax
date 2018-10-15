@@ -727,33 +727,6 @@ with parallax offsets.
   and comoving in proper motion.\label{fig:clusters}}
 \end{figure}
 
-The linear model we use has a big limitation: Linear models are inflexible.
-However, it has a great advantage over more general methods,
-which is that it is easy to look inside
-the linear model and check whether the dependencies represented there make sense.
-The feature vector $x_n$ for star $n$
-contains a set of photometry in magnitudes.
-Linear combinations of these photometric measurements are like complex synthetic
-magnitudes or colors.
-Since the model was trained to deliver luminosities of stars given training data
-of different metallicities and extinctions, the synthetic photometry developed
-by the model should be, in some sense, metallicity- and extinction-independent
-photometry for luminous red-giant stars!
-In detail this synthetic magnitude is something like HOGG PUT EQUATION HERE AND
-SAY SOMETHING ABOUT IT. HOGG: Maybe plot this synthetic photometry against dust
-and metallicity.
-
-HOGG: Similarly, the spectral part of the model should also be
-interpretable. HOGG DESCRIBE \figurename~\ref{fig:spectral} THAT
-DEMONSTRATES THIS, qualitatively.
-\begin{figure}
-\includegraphics[width=\textwidth]{coefficients.pdf}
-\caption{HOGG: THIS FIGURE ISN'T READY YET:
-  The coefficients of the spectral part of the linear model.
-  Also shown are derivatives with respect to labels for a \project{Cannon}-like
-  linear regression for the Training Set data.\label{fig:spectral}}
-\end{figure}
-
 In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$
 and uncertainty $\ssigma_m$ for every star $m$.
 \tablename~\ref{tab:output} shows a snippet of this output, with the full output available
@@ -836,6 +809,17 @@ We used that, above, to propagate uncertainty in \equationname~(\ref{eq:unc}).
 And finally---in principle---linear models are better for visualization and interpretation;
 the linear model contains essentially only first derivatives in the data space, which are
 relatively easy to understand.
+
+Another  advantage of a linear model over more general methods (like deep learning, say),
+is that it is possible to look inside
+the linear model and check whether the dependencies represented there make sense.
+For example, the feature vector $x_n$ for star $n$
+contains a set of photometry in magnitudes.
+Linear combinations of these photometric measurements are like complex synthetic
+magnitudes or colors.
+Similarly, linear combinations of spectral pixels are like a projection of the spectral space.
+Brief inspection of these linear combinations showed them to be sensible, but it is out of
+scope here to interpret them in detail.
 
 Although the model, training, and prediction make no use whatsoever of stellar
 models, we did use stellar models indirectly to select the Parent Sample of stars:
