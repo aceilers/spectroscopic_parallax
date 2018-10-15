@@ -5,9 +5,7 @@
 % -----------
 % - need a snippet for Table 1.
 % - check with WISE experts that we have the correct WISE photometry
-% - HWR: Figure 7: Caption needs to say what arrows represent.
-% - Make sure we incorporate / respond to Ness comments from Aug 13 email.
-% - Cite and describe Eilers et al.
+% - ACE: What fraction of spectral pixels are (typically, or in each training set) zeroed out?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -699,6 +697,10 @@ clusters or spatially compact objects in the data.
 In \figurename~\ref{fig:clusters}, we show the parallax distribution from \gaia\ and
 the spectrophotometric-parallax distribution from our model for stars that are
 astrometrically confirmed members of known stellar clusters.
+The cluster members were found by hand, looking at sky and proper-motion distributions
+centered on literature values.
+In each case we are plotting only very securely identified cluster members; that
+is, membership is conservative.
 These clusters span some range in metallicity and age, and therefore test
 the accuracy of the method for different kinds of populations.
 With the exception of \acronym{M71}, these figures 
@@ -891,9 +893,15 @@ It also shows extremely strong chemical gradients.
 \begin{figure}
 \includegraphics[width=\textwidth]{map.pdf}
 \caption{A map of the kinematics and element abundances in the Milky Way disk.
+  Each arrow represents the three-space Galactocentric velocity of each star
+  in the sample, projected onto the Galactic disk plane.
+  To make these velocities, raw \gaia\ proper motions and \apogee\ radial velocities
+  were used (in a standard Galactocentric transformation), so they are
+  not in any way noise-deconvolved.
+  Each arrow has a color corresponding to the \apogee\ reported metallicity.
   This map shows the rotation of the Galaxy out to large radius, and also
   indicates the kinematic center of the disk rotation. Interpretation of
-  the quantitative information in this plot requires care (see text).\label{fig:disk}}
+  the quantitative information in this plot requires care.\label{fig:disk}}
 \end{figure}
 In a companion paper (\citealt{eilers}), we are using this information to estimate
 the (asymmetric-drift-corrected) circular-velocity curve for the Milky Way.
