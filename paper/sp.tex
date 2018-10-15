@@ -428,7 +428,7 @@ good first guess or initialization for the full optimization.
 This method works because in the limit of high signal-to-noise, the problem asymptotically approaches
 the convex problem of L1-regularized linear least-square fitting.
 Optimization is performed with \code{scipy.optimize} using the
-\acronym{L-BFGS-B} algorithm (HOGG CITE).
+\acronym{L-BFGS-B} algorithm (\citealt{lbfgsb}).
 
 Once the model is optimized, the output of the model is a prediction of the parallax,
 or really what we will call the \emph{spectrophotometric parallax}.
@@ -461,10 +461,12 @@ make uncertainty estimates on the spectrophotometric parallaxes.
 \end{eqnarray}
 where $\ssigma_m$ is the uncertainty on the inferred (or predicted)
 spectrophotometric parallax $\sparallax_m$,
-the left-hand side is a scalar product,
-and $C_m$ is the (presumed diagonal, actually) covariance matrix of the input
+the right-hand side is a scalar product,
+and $C_m$ is the covariance matrix of the input
 features.
-That is, $C_m$ is a diagonal matrix with the uncertainty variances of the elements
+In what follows we don't actually instantiate the full covariance matrix; we presume
+that input features are independently measured;
+that is, we make $C_m$ is a diagonal matrix with the uncertainty variances of the elements
 of $x_m$ along the diagonal.
 
 One final detail: We perform all of the fitting in a two-fold train-and-test framework,
@@ -604,7 +606,9 @@ parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
 The \gaia\ recommended value is $\varpi_0=0.029$\,mas (\citealt{lindegren}),
 but we adopt $\varpi_0 = 0.048$\,mas because that value
 optimizes our cross-validation objective.
-HOGG CITE STASSUN MAYBE AND OTHERS?
+It also happens to be in the range of other values found in the literature (\citealt{arenou, zinn}).
+Of course we really expect the offset to be a function of sky position and color (at least),
+so the offset we find is not recommended for further use as any kind of universal value.
 The spectrophotometric parallaxes we generate
 do not depend strongly on this choice, except
 for small differences at very small parallax (large distance).
@@ -890,6 +894,7 @@ It is a pleasure to thank
   Andy L. Jones,
   Daniel Michalik (\acronym{ESTEC}),
   Melissa Ness (Columbia),
+  Joel Zinn (OSU),
   and the participants in the \acronym{MPIA} Milky Way Group Meeting
 for help with this project.
 This project was developed in part at the
@@ -949,10 +954,12 @@ Vanderbilt University, and Yale University.
 \begin{thebibliography}{}
 \bibitem[Abolfathi \etal(2018)]{dr14} Abolfathi, B., Aguado, D.~S., Aguilar, G., \etal\ 2018, \apjs, 235, 42 
 \bibitem[Allende Prieto \etal(2008)]{aapogee} Allende Prieto, C., Majewski, S.~R., Schiavon, R., \etal\ 2008, Astronomische Nachrichten, 329, 1018 
+\bibitem[Arenou \etal(2018)]{arenou} Arenou, F., Luri, X., Babusiaux, C., et al.\ 2018, \aap, 616, A17 
 \bibitem[Astropy Collaboration \etal(2013)]{astropy} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., \etal\ 2013, \aap, 558, A33 
 \bibitem[Astropy Collaboration \etal(2018)]{astropy2} The Astropy Collaboration, Price-Whelan, A.~M., Sip{\H o}cz, B.~M., \etal\ 2018, arXiv:1801.02634 
 \bibitem[Bailer-Jones \etal(2018)]{calj} Bailer-Jones, C.~A.~L., Rybizki, J., Fouesneau, M., Mantelet, G., \& Andrae, R.\ 2018, \aj, 156, 58 
 \bibitem[Blanton \etal(2017)]{sdssiv} Blanton, M.~R., Bershady, M.~A., Abolfathi, B., \etal\ 2017, \aj, 154, 28 
+\bibitem[Byrd \etal(1995)]{lbfgsb} Byrd, R.~H., Lu,~P., Nocedal,~J., \& Zhu,~C. 1995, SIAM J. Sci. Comput., 16, 1190
 \bibitem[Casey \etal(2016)]{casey} Casey, A.~R., Hogg, D.~W., Ness, M., \etal\ 2016, arXiv:1603.03040 
 \bibitem[Gaia Collaboration \etal(2016)]{gaia} Gaia Collaboration, Prusti, T., de Bruijne, J.~H.~J., \etal\ 2016, \aap, 595, A1 
 \bibitem[Gaia Collaboration \etal(2018)]{gaiadr2} Gaia Collaboration, Brown, A.~G.~A., Vallenari, A., \etal\ 2018, arXiv:1804.09365 
@@ -976,6 +983,7 @@ Vanderbilt University, and Yale University.
 \bibitem[Skrutskie \etal(2006)]{zmass} Skrutskie, M.~F., Cutri, R.~M., Stiening, R., \etal\ 2006, \aj, 131, 1163 
 \bibitem[Wilson \etal(2010)]{wapogee} Wilson, J.~C., Hearty, F., Skrutskie, M.~F., \etal\ 2010, \procspie, 7735, 77351C 
 \bibitem[Wright \etal(2010)]{wise} Wright, E.~L., Eisenhardt, P.~R.~M., Mainzer, A.~K., \etal\ 2010, \aj, 140, 1868 
+\bibitem[Zinn \etal(2018)]{zinn} Zinn, J.~C., Pinsonneault, M.~H., Huber, D., \& Stello, D.\ 2018, arXiv:1805.02650 
 \end{thebibliography}
 
 \end{document}
