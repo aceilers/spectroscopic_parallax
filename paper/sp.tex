@@ -843,9 +843,29 @@ be similar, observationally, in the spectral space.
 That would have lead to a clean sample and made the project independent completely
 of stellar models.
 
-HOGG: CRITICISE OUR NOISE ESTIMATION, in two parts:
-HOGG: TURN THIS WORD SALAD INTO A PARAGRAPH: we have shown that outliers in sp - gaia tend to have large $H-W_2$ or excess flux like in crowded regions, but there are some exceptions. Our error estimates are consistent with no intrinsic scatter if we use a robust chi-squared estimate. That is, chi-squared is dominated by outliers. We clipped the bad apogee spectral pixels at an error of 0.05 in normalized flux. Our uncertainty estimates are sensitive to this. The reader is asked to suck it. Combine with M71 discussion and write a paragraph.
-HOGG SOMETHING ABOUT THE CLUSTER M71 BEING CONCERNING AND OUR EXPLANATIONS.
+Our uncertainty estimation is very naive; it presumes that the features are measured
+with no intrinsic correlations (probably not true for neighboring pixels in the \apogee\ spectra,
+for example) and it does not allow for any biases in the feature inputs.
+What's shown in \figurename~\ref{fig:residuals} is that the biggest deviations are for
+stars with large (red) $H-W_2$ colors.
+These are in dusty and crowded regions; we expect that is the crowding that's causing the
+greatest problem, because both \gaia\ and \wise\ (and probably also \zmass) photometry is
+affected by overlapping and blended sources.
+
+We validated the uncertainty estimates by looking at the chi-squared statistic and robust
+variations of it.
+We find that chi-squared is larger than expected if the errors are treated naively.
+However, robust estimates show that this is driven by outliers;
+median absolute differences are consistent with our expectations under this very naive noise model.
+We also find that the outliers that drive up the chi-squared statistic tend to be red
+in $H-W_2$.
+
+\figurename~\ref{fig:clusters} suggests that there may be some hidden biases in
+the results; the cluster M71 looks inconsistent between the \gaia\ and the spectrophotometric
+parallaxes.
+We have looked at colors, sky position, and cluster properties, and we don't have any
+simple explanation for the discrepancy.
+This is left as a caveat for the reader and our users.
 
 Because of our train-and-test framework, each star is given a spectrophotometric
 parallax based on coefficients derived from training on a complementary Training Set sample, of
@@ -856,16 +876,18 @@ That means that the parallax estimates generated here and given in \tablename~\r
 are statistically independent of the \gaia\ parallaxes and can be combined with them in
 na\"ive ways, for example in inverse-variance-weighted averages.
 
-HOGG: ADD HERE a couple of sentences in the discussion about the setting of Lambda and the parallax offset (currently $0.0483\pm 0.012$\,mas).
-
 ACE: ADD HERE the Color-magnitude diagrams for high snr and training set.
-HOGG: DIscussion here of CMD and AGB stars.
+HOGG: Discussion here of CMD and AGB stars.
 
-What is this useful for and how do you use them safely?
-HOGG: Show a map of the kinematic rotation of the Galaxy as a function of
-x and y, colored by metallicity in \figurename~\ref{fig:disk}.
-We see the kinematic center of the Galaxy! We see the rotation curve.
-We see the chemical gradients. HOGG WHY CAN YOU NOT JUST READ OFF THINGS FROM THIS PLOT?
+This \documentname\ and project delivers greatly improved distance estimates for
+luminous red-giant stars.
+The purpose of all this is to make global maps of the Milky Way.
+Just as a demonstration, we show kinematics and element abundances for stars as a function
+of position in the Milky Way disk in \figurename~\ref{fig:disk}.
+In this visualization, it is possible to see the rotation of the disk and the
+kinematic center of the Galaxy; that might even provide a distance estimate to the Galactic
+Center.
+It also shows extremely strong chemical gradients.
 \begin{figure}
 \includegraphics[width=\textwidth]{map.pdf}
 \caption{A map of the kinematics and element abundances in the Milky Way disk.
@@ -873,16 +895,14 @@ We see the chemical gradients. HOGG WHY CAN YOU NOT JUST READ OFF THINGS FROM TH
   indicates the kinematic center of the disk rotation. Interpretation of
   the quantitative information in this plot requires care (see text).\label{fig:disk}}
 \end{figure}
+In a companion paper (\citealt{eilers}), we are using this information to estimate
+the (asymmetric-drift-corrected) circular-velocity curve for the Milky Way.
 
-\figurename~\ref{fig:disk} shows that this sample of spectrophotometric parallaxes is useful for
-mapping the Milky Way.
-How does an investigator use these spectrophotometric parallaxes wisely?
-How do you build a proper probabilistic model using these?
-The answer is similar to the answer to the same question for the \gaia\ \acronym{DR2} data
-themselves (\citealt{gaialf}): A likelihood function must be constructed for each of the
-spectrophotometric parallaxes, given assumptions about the noise in those values.
-The sensible likelihood function for star $m$ would be HOGG PUT HERE.
-Model fitting can then be built on those likelihood functions.
+Finally, one comment on the use of these spectroscopic parallaxes.
+They are noisy.
+Precise use of these involves building a likelihood function and performing inference,
+just as the precise use of the \gaia\ data presented here required the same.
+We recommend making analogous inferences when using these outputs.
 
 \acknowledgements
 It is a pleasure to thank
@@ -959,6 +979,7 @@ Vanderbilt University, and Yale University.
 \bibitem[Blanton \etal(2017)]{sdssiv} Blanton, M.~R., Bershady, M.~A., Abolfathi, B., \etal\ 2017, \aj, 154, 28 
 \bibitem[Byrd \etal(1995)]{lbfgsb} Byrd, R.~H., Lu,~P., Nocedal,~J., \& Zhu,~C. 1995, SIAM J. Sci. Comput., 16, 1190
 \bibitem[Casey \etal(2016)]{casey} Casey, A.~R., Hogg, D.~W., Ness, M., \etal\ 2016, arXiv:1603.03040 
+\bibitem[Eilers \etal(2018)]{eilers} Eilers,~A.~C., Hogg, D.~W., Rix, H.-W., \& Ness, M. 2018, in preparation
 \bibitem[Gaia Collaboration \etal(2016)]{gaia} Gaia Collaboration, Prusti, T., de Bruijne, J.~H.~J., \etal\ 2016, \aap, 595, A1 
 \bibitem[Gaia Collaboration \etal(2018)]{gaiadr2} Gaia Collaboration, Brown, A.~G.~A., Vallenari, A., \etal\ 2018, arXiv:1804.09365 
 \bibitem[Garc{\'{\i}}a P{\'e}rez \etal(2016)]{aspcap} Garc{\'{\i}}a P{\'e}rez, A.~E., Allende Prieto, C., Holtzman, J.~A., \etal\ 2016, \aj, 151, 144 
