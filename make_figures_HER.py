@@ -160,17 +160,25 @@ plt.savefig('paper/residuals.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 fig, ax = plt.subplots(1, 4, figsize = (16, 4.5))
 sc = ax[0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['TEFF'][train], cmap = 'viridis_r', s = 10, vmin = 3600, vmax = 4800, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[0], shrink = .8)
+cb = fig.colorbar(sc, ax = ax[0], shrink = .6)
 cb.set_label(r'$T_{\rm eff}$', fontsize = fsize)
 sc = ax[1].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['LOGG'][train], cmap = 'viridis_r', s = 10, vmin = 0.1, vmax = 2.2, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[1], shrink = .8)
+cb = fig.colorbar(sc, ax = ax[1], shrink = .6)
 cb.set_label(r'$\log g$', fontsize = fsize)
 sc = ax[2].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['FE_H'][train], cmap = 'viridis_r', s = 10, vmin = -1, vmax = .5, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[2], shrink = .8)
+cb = fig.colorbar(sc, ax = ax[2], shrink = .6)
 cb.set_label(r'$\rm [Fe/H]$', fontsize = fsize)
 sc = ax[3].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['H'][train] - labels['w2mpro'][train], cmap = 'viridis_r', s = 10, vmin = 0., vmax = 0.5, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[3], shrink = .8)
+cb = fig.colorbar(sc, ax = ax[3], shrink = .6)
 cb.set_label(r'$\rm H-W_{2}$', fontsize = fsize)
+ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[2].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[2].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[3].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[3].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
 ax[0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
 ax[1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
 ax[2].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
@@ -255,26 +263,51 @@ plt.savefig('paper/coefficients.pdf')
 # Figure 8
 # -------------------------------------------------------------------------------
 
-apogee_table = fits.open('data/allStar-l31c.2.fits')
-apogee_data = apogee_table[1].data
-
-cmap = 'RdYlBu_r'
-fig, ax = plt.subplots(1, 1, figsize = (5, 5))
-plt.scatter(apogee_data['TEFF'], apogee_data['LOGG'], s = .5, color = '#929591', rasterized = True, alpha = .01)
-plt.scatter(labels['TEFF'], labels['LOGG'], c = labels['FE_H'], s = .5, cmap = cmap, rasterized = True, alpha = 1, vmin = -.8, vmax = .5)
-plt.xlim(5500, 3500)
-plt.ylim(3.8, -.2)
-plt.xlabel(r'$T_{\rm eff}$', fontsize = 14)
-plt.ylabel(r'$\log g$', fontsize = 14)
-plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-plt.savefig('paper/HRD.pdf')
+#apogee_table = fits.open('data/allStar-l31c.2.fits')
+#apogee_data = apogee_table[1].data
+#
+#cmap = 'RdYlBu_r'
+#fig, ax = plt.subplots(1, 1, figsize = (5, 5))
+#plt.scatter(apogee_data['TEFF'], apogee_data['LOGG'], s = .5, color = '#929591', rasterized = True, alpha = .01)
+#plt.scatter(labels['TEFF'], labels['LOGG'], c = labels['FE_H'], s = .5, cmap = cmap, rasterized = True, alpha = 1, vmin = -.8, vmax = .5)
+#plt.xlim(5500, 3500)
+#plt.ylim(3.8, -.2)
+#plt.xlabel(r'$T_{\rm eff}$', fontsize = 14)
+#plt.ylabel(r'$\log g$', fontsize = 14)
+#plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+#plt.savefig('paper/HRD.pdf')
 
 # color-color diagram?
-#plt.scatter(apogee_data['TEFF'], apogee_data['LOGG'], s = 1, color = '#929591', rasterized = True, alpha = .01)
-#plt.scatter(labels['TEFF'], labels['LOGG'], c = labels['FE_H'], s = 1, cmap = cmap, rasterized = True, alpha = .1, vmin = -.8, vmax = .5)
-#plt.xlim(5500, 3500)
-#plt.ylim(4, -.2)
-#plt.savefig('paper/HRD.pdf')
+abs_mag_G = labels['phot_g_mean_mag'] + 5 + 5 * np.log10(labels['spec_parallax'])
+
+cut_vis = labels['visibility_periods_used'] >= 8    
+cut_par = labels['parallax_error'] < 0.1            
+cut_cal = (labels['astrometric_chi2_al'] / np.sqrt(labels['astrometric_n_good_obs_al']-5)) <= 35         
+train = cut_vis * cut_par * cut_cal  
+best = train * (labels['parallax_over_error'] >= 20)
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(labels['bp_rp'], abs_mag_G, c = labels['spec_parallax'] - labels['parallax'], cmap = cm, rasterized = True, vmin = -.1, vmax = .1, s = 5, alpha = .5)
+ax[1].scatter(labels[train]['bp_rp'], abs_mag_G[train], c = labels['spec_parallax'][train] - labels['parallax'][train], cmap = cm, rasterized = True, vmin = -.1, vmax = .1, s = 5, alpha = .5)
+ax[0].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
+ax[1].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
+ax[0].set_ylabel(r'$\rm absolute\,\,G\,\,magnitude$', fontsize = fsize)
+#ax[1].set_ylabel(r'$\rm absolute G magnitude$', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\varpi^{(\rm sp)} - \varpi^{(\rm a)}$', fontsize = fsize)
+plt.tight_layout()
+ax[0].set_xlim(0, 8)
+ax[1].set_xlim(0, 8)
+ax[0].set_ylim(10, 22)
+ax[1].set_ylim(10, 22)
+
+plt.savefig('paper/CMD.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 
 # -------------------------------------------------------------------------------'''

@@ -35,10 +35,10 @@ fsize = 14
 # open inferred labels
 # -------------------------------------------------------------------------------
 
-N = 44808 #45787
+N = 44784
 Kfold = 2
 lam = 30
-name = 'N{0}_lam{1}_K{2}_offset0.049_parallax'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
@@ -309,7 +309,7 @@ labels_sgr = labels[xx]
 # plot for paper (3x2) histograms: Gaia vs. me (labeled by cluster name and metallicity)
 # -------------------------------------------------------------------------------
 
-cluster_list = ['m2', 'm3', 'm5', 'm13', 'm15', 'm53', 'm71', 'm92', 'm107', 'ngc6791', 'ngc6819']
+'''cluster_list = ['m2', 'm3', 'm5', 'm13', 'm15', 'm53', 'm71', 'm92', 'm107', 'ngc6791', 'ngc6819']
 
 fig, ax = plt.subplots(4, 3, figsize = (9, 12))
 plt.subplots_adjust(wspace = 0.08, hspace = 0.25)
@@ -427,7 +427,7 @@ plt.savefig('paper/clusters.pdf', bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
 # take Sagittarius region...
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 
 '''XS_sgr = np.vstack([labels_sgr['ra'], labels_sgr['dec'], labels_sgr['spec_parallax']]).T
 Xlabels_sgr = ['RA', 'DEC', r'$\varpi$']
