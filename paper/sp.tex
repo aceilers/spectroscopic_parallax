@@ -749,10 +749,31 @@ In order to use this output with \gaia\ astrometry, we recommend joining the tab
 \gaia\ Catalog on the \zmass\ ID (name), as per the instructions at the \gaia\ Archive (\citealt{gaiaarchive}).
 In order to use this output with \apogee\ radial velocities and element abundances, we recommend
 joining the table to the \sdssiv\ Catalog on the \zmass\ ID (name).
-\begin{table}
-\caption{HOGG and ACE TBD: The generated spectrophotometric parallaxes.
+
+\newpage
+\begin{longrotatetable}
+\startlongtable
+\begin{deluxetable*}{ccccccc}
+\tablecaption{HOGG and ACE TBD: The generated spectrophotometric parallaxes.
 This table is just a snippet; the full table is available online (HOGG HOW?)\label{tab:output}}
-\end{table}
+\tablehead{\dcolhead{\texttt{2MASS\_ID}} & \dcolhead{\texttt{Gaia\_parallax}} & \dcolhead{\texttt{Gaia\_parallax\_err}} & \dcolhead{\texttt{spec\_parallax}} & \dcolhead{\texttt{spec\_parallax\_err}} & \dcolhead{\texttt{training\_set}} & \dcolhead{\texttt{sample}}}
+\startdata
+2M00000002+7417074 & 0.3191313429473075 & 0.032948037183877704 & 0.31849999096965226 & 0.01643285514291281 & 0 & B \\
+2M00000317+5821383 & 0.3643040248194837 & 0.05099089240834289 & 0.4428242906062965 & 0.01834130205824606 & 0 & A \\
+2M00000546+6152107 & 0.3154104939032093 & 0.035141087048246 & 0.3292112764247769 & 0.016388459680198957 & 0 & B \\
+2M00000797+6436119 & 0.07711986267105561 & 0.08408755179430512 & 0.19428078181594394 & 0.019370065406281896 & 1 & B \\
+2M00001719+6221324 & 0.13952084276830487 & 0.04389977390011321 & 0.1563998166245657 & 0.012831080487863935 & 0 & B \\
+2M00002005+5703467 & 0.3003205275388493 & 0.024656309709138968 & 0.2372046982030924 & 0.020327826647521956 & 0 & B \\
+2M00002036+6153416 & 0.06569746266321969 & 0.0636606119367412 & 0.1347406498933188 & 0.013122259531649945 & 1 & A \\
+2M00002118+6136420 & 0.19358517288879123 & 0.03229292271974642 & 0.2172989314297034 & 0.013278872163629496 & 1 & B \\
+2M00002227+6223341 & 0.1965229567661197 & 0.04503624629849183 & 0.1461267214260898 & 0.008928599127162944 & 0 & B \\
+2M00002472+5518473 & 0.09468551608472082 & 0.020679980798059373 & 0.14731238757486897 & 0.009570425952478014 & 1 & B \\
+... & ... & ... & ... & ... & ... & ...  \\
+ \enddata
+\tablecomments{Columns show...}
+\end{deluxetable*}
+\end{longrotatetable}
+\newpage
 
 \section{Discussion}
 

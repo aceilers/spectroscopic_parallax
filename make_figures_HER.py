@@ -21,6 +21,8 @@ from astropy.coordinates import SkyCoord
 import astropy.coordinates as coord
 from mpl_toolkits.mplot3d import Axes3D
 import corner
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from mpl_toolkits.axes_grid1.colorbar import colorbar
 
 
 # -------------------------------------------------------------------------------
@@ -259,6 +261,7 @@ plt.savefig('paper/coefficients.pdf')
 
 # run rotation_curve_uncertainties.py
 
+
 # -------------------------------------------------------------------------------
 # Figure 8
 # -------------------------------------------------------------------------------
@@ -278,14 +281,40 @@ plt.savefig('paper/coefficients.pdf')
 #plt.savefig('paper/HRD.pdf')
 
 # color-color diagram?
-abs_mag_G = labels['phot_g_mean_mag'] + 5 + 5 * np.log10(labels['spec_parallax'])
+spec_par = labels['spec_parallax'] * u.mas
+distance = spec_par.to(u.parsec, equivalencies = u.parallax())
+abs_mag_G = labels['phot_g_mean_mag'] - 5 * np.log10(distance.value) + 5
 
 cut_vis = labels['visibility_periods_used'] >= 8    
 cut_par = labels['parallax_error'] < 0.1            
 cut_cal = (labels['astrometric_chi2_al'] / np.sqrt(labels['astrometric_n_good_obs_al']-5)) <= 35         
 train = cut_vis * cut_par * cut_cal  
 best = train * (labels['parallax_over_error'] >= 20)
+cut_feh = labels['FE_H'] > -100
 
+# -------------------------------------------------------------------------------
+# final catalog!
+# -------------------------------------------------------------------------------
+
+training_set = np.zeros((len(labels)), dtype = int)
+training_set[train] = 1
+sample = np.zeros((len(labels)), dtype = str)
+Kfold = 2
+sample_A = labels['random_index'] % Kfold == 0
+sample_B = np.logical_not(sample_A)
+sample[sample_A] = 'A'
+sample[sample_B] = 'B'
+tab = labels['APOGEE_ID', 'parallax', 'parallax_error', 'spec_parallax', 'spec_parallax_err'] #, 'training_set', 'sample']
+tab.rename_column('APOGEE_ID', '2MASS_ID')
+tab.rename_column('parallax', 'Gaia_parallax')
+tab.rename_column('parallax_error', 'Gaia_parallax_err')
+tab.add_column(Column(training_set), name = 'training_set')
+tab.add_column(Column(sample), name = 'sample')
+Table.write(tab, 'data/data_HoggEilersRix2018.fits', format = 'fits', overwrite = True)
+Table.write(tab[:10], 'paper/data_HoggEilersRix2018_part.txt', format = 'latex', overwrite = True)
+
+
+cm = 'viridis'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
 sc = ax[0].scatter(labels['bp_rp'], abs_mag_G, c = labels['spec_parallax'] - labels['parallax'], cmap = cm, rasterized = True, vmin = -.1, vmax = .1, s = 5, alpha = .5)
 ax[1].scatter(labels[train]['bp_rp'], abs_mag_G[train], c = labels['spec_parallax'][train] - labels['parallax'][train], cmap = cm, rasterized = True, vmin = -.1, vmax = .1, s = 5, alpha = .5)
@@ -298,18 +327,138 @@ ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top 
 ax[0].set_title('parent sample', fontsize = fsize)
 ax[1].set_title(r'training set', fontsize = fsize)
 fig.subplots_adjust(right = 0.8)
-cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.82])
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.8])
 cb = fig.colorbar(sc, cax=cbar_ax)
 cb.set_label(r'$\varpi^{(\rm sp)} - \varpi^{(\rm a)}$', fontsize = fsize)
 plt.tight_layout()
-ax[0].set_xlim(0, 8)
-ax[1].set_xlim(0, 8)
-ax[0].set_ylim(10, 22)
-ax[1].set_ylim(10, 22)
-
+ax[0].set_xlim(.5, 7)
+ax[1].set_xlim(.5, 7)
+ax[0].set_ylim(7, -4.2)
+ax[1].set_ylim(7, -4.2)
 plt.savefig('paper/CMD.pdf', pad_inches=.2, bbox_inches = 'tight')
 
+cm = 'RdBu_r'
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+#sc = ax[0].scatter(labels['bp_rp'][cut_feh], abs_mag_G[cut_feh], c = labels['FE_H'][cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
+sc = ax[0].scatter(labels[train * cut_feh]['bp_rp'], abs_mag_G[train * cut_feh], c = labels['FE_H'][train * cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
+ax[1].scatter(labels[best * cut_feh]['bp_rp'], abs_mag_G[best * cut_feh], c = labels['FE_H'][best * cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
+ax[0].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
+ax[1].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
+ax[0].set_ylabel(r'$\rm absolute\,\,G\,\,magnitude$', fontsize = fsize)
+#ax[1].set_ylabel(r'$\rm absolute G magnitude$', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+#ax[0].set_title('parent sample', fontsize = fsize)
+ax[0].set_title(r'training set', fontsize = fsize)
+ax[1].set_title(r'$\varpi^{\rm (a)}/\sigma_{\varpi^{\rm (a)}} \geq 20$', fontsize = fsize)
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.76])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\rm [Fe/H]$', fontsize = fsize)
+plt.tight_layout()
+ax[0].set_xlim(.5, 4.5)
+ax[1].set_xlim(.5, 4.5)
+ax[0].set_ylim(4.5, -4.2)
+ax[1].set_ylim(4.5, -4.2)
+plt.savefig('paper/CMD4.pdf', pad_inches=.2, bbox_inches = 'tight')
 
+hdu = fits.open('plots/open_clusters/M71members')
+mem = Table(hdu[1].data)
+xx = join(mem, labels, join_type = 'inner', keys = 'APOGEE_ID')
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(labels['spec_parallax'] - labels['parallax'], labels['MEANFIB'], rasterized = True, s = 5, alpha = .2)
+ax[1].scatter(labels['spec_parallax'][train] - labels['parallax'][train], labels['MEANFIB'][train], rasterized = True, s = 5, alpha = .2)
+ax[0].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['MEANFIB_2'], rasterized = True, s = 15, alpha = 1, color = 'r')
+ax[1].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['MEANFIB_2'], rasterized = True, s = 15, alpha = 1, color = 'r', label = 'M71')
+ax[0].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'mean fiber number', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+ax[0].set_xlim(-.5, .5)
+ax[1].set_xlim(-.5, .5)
+ax[1].legend()
+plt.savefig('plots/fiber1.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+distance_xx = (xx['spec_parallax_2']*u.mas).to(u.parsec, equivalencies = u.parallax())
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(distance/1000., labels['MEANFIB'], rasterized = True, s = 5, alpha = .2)
+ax[1].scatter(distance[train]/1000., labels['MEANFIB'][train], rasterized = True, s = 5, alpha = .2)
+ax[0].scatter(distance_xx/1000., xx['MEANFIB_2'], rasterized = True, s = 15, alpha = 1, color = 'r')
+ax[1].scatter(distance_xx/1000., xx['MEANFIB_2'], rasterized = True, s = 15, alpha = 1, color = 'r', label = 'M71')
+ax[0].set_xlabel(r'$d\rm\,[kpc]$', fontsize = fsize)
+ax[1].set_xlabel(r'$d\rm\,[kpc]$', fontsize = fsize)
+ax[0].set_ylabel(r'mean fiber number', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+ax[1].legend()
+ax[0].set_xlim(0, 20)
+ax[1].set_xlim(0, 20)
+plt.savefig('plots/fiber2.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(labels['spec_parallax'] - labels['parallax'], labels['SNR'], rasterized = True, s = 5, alpha = .2)
+ax[1].scatter(labels['spec_parallax'][train] - labels['parallax'][train], labels['SNR'][train], rasterized = True, s = 5, alpha = .2)
+ax[0].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['SNR_2'], rasterized = True, s = 15, alpha = 1, color = 'r')
+ax[1].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['SNR_2'], rasterized = True, s = 15, alpha = 1, color = 'r', label = 'M71')
+ax[0].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'S/N', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+ax[0].set_xlim(-.5, .5)
+ax[1].set_xlim(-.5, .5)
+ax[1].legend()
+plt.savefig('plots/systematics1.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(labels['spec_parallax'] - labels['parallax'], labels['LOGG'], rasterized = True, s = 5, alpha = .2)
+ax[1].scatter(labels['spec_parallax'][train] - labels['parallax'][train], labels['LOGG'][train], rasterized = True, s = 5, alpha = .2)
+ax[0].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['LOGG_2'], rasterized = True, s = 15, alpha = 1, color = 'r')
+ax[1].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['LOGG_2'], rasterized = True, s = 15, alpha = 1, color = 'r', label = 'M71')
+ax[0].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'$\log g$', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+ax[0].set_xlim(-.5, .5)
+ax[1].set_xlim(-.5, .5)
+ax[1].legend()
+plt.savefig('plots/systematics2.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+N = len(labels)
+fehrank = np.zeros(N)
+fehrank[np.argsort(labels['FE_H'])] = np.arange(N)
+
+fig, ax = plt.subplots(1, 2, figsize = figsize)
+sc = ax[0].scatter(labels['spec_parallax'] - labels['parallax'], labels['FE_H'], rasterized = True, s = 5, alpha = .2)
+ax[1].scatter(labels['spec_parallax'][train] - labels['parallax'][train], labels['FE_H'][train], rasterized = True, s = 5, alpha = .2)
+ax[0].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['FE_H_2'], rasterized = True, s = 15, alpha = 1, color = 'r')
+ax[1].scatter(xx['spec_parallax_2'] - xx['parallax_2'], xx['FE_H_2'], rasterized = True, s = 15, alpha = 1, color = 'r', label = 'M71')
+ax[0].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{(\rm sp)}-\varpi^{(\rm a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'$\rm [Fe/H]$', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].set_title(r'parent sample', fontsize = fsize)
+ax[1].set_title(r'training set', fontsize = fsize)
+ax[0].set_xlim(-.5, .5)
+ax[1].set_xlim(-.5, .5)
+ax[0].set_ylim(-2., .7)
+ax[1].set_ylim(-2., .7)
+#ax[1].legend()
+plt.savefig('plots/systematics3.pdf', pad_inches=.2, bbox_inches = 'tight')
+    
 # -------------------------------------------------------------------------------'''
 
 
