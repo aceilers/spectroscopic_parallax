@@ -406,7 +406,8 @@ sparse optima.
 The $P$ operator makes it such that we only regularize the components of $\theta$ that multiply
 the spectral pixels; we ask for the spectral model to be sparse but we don't ask for the photometric
 model to be sparse.
-We set the value of $\lambda$ by cross-validation.
+We set the value of $\lambda$ by cross-validation across the A/B split (see below).
+In the end, the L1 regularization zeros out about 50 percent of the model coefficients.
 
 This optimization is not convex---there are multiple optima in general.
 In particular, there is a large, degenerate, pathological optimum where
