@@ -3,9 +3,9 @@
 
 % To-do items
 % -----------
-% - need a snippet for Table 1.
 % - check with WISE experts that we have the correct WISE photometry
 % - ACE: What fraction of spectral pixels are (typically, or in each training set) zeroed out?
+% - are we clear that the map is just a demo and just shows the 10-percent-ish region of the MW disk?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -86,7 +86,8 @@ Therefore spectroscopy plus photometry should enable
 precise spectrophotometric distance estimates.
 % aims
 Here we use the \apogee--\gaia--\zmass--\wise\ overlap to train a data-driven model
-to predict parallaxes for red-giant branch stars with $0<\logg\leq2.2$.
+to predict parallaxes for red-giant branch stars with $0<\logg\leq2.2$ (more luminous
+than the red clump).
 % methods
 We employ (the exponentiation of)
 a linear function of \apogee\ spectral pixel intensities and multi-band photometry
@@ -145,9 +146,9 @@ disk with time.
 
 As we operate these spectroscopic surveys,
 the \gaia\ Mission (\citealt{gaia}) has also been revolutionizing our view of the disk.
-It delivers good proper motions everywhere,
+It delivers good proper motions over most of the Galaxy,
 and extremely valuable parallax information locally.
-However, it does not deliver precise geometric parallaxes over a large fraction of
+However, \gaia\ does not deliver precise geometric parallaxes over a large fraction of
 the disk, and certainly not in the dusty and crowded regions.
 For these reasons, the value of \gaia\ in these infrared spectroscopy projects is not
 to deliver distance information directly, but rather to calibrate stellar models,
@@ -157,7 +158,7 @@ luminosities and spectral characteristics.
 Luminous red-giant stars are valuable for mapping the Milky Way disk for a number
 of reasons, only one of which is their great luminosities (and hence brightnesses
 even at large distance).
-They are extremely common (frequent) stars, much more common than distance-indicating
+They are very common stars, much more frequent than distance-indicating
 stars like Cepheids.
 They are produced by stellar populations at all metallicities and almost all ages,
 so they can be found in all parts of the Galaxy.
@@ -174,8 +175,9 @@ That is, red giants are standardizable candles.
 
 In this project, we develop purely data-driven techniques to predict
 red-giant parallaxes or distances with spectroscopy and photometry.
-Our method capitalizes on the point that red-giant stars are dust-correctable,
-standardizable candles, but it makes no use whatsoever of any stellar interior,
+Our method is predicated on the expectation that red-giant stars are dust-correctable,
+standardizable candles with such data,
+but it makes no use whatsoever of any stellar interior,
 stellar exterior, or dust-reddening models.
 We only use these physical expectations about red giants to recommend
 data features---inputs---for a completely data-driven model.
@@ -200,7 +202,8 @@ They are required, in some sense, to spend some of the information in the data o
 learning physical laws or relationships.
 Not all of the information in the data is being used
 optimally when we ignore our physical models.
-Relatedly, they are not (usually) interpretable or generalizable:
+Relatedly, they are not (usually) interpretable or generalizable or useful for
+extrapolations significantly outside the training set:
 A data-driven model trained with one kind of data can not usually be used in another
 context with very different input data.
 And the internal properties of the model are not useful, in general, for improving
@@ -208,7 +211,7 @@ our understanding or intuition about the astrophysics in play.
 
 All that said, our goal here is to produce a precise mapping tool for surveys
 like \apogee\ and \sdssv.
-So we will take the limitations of the data-driven models in exchange for their
+So we accept the limitations of the data-driven models in exchange for their
 performance.
 This work builds on the success we have seen in building other kinds of
 data-driven tools for  stellar spectroscopy, for example to measure stellar
@@ -218,8 +221,8 @@ and masses and ages (\citealt{nessage}).
 There is a huge range of complexity or capacity in data-driven
 models, from linear regressions (what we use here) to the most advanced machine-learning
 methods (like deep neural networks).
-In this work we stay on the low-complexity side of this.
-We do not want to face the (literally combinatoric) choices in model structure that
+In this work we stay on the low-complexity side of this, as
+we do not want to face the (literally combinatoric) choices in model structure that
 advanced methods bring.
 And we want to control or understand the smoothness or flexibility of the model.
 Deep networks can model extremely complex function spaces, which is good in some
@@ -245,8 +248,8 @@ This means that we cannot apply cuts to the \gaia\ astrometry or signal-to-noise
 unless those cuts are correctly accounted for in our generative model for the
 data sample.
 Below, we will make no such cuts. That means that our training step has the odd
-property that much of the training data is low in signal-to-noise and some of the
-training parallax measurements are even negative!
+property that much of the training data is low in signal-to-noise; we include
+training parallax measurements even if they are negative!
 The fact that we are using a justified likelihood function ensures that these
 data will only affect the model in sensible and justifiable ways.
 The alternative---cutting to high signal-to-noise data---is the more traditional
@@ -324,9 +327,10 @@ there are no significant outliers or large-scale systematics.
 \end{description}
 
 In addition to making the above assumptions, we also avoid various practices
-with the data that are tempting but lead to strong biases.
+with the data that are tempting but lead to important biases.
 For example, we never cut on \gaia\ parallax or parallax signal-to-noise.
-The common practices of cutting to parallaxes that are good to 20~percent,
+The common practices of cutting to parallaxes that are good to 20~percent
+(see, for example, \citealt{trick, helmi}),
 or Catalog parallaxes that are positive, or parallaxes that are smaller or
 larger than something, are all practices that will bias results on stellar
 collections.
@@ -372,7 +376,8 @@ and consistent with the assumptions stated in the previous \sectionname.
 Here we lay out the model and methodology.
 We apply the method to real data in the following {\sectionname s}.
 
-The model and log-likelihood function can be expressed heuristically as
+The model for the parallax
+and the log-likelihood function can be expressed heuristically as
 \begin{eqnarray}
 \gparallax_n &=& \exp(\theta\cdot x_n) + \mbox{noise}
 \\
@@ -417,14 +422,16 @@ the exponential function underflows, all parallaxes are predicted to vanish,
 and there is no gradient of anything with respect to the parameter $D$-vector $\theta$.
 This large, bad optimum (it is a local, not global, optimum) must be avoided in optimization.
 In practice we avoid it by optimizing first for the very highest signal-to-noise
-(in astrometric parallax) Training Set stars, and then use that first optimum as a
+(better than 5-percent measurements of astrometric parallax)
+Training Set stars, and then use that first optimum as a
 good first guess or initialization for the full optimization.
 This method works because in the limit of high signal-to-noise, the problem asymptotically approaches
 the convex problem of L1-regularized linear least-square fitting.
 Optimization is performed with \code{scipy.optimize} using the
 \acronym{L-BFGS-B} algorithm (\citealt{lbfgsb}).
 
-Once the model is optimized, the output of the model is a prediction of the parallax,
+Once the model is optimized---and therefore $\hat{\theta}$ is determined---the
+output of the model is a prediction of the parallax,
 or really what we will call the \emph{spectrophotometric parallax}.
 This spectrophotometric parallax
 $\sparallax_m$ for any star $m$ in the validation or test set is
@@ -463,7 +470,7 @@ that input features are independently measured;
 that is, we make $C_m$ is a diagonal matrix with the uncertainty variances of the elements
 of $x_m$ along the diagonal.
 
-One final detail: We perform all of the fitting in a two-fold train-and-test framework,
+We perform all of the fitting in a two-fold train-and-test framework,
 in which the data are split into two disjoint subsets, A and B.
 The model trained on the A data is used to predict or produce
 the spectrophotometric parallaxes $\sparallax_m$ values (and hence
@@ -554,7 +561,7 @@ This Parent Sample contains 44784 stars and is shown in \figurename~\ref{fig:sam
   Parent Sample.\label{fig:samples}}
 \end{figure}
 
-Every Parent-Sample star gets, in addition, a randomly assigned binary
+Every Parent Sample star gets, in addition, a randomly assigned binary
 label (A or B).
 This is used for two-fold validation and jackknife.
 In short, we will
@@ -564,9 +571,9 @@ use the model trained on the Training Set B data to assign spectrophotometric pa
 to the Parent Sample A data.
 
 For training, we need A and B Training Sets.
-We define the Training Set stars to be Parent-Sample stars that also
+We define the Training Set stars to be Parent Sample stars that also
 have a measured \gaia\ parallax.
-The Training-Set stars, in addition to meeting all Parent-Sample cuts,
+The Training Set stars, in addition to meeting all Parent Sample cuts,
 also must meet an uncertainty criterion $\gsigma_n < 0.1\,\mathrm{mas}$, i.e. 
 \begin{equation}
 \code{parallax_error < 0.1}
@@ -583,7 +590,7 @@ which eliminates detections that are not consistent with a single PSF \citep[see
 to ensure that the parallax measurements are good.
 These cuts leave 28226 stars total in the Training Sets.
 But---as we have emphasized above---we do not cut ever on parallax or
-or the ratio to its uncertainty. For this reason, most of the Training-Set stars
+or the ratio to its uncertainty. For this reason, most of the Training Set stars
 do not have significantly measured parallaxes and more than 2~percent even have
 negative parallaxes!
 But we will perform our training such that it will be unbiased in these
@@ -597,7 +604,7 @@ the astrometric parallax $\gparallax_n$ and its uncertainty $\gsigma_n$.
 Importantly, to each \gaia\ parallax measurement we add a positive
 offset $\varpi_0$ to adjust for the under-estimation of
 parallaxes reported by the \gaia\ Collaboration (\citealt{lindegren}).
-The \gaia\ recommended value is $\varpi_0=0.029$\,mas (\citealt{lindegren}),
+The \gaia\ recommended all-sky-average value is $\varpi_0=0.029$\,mas (\citealt{lindegren}),
 but we adopt $\varpi_0 = 0.048$\,mas because that value
 optimizes our cross-validation objective.
 It also happens to be in the range of other values found in the literature (\citealt{arenou, zinn}).
@@ -642,7 +649,7 @@ A and Parent Sample B, using the A-trained model on Parent Sample B and
 \foreign{vice versa}.
 For the purposes of assessing the accuracy and precision of the model, this
 train-and-test framework constitutes a two-fold cross-validation.
-Results of this cross-validation is shown in \figurename~\ref{fig:xval}.
+Results of this cross-validation are shown in \figurename~\ref{fig:xval}.
 For the stars with highest \gaia-measured parallax signal-to-noise,
 the spectrophotometric model is predicting the \gaia\ parallaxes with little bias
 and a scatter of less than 9~percent.
@@ -651,8 +658,8 @@ and a scatter of less than 9~percent.
 \caption{The predictive accuracy of the model, in the two-fold cross-validation.
   Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the vertical axis
   and our spectrophotometric parallaxes $\sparallax$ on the horizontal axis.
-  The left panel shows the full Parent Sample, the middle panel shows the Training Set
-  stars (which pass \gaia\ quality checks; see text), and the right panel shows a
+  The left panel shows the full Training Set (both A and B combined),
+  and the right panel shows a
   subset of stars with very high astrometric parallax signal-to-noise. This latter
   set plays no particular role in the method, but it can be used to demonstrate or
   assess the prediction precision. The fractional precision of the prediction in the
@@ -670,7 +677,7 @@ at the optimal setting of the regularization strength.
 
 This 9-percent precision estimate is conservative in the sense that it does not
 deconvolve or correct for the contributions from the \gaia\ noise.
-However it is also not fully conservative, in that the test is performed with
+However, this test is performed with
 \gaia's best stars, which are bright, nearby, in low extinction regions, and
 (because of these things) near Solar metallicity.
 There could in principle be additional bias or scatter for stars that are in dustier
@@ -702,14 +709,15 @@ The cluster members were found by hand, looking at sky and proper-motion distrib
 centered on literature values.
 In each case we are plotting only very securely identified cluster members; that
 is, membership is conservative.
-We chose three clusters to span some range in metallicity and age, and therefore test
+We chose the three displayed clusters
+to span some range in metallicity and age and extinction, and therefore test
 the accuracy of the method for different kinds of populations.
 With the exception of \acronym{M71}, the clusters we tested
 indicate that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
 for these clusters and the range in abundances and ages they represent.
 The case of cluster \acronym{M71} is troubling, but after searching for trends with
 housekeeping data (also see \figurename~\ref{fig:residuals}) we don't find any correlations
-with parallax offsets.
+with parallax offsets, although \acronym{M71} is a higher-extinction cluster.
 \begin{figure}
 ~\hfill\includegraphics[width=0.7\textwidth]{clusters.pdf}\hfill~
 \caption{The \gaia\ astrometric parallaxes $\gparallax_n$
@@ -780,10 +788,11 @@ This table is just a snippet; the full table is available online (HOGG HOW?)\lab
 
 \section{Discussion}
 
-This project demonstrates that photometry and spectroscopy can be used to predict
+We have demonstrated that photometry and spectroscopy can be used to predict
 or estimate distances to stars.
 This isn't new!
-However, what's new is that it is possible to do this very well but with a purely
+However, what's new is that it is possible to do this very well for luminous giants
+with unknown ages, and with a purely
 linear model acting on magnitudes and spectral (logarithmic) fluxes, and entirely
 data-driven.
 That is, a linear model trained on noisy parallax data from \gaia.
@@ -807,18 +816,17 @@ In principle the data themselves should tell us what features to include.
 In that direction, it would make sense to choose features using a more complex
 technique like deep learning or an auto-encoder.
 These methods generate good features automatically.
-However, they also involve an enormous set of hyper-parameter-like choices,
+They also involve an enormous set of hyper-parameter-like choices,
 and they involve sacrificing certain kinds of interpretability.
-However, we expect that a better set of features would do better; in this sense
+All that said, we expect that a better set of features would do better; in this sense
 the project here is just a first step towards precise spectrophotometric distance
 estimates.
 
-As we said above, our most restrictive assumption is the linearity assumption.
-We required that the parallax prediction be constructed from a linear combination
+As we said above,
+we required that the parallax prediction be constructed from a linear combination
 of the input data or feature vector components.
-This is absurd: Stars are not linear objects!
-There are two questions to ask about the linearity.
-One is: Why did it work? The other is: Could we have done better?
+This may seem like an absurd simplification; it begs the questions:
+Why did it work? And could we have done better?
 The answer to the first is that we have taken such a small part of stellar parameter
 space with our surface-gravity cut, that the linearized model of stellar
 spectrophotometry is not a bad approximation.
@@ -829,7 +837,7 @@ linear.
 That is, it was a combination of limited model scope and some cleverness in the
 feature engineering and model structure.
 
-The answer to the second question is that absolutely we could have done better!
+The answer to the second question is that almost certainly we could have done better!
 Since models like Gaussian processes and deep networks subsume the linear model
 (at least approximately), they could have delivered better---or at least non-worse---results.
 The issues with going to a much more complex model are manifold, however:
