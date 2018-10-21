@@ -403,11 +403,23 @@ wedge1d = abs(mean_XS_cyl_n[:, 1]) < (deg_wedge/360. * 2. * np.pi) * cut_vz
 #wedge1d = (mean_XS_cyl_n[:, 1] < (deg_wedge/360. * 2. * np.pi)) * (mean_XS_cyl_n[:, 1] > 0) * cut_vz
 #wedge1d = (-mean_XS_cyl_n[:, 1] < (deg_wedge/360. * 2. * np.pi)) * (mean_XS_cyl_n[:, 1] < 0) * cut_vz
 
+
+# -------------------------------------------------------------------------------
+# test of vertical gradient
+# -------------------------------------------------------------------------------   
+
+cut_z_plus = mean_XS_cyl_n[:, 2] > 0
+cut_z_minus = mean_XS_cyl_n[:, 2] < 0
+
+# -------------------------------------------------------------------------------
+# continue from above...
+# -------------------------------------------------------------------------------   
+
 dz = 1. # kpc
 bins_start = np.array([1.])
 bins_end = np.array([40.])
 
-cut_z_wedge = wedge1d * cut_z 
+cut_z_wedge = wedge1d * cut_z #* cut_z_minus
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
 min_stars_per_bin = 3
@@ -639,9 +651,9 @@ ax[0].set_ylabel(r'$y\,\rm [kpc]$', fontsize = fsize)
 ax[0].set_aspect('equal')
 ax[1].set_aspect('equal')
 ax[2].set_aspect('equal')
-ax[0].annotate(r'$\overline{v_{r}}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
-ax[1].annotate(r'$\overline{v_{\varphi}}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
-ax[2].annotate(r'$v_{\rm c}$', (6.5, -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[0].annotate(r'$\sqrt{V_{RR}}$', (4., -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[1].annotate(r'$\sqrt{V_{\varphi\varphi}}$', (4., -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
+ax[2].annotate(r'$v_{\rm c}$', (6., -10), fontsize = fsize, bbox=dict(boxstyle="square", fc="w"))
 plt.tight_layout()
 plt.savefig('paper_rotation_curve/maps_wedge.pdf', bbox_inches = 'tight', pad_inches=.2)
 plt.close()
@@ -689,17 +701,17 @@ ax0.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 
 ax1.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax2.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on', labelbottom = 'off')
 ax3.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax0.plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$\overline{{v_{{r}}}}(R)\propto \exp\left(-\frac{{R}}{{{1}\,\rm kpc}}\right)$'.format(round(theta_fit[0], 2), int(round(theta_fit[1])))) #'#c44240'
+ax0.plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$\sqrt{{V_{{RR}}}}(R)\propto \exp\left(-\frac{{R}}{{{1}\,\rm kpc}}\right)$'.format(round(theta_fit[0], 2), int(round(theta_fit[1])))) #'#c44240'
 ax0.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 ax1.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 ax3.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 ax2.set_ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
-ax0.set_ylabel(r'$\overline{v_{r}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
-ax1.set_ylabel(r'$\overline{v_{\varphi}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
+ax0.set_ylabel(r'$\sqrt{V_{RR}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
+ax1.set_ylabel(r'$\sqrt{V_{\varphi\varphi}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
 #ax3.scatter(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
 # with errorbars
 ax3.errorbar(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), yerr = [np.array(vc_vpp[idx5:, 0]), np.array(vc_vpp[idx5:, 1])], fmt = 'o', markersize = 4, capsize=3, mfc='k', mec='k', ecolor = 'k', zorder = 30)
-ax3.set_ylabel(r'$v_{\rm c} - \overline{v_{\varphi}}$', fontsize = fsize) 
+ax3.set_ylabel(r'$v_{\rm c} - \sqrt{V_{\varphi\varphi}}$', fontsize = fsize) 
 ax0.set_ylim(0, 325)
 ax1.set_ylim(0, 325)
 ax2.set_ylim(120, 250)
