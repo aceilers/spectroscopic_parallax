@@ -6,7 +6,6 @@
 % To-do items
 % -----------
 % - check with WISE experts that we have the correct WISE photometry
-% - ACE: What fraction of spectral pixels are (typically, or in each training set) zeroed out?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
@@ -407,7 +406,7 @@ The $P$ operator makes it such that we only regularize the components of $\theta
 the spectral pixels; we ask for the spectral model to be sparse but we don't ask for the photometric
 model to be sparse.
 We set the value of $\lambda$ by cross-validation across the A/B split (see below).
-In the end, the L1 regularization zeros out about 50 percent of the model coefficients.
+In the end, the L1 regularization zeros out about 75 percent of the model coefficients.
 
 This optimization is not convex---there are multiple optima in general.
 In particular, there is a large, degenerate, pathological optimum where
