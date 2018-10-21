@@ -309,7 +309,7 @@ labels_sgr = labels[xx]
 # plot for paper (3x2) histograms: Gaia vs. me (labeled by cluster name and metallicity)
 # -------------------------------------------------------------------------------
 
-'''cluster_list = ['m2', 'm3', 'm5', 'm13', 'm15', 'm53', 'm71', 'm92', 'm107', 'ngc6791', 'ngc6819']
+cluster_list = ['m2', 'm3', 'm5', 'm13', 'm15', 'm53', 'm71', 'm92', 'm107', 'ngc6791', 'ngc6819']
 
 fig, ax = plt.subplots(4, 3, figsize = (9, 12))
 plt.subplots_adjust(wspace = 0.08, hspace = 0.25)

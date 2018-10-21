@@ -289,7 +289,8 @@ cut_vis = labels['visibility_periods_used'] >= 8
 cut_par = labels['parallax_error'] < 0.1            
 cut_cal = (labels['astrometric_chi2_al'] / np.sqrt(labels['astrometric_n_good_obs_al']-5)) <= 35         
 train = cut_vis * cut_par * cut_cal  
-best = train * (labels['parallax_over_error'] >= 20)
+best_gaia = train * (labels['parallax_over_error'] >= 20)
+best = train * ((labels['spec_parallax']/labels['spec_parallax_err']) >= 10)
 cut_feh = labels['FE_H'] > -100
 
 # -------------------------------------------------------------------------------
@@ -305,14 +306,17 @@ sample_B = np.logical_not(sample_A)
 sample[sample_A] = 'A'
 sample[sample_B] = 'B'
 tab = labels['APOGEE_ID', 'parallax', 'parallax_error', 'spec_parallax', 'spec_parallax_err'] #, 'training_set', 'sample']
+tab['parallax'] = Column(np.round(tab['parallax'], 4))
+tab['parallax_error'] = Column(np.round(tab['parallax_error'], 4))
+tab['spec_parallax'] = Column(np.round(tab['spec_parallax'], 4))
+tab['spec_parallax_err'] = Column(np.round(tab['spec_parallax_err'], 4))
 tab.rename_column('APOGEE_ID', '2MASS_ID')
 tab.rename_column('parallax', 'Gaia_parallax')
 tab.rename_column('parallax_error', 'Gaia_parallax_err')
 tab.add_column(Column(training_set), name = 'training_set')
 tab.add_column(Column(sample), name = 'sample')
 Table.write(tab, 'data/data_HoggEilersRix2018.fits', format = 'fits', overwrite = True)
-Table.write(tab[:10], 'paper/data_HoggEilersRix2018_part.txt', format = 'latex', overwrite = True)
-
+Table.write(tab[:12], 'paper/data_HoggEilersRix2018_part.txt', format = 'latex', overwrite = True)
 
 cm = 'viridis'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
@@ -340,7 +344,7 @@ plt.savefig('paper/CMD.pdf', pad_inches=.2, bbox_inches = 'tight')
 cm = 'RdBu_r'
 fig, ax = plt.subplots(1, 2, figsize = figsize)
 #sc = ax[0].scatter(labels['bp_rp'][cut_feh], abs_mag_G[cut_feh], c = labels['FE_H'][cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
-sc = ax[0].scatter(labels[train * cut_feh]['bp_rp'], abs_mag_G[train * cut_feh], c = labels['FE_H'][train * cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
+sc = ax[0].scatter(labels[best_gaia * cut_feh]['bp_rp'], abs_mag_G[best_gaia * cut_feh], c = labels['FE_H'][best_gaia * cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
 ax[1].scatter(labels[best * cut_feh]['bp_rp'], abs_mag_G[best * cut_feh], c = labels['FE_H'][best * cut_feh], cmap = cm, rasterized = True, vmin = -2, vmax = .6, s = 5, alpha = .5)
 ax[0].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
 ax[1].set_xlabel(r'$\rm B_P-R_p$', fontsize = fsize)
@@ -350,7 +354,8 @@ ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top 
 ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 #ax[0].set_title('parent sample', fontsize = fsize)
 ax[0].set_title(r'training set', fontsize = fsize)
-ax[1].set_title(r'$\varpi^{\rm (a)}/\sigma_{\varpi^{\rm (a)}} \geq 20$', fontsize = fsize)
+ax[0].set_title(r'$\varpi^{\rm (a)}/\sigma_{\varpi^{\rm (a)}} \geq 20$', fontsize = fsize)
+ax[1].set_title(r'$\varpi^{\rm (sp)}/\sigma_{\varpi^{\rm (sp)}} \geq 10$', fontsize = fsize)
 fig.subplots_adjust(right = 0.8)
 cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.76])
 cb = fig.colorbar(sc, cax=cbar_ax)
