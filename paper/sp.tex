@@ -1,26 +1,18 @@
 %% This file is part of the spectroscopic_parallax project
 %% Copyright 2018 the authors.
 
+%@arxiver{residuals.pdf,map.pdf}
+
 % To-do items
 % -----------
 % - check with WISE experts that we have the correct WISE photometry
 % - ACE: What fraction of spectral pixels are (typically, or in each training set) zeroed out?
-% - are we clear that the map is just a demo and just shows the 10-percent-ish region of the MW disk?
 
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
 
-%% Reintroduced the \received and \accepted commands from AASTeX v5.2
-%\received{TBD}
-%\revised{TBD}
-%\accepted{TBD}
-%% Command to document which AAS Journal the manuscript was submitted to.
-%% Adds "Submitted to " the arguement.
-%\submitjournal{AAS Journals}
-
 \shorttitle{spectrophotometric parallax}
 \shortauthors{hogg, eilers, rix}
-%\watermark{kittens}
 
 % text macros
 \newcommand{\documentname}{\textsl{Article}}
@@ -759,12 +751,13 @@ In order to use this output with \gaia\ astrometry, we recommend joining the tab
 In order to use this output with \apogee\ radial velocities and element abundances, we recommend
 joining the table to the \sdssiv\ Catalog on the \zmass\ ID (name).
 
-\newpage
 \begin{longrotatetable}
 \startlongtable
 \begin{deluxetable*}{ccccccc}
-\tablecaption{HOGG and ACE TBD: The generated spectrophotometric parallaxes.
-This table is just a snippet; the full table is available online (HOGG HOW?)\label{tab:output}}
+\tablecaption{The generated spectrophotometric parallaxes and their uncertainties..
+This \tablename\ is just a snippet; the full catalog of all 44784 objects in the combined Parent Samples
+is available online. In order to reproduce the {\figurename s} in this \documentname, this catalog
+should be joined to the \gaia, \zmass, \wise\, and \apogee\ Catalogs by \zmass\ ID.\label{tab:output}}
 \tablehead{\dcolhead{\texttt{2MASS\_ID}} & \dcolhead{\texttt{Gaia\_parallax}} & \dcolhead{\texttt{Gaia\_parallax\_err}} & \dcolhead{\texttt{spec\_parallax}} & \dcolhead{\texttt{spec\_parallax\_err}} & \dcolhead{\texttt{training\_set}} & \dcolhead{\texttt{sample}}}
 \startdata
 2M00000002+7417074 & 0.3191 & 0.0329 & 0.3185 & 0.0164 & 0 & B \\
@@ -910,15 +903,8 @@ That means that the parallax estimates generated here and given in \tablename~\r
 are statistically independent of the \gaia\ parallaxes and can be combined with them in
 na\"ive ways, for example in inverse-variance-weighted averages.
 
-HOGG: Discussion here of CMD and AGB stars.
-\begin{figure}
-\centering
-~\hfill\includegraphics[width=0.8\textwidth]{./CMD4.pdf}\hfill~
-\caption{HOGG color-magnitude-diagram.\label{fig:cmd}}
-\end{figure}
-
 This \documentname\ and project delivers greatly improved distance estimates for
-luminous red-giant stars.
+luminous red-giant stars, more luminous than the red clump.
 The purpose of all this is to make global maps of the Milky Way.
 Just as a demonstration, we show kinematics and element abundances for stars as a function
 of position in the Milky Way disk in \figurename~\ref{fig:disk}.
@@ -936,7 +922,9 @@ It also shows extremely strong chemical gradients.
   not in any way noise-deconvolved.
   Each arrow has a color corresponding to the \apogee\ reported metallicity.
   This map shows the rotation of the Galaxy out to large radius, and also
-  indicates the kinematic center of the disk rotation. Interpretation of
+  indicates the kinematic center of the disk rotation. The stars shown in this
+  map have distance uncertainties on the order of ten percent, so at significant
+  heliocentric distances, the interpretation of
   the quantitative information in this plot requires care.\label{fig:disk}}
 \end{figure}
 In a companion paper (\citealt{eilers}), we are using this information to estimate
@@ -1016,7 +1004,7 @@ Vanderbilt University, and Yale University.
 \begin{thebibliography}{}
 \bibitem[Abolfathi \etal(2018)]{dr14} Abolfathi, B., Aguado, D.~S., Aguilar, G., \etal\ 2018, \apjs, 235, 42 
 \bibitem[Allende Prieto \etal(2008)]{aapogee} Allende Prieto, C., Majewski, S.~R., Schiavon, R., \etal\ 2008, Astronomische Nachrichten, 329, 1018 
-\bibitem[Arenou \etal(2018)]{arenou} Arenou, F., Luri, X., Babusiaux, C., et al.\ 2018, \aap, 616, A17 
+\bibitem[Arenou \etal(2018)]{arenou} Arenou, F., Luri, X., Babusiaux, C., \etal\ 2018, \aap, 616, A17 
 \bibitem[Astropy Collaboration \etal(2013)]{astropy} Astropy Collaboration, Robitaille, T.~P., Tollerud, E.~J., \etal\ 2013, \aap, 558, A33 
 \bibitem[Astropy Collaboration \etal(2018)]{astropy2} The Astropy Collaboration, Price-Whelan, A.~M., Sip{\H o}cz, B.~M., \etal\ 2018, arXiv:1801.02634 
 \bibitem[Bailer-Jones \etal(2018)]{calj} Bailer-Jones, C.~A.~L., Rybizki, J., Fouesneau, M., Mantelet, G., \& Andrae, R.\ 2018, \aj, 156, 58 
@@ -1027,6 +1015,7 @@ Vanderbilt University, and Yale University.
 \bibitem[Gaia Collaboration \etal(2016)]{gaia} Gaia Collaboration, Prusti, T., de Bruijne, J.~H.~J., \etal\ 2016, \aap, 595, A1 
 \bibitem[Gaia Collaboration \etal(2018)]{gaiadr2} Gaia Collaboration, Brown, A.~G.~A., Vallenari, A., \etal\ 2018, arXiv:1804.09365 
 \bibitem[Garc{\'{\i}}a P{\'e}rez \etal(2016)]{aspcap} Garc{\'{\i}}a P{\'e}rez, A.~E., Allende Prieto, C., Holtzman, J.~A., \etal\ 2016, \aj, 151, 144 
+\bibitem[Helmi \etal(2018)]{helmi} Helmi, A., Babusiaux, C., Koppelman, H.~H., \etal\ 2018, arXiv:1806.06038 
 \bibitem[Ho \etal(2017)]{ho} Ho, A.~Y.~Q., Ness, M.~K., Hogg, D.~W., \etal\ 2017, \apj, 836, 5 
 \bibitem[Hogg(2018)]{gaialf} Hogg, D.~W.\ 2018, arXiv:1804.07766
 \bibitem[Hunter(2007)]{matplotlib} Hunter, J.~D.\ 2007, CISE, 9(3), 90
@@ -1044,6 +1033,7 @@ Vanderbilt University, and Yale University.
 \bibitem[Oliphant(2006)]{numpy} Oliphant, T.~E.\ 2006, \emph{A guide to NumPy}, Trelgol Publishing
 \bibitem[P\'erez \& Granger(2007)]{ipython} P\'erez, F. \& Granger, B.~E.\ 2007, CISE, 9(3), 29
 \bibitem[Skrutskie \etal(2006)]{zmass} Skrutskie, M.~F., Cutri, R.~M., Stiening, R., \etal\ 2006, \aj, 131, 1163 
+\bibitem[Trick \etal(2018)]{trick} Trick, W.~H., Coronado, J., \& Rix, H.-W.\ 2018, arXiv:1805.03653 
 \bibitem[Wilson \etal(2010)]{wapogee} Wilson, J.~C., Hearty, F., Skrutskie, M.~F., \etal\ 2010, \procspie, 7735, 77351C 
 \bibitem[Wright \etal(2010)]{wise} Wright, E.~L., Eisenhardt, P.~R.~M., Mainzer, A.~K., \etal\ 2010, \aj, 140, 1868 
 \bibitem[Zinn \etal(2018)]{zinn} Zinn, J.~C., Pinsonneault, M.~H., Huber, D., \& Stello, D.\ 2018, arXiv:1805.02650 
