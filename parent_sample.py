@@ -37,6 +37,10 @@ apogee_data_match = apogee_data[xmatch['apogee_all_oid']]
 
 training_labels = hstack([Table(apogee_data_match), Table(xmatch)])
 
+# one particular star: 2M05215658+4359220
+#cut_one = np.logical_or(training_labels['APOGEE_ID'] == '2M05215658+4359220', training_labels['APOGEE_ID'] == training_labels['APOGEE_ID'][0])
+#training_labels = training_labels[cut_one]
+
 # -------------------------------------------------------------------------------
 # cut in logg... take only RGB stars!
 # -------------------------------------------------------------------------------

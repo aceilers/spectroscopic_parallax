@@ -15,6 +15,8 @@ from astropy.table import Column, Table, join, vstack, hstack
 from astropy.io import fits
 from scipy.stats import binned_statistic_2d
 import matplotlib.gridspec as gridspec
+from astropy import units as u
+
 
 # -------------------------------------------------------------------------------
 # plotting settings
@@ -499,10 +501,51 @@ if not prediction:
 
                 
 # -------------------------------------------------------------------------------'''
-                      
-                       
+# distance to one star 2MASS J05215658+4359220 (Todd Thompson)                    
+# -------------------------------------------------------------------------------
 
+hdu = fits.open('data/all_flux_sig_norm_parent.fits')
+fluxes = hdu[0].data[:, :, 0]
+gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
 
+hdu = fits.open('data/one_star.fits')
+flux_one_star = hdu[0].data[:, 0, 0]
+sigma_one_star = hdu[0].data[:, 0, 1]
+
+print('removing chip gaps...')               
+flux_one_star = flux_one_star[~gaps]
+sigma_one_star = sigma_one_star[~gaps]
+
+k = 1
+name = 'N44784_lam30_K2_offset0.0483_parallax'
+f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'rb')
+res = pickle.load(f)
+f.close() 
+
+# data for 2MASS J05215658+4359220
+#AT_linear = np.vstack([labels['phot_g_mean_mag'], labels['phot_bp_mean_mag'], labels['phot_rp_mean_mag'], labels['J'], labels['H'], labels['K'], labels['w1mpro'], labels['w2mpro'], ln_fluxes])
+y_all = 0.27174526050502695
+y_all_err = 0.04865060267540957
+AT_0 = np.vstack([np.ones_like(y_all)])
+ln_flux = np.log(np.clip(flux_one_star, 0.01, 1.2))
+ln_flux_err = np.clip(sigma_one_star, 0, .05) / np.clip(flux_one_star, 0.01, 1.2)
+AT_linear = np.vstack([12.271621, 13.198054, 11.334474, 9.826, 9.067, 8.875, 8.73, 8.79, ln_flux[:, None]])
+
+phot_g_mean_mag_err = 1.09 * 389.46905765497 / 232647.2910725763
+phot_bp_mean_mag_err = 1.09 * 592.053982758476 / 72666.36059934873
+phot_rp_mean_mag_err = 1.09 * 684.770012104675 / 34951.5870240938
+
+AT_linear_err = np.vstack([phot_g_mean_mag_err, phot_bp_mean_mag_err, phot_rp_mean_mag_err, 0.024, 0.031, 0.023, 0.05, 0.05, ln_flux_err[:, None]])
+A_all = np.vstack([AT_0, AT_linear]).T
+A_all_err = np.vstack([np.zeros_like(y_all), AT_linear_err]).T
+             
+valid = 0      
+y_pred = np.exp(np.dot(A_all[valid, :], res.x))
+y_pred_err = y_pred * np.sqrt(np.dot(A_all_err[valid, :] ** 2, res.x ** 2)) # Hogg made this up
+
+print(y_pred, y_pred_err)
+distance = (y_pred * u.mas).to(u.parsec, equivalencies = u.parallax())
+print(distance)
 
 
 
