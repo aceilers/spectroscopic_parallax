@@ -425,7 +425,7 @@ dz = 1. # kpc
 bins_start = np.array([1.])
 bins_end = np.array([40.])
 
-cut_z_wedge = wedge1d * cut_z #* cut_z_minus
+cut_z_wedge = wedge1d * cut_z 
 foo = np.append(0., np.sort(mean_XS_cyl_n[cut_z_wedge, 0]))
 bar = np.append(np.sort(mean_XS_cyl_n[cut_z_wedge, 0]), 100.)
 min_stars_per_bin = 3
@@ -486,7 +486,7 @@ indices = np.arange(mean_XS_cyl_n.shape[0])
 
 for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
     #cut_annulus = wedge * (abs(mean_XS_cyl_n[:, 2]) < dz/2.) * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
-    cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end)
+    cut_annulus = cut_z_wedge * (mean_XS_cyl_n[:, 0] > r_start) * (mean_XS_cyl_n[:, 0] < r_end) #* cut_z_plus
     N_stars_annulus[i] = np.sum(cut_annulus)
     if N_stars_annulus[i] > 0:
         mean_XS_cyl_annulus[i, :] = np.nanmean(mean_XS_cyl_n[cut_annulus], axis = 0)
@@ -562,15 +562,48 @@ vrr_R_exp = theta_fit[1] # kpc
 print('vrr_R_exp = {}'.format(vrr_R_exp))
 
 # -------------------------------------------------------------------------------
+# calculate missing term in Jeans equation
+# -------------------------------------------------------------------------------
+
+vrvz_minus = np.array([-2.46887108e+03,  1.64845824e+03,  5.83353159e+01, -2.14045989e+03,
+        1.89241961e+01, -3.41014878e+02,  5.80391707e+01, -2.03978075e+02,
+       -4.14675591e+01, -3.54867829e+01,  4.53344803e+01, -7.01446949e+01,
+       -5.77536071e+01, -2.48209061e+01, -1.19106315e+02, -1.00391787e+02,
+       -9.21573975e-01, -5.35282877e+01, -1.55952638e+01, -5.36726653e+01,
+       -2.96070277e+01, -1.04194359e+02,  3.96476438e+01,  4.24277249e+01,
+        2.60350292e+01, -1.19313923e+01,  3.56121176e+01,  5.30486754e+00,
+       -2.16133888e+01, -9.17736095e+01,  4.51735734e+01,  6.78290939e+01,
+       -3.51422692e+01,  5.25777023e+01,  1.32086087e+02,  1.03666391e+02,
+        4.68594568e+01, -1.20639797e+02,  9.47594515e+01, -2.14178829e+01,
+        5.72233792e+01,  1.43436008e+02, -5.52113661e+01,  1.92481391e+02,
+       -3.04792985e+02, -3.38110659e+02,             0.])
+vrvz_plus = np.array([-5.91831159e+03, -1.79677502e+03, -1.58850790e+02,  6.07575102e+02,
+        4.93348957e+02,  2.27817758e+02,  7.91830329e+01, -2.43397200e+02,
+        1.27579642e+02, -1.66594749e+02,  4.50211205e+01,  2.12404911e+01,
+       -3.64709721e+01, -3.75540152e+00,  5.46143857e+01,  5.88134472e+01,
+        5.62264308e+01,  7.04181299e+01,  5.24969379e+01,  6.09039433e+01,
+        4.30052399e+01,  5.16050292e+01,  4.74627169e+01,  4.62141088e+01,
+        5.64492237e+01,  2.87383537e+01,  5.89521557e+00,  7.29643984e+01,
+       -6.84557831e+01,  3.48047528e+01, -9.28545611e+01, -9.86397480e+00,
+       -4.27233743e+01,  1.52961659e+02, -9.66394037e+01, -7.48631406e+01,
+        1.52920019e+02,  1.58818299e+01, -7.08959630e+01,  1.92437049e+02,
+       -9.29025145e+01,  1.84326434e+02,  3.50209967e+02, -2.18616667e+03,
+        8.09355046e+01,  5.54097113e+01, -5.95783183e+01])
+mean_z_minus = -0.5329346453827551
+mean_z_plus = 0.4580355850141325
+dvrvz_dz = (vrvz_plus - vrvz_minus) / (mean_z_plus - mean_z_minus)
+missing_term = -mean_XS_cyl_annulus[:, 0] * dvrvz_dz
+
+# -------------------------------------------------------------------------------
 # calculate Jeans equation in annuli
 # -------------------------------------------------------------------------------
 
-#for i in range(3):
-#    vtilde_annulus[:, i, i] = np.clip(vtilde_annulus[:, i, i], 0., np.inf)
 dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / rho_R_exp
+# power law: 
+#dlnrho_dlnR = (-8.) * np.ones_like(mean_XS_cyl_annulus[:, 0])
 dlnvR2_dlnR = (-mean_XS_cyl_annulus[:, 0]) / vrr_R_exp
 HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
-vc_annulus = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0])
+vc_annulus = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0]) # + missing_term)
 #sigmas_rr2 = 0.5 * (vt_ann_err_rr2[:, 2] - vt_ann_err_rr2[:, 0])
 #sigmas_pp2 = 0.5 * (vt_ann_err_pp2[:, 2] - vt_ann_err_pp2[:, 0])
 #vc_annulus_err_a = 0.5 / vc_annulus * np.sqrt(sigmas_pp2**2 + HWRnumber**2 * sigmas_rr2**2)
@@ -587,7 +620,7 @@ t.add_column(rgc_table)
 t.add_column(vc_table)
 t.add_column(vc_err_m_table)
 t.add_column(vc_err_p_table)
-Table.write(t, 'paper_rotation_curve/table_vc.txt', format = 'latex')
+#Table.write(t, 'paper_rotation_curve/table_vc.txt', format = 'latex')
 
 # second version of v_circ
 vc_annulus2 = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * (exp_fit(theta_fit, mean_XS_cyl_annulus[:, 0]))**2)
@@ -596,12 +629,14 @@ vc_annulus2 = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * (exp_fit(theta_fit, 
 # errorbar on v_circ - v_phiphi
 # -------------------------------------------------------------------------------
 
-list_rho_R_exp = [2, 4]
+list_rho_R_exp = [2, 4, 1, 0.8]
 vc_vpp = np.zeros((len(mean_XS_cyl_annulus[:, 0]), len(list_rho_R_exp)))
 vc_rexp = np.zeros((len(mean_XS_cyl_annulus[:, 0]), len(list_rho_R_exp)))
 
 for i, r_exp in enumerate(list(list_rho_R_exp)):
     dlnrho_dlnR = (-mean_XS_cyl_annulus[:, 0]) / r_exp
+    # power law: 
+    #dlnrho_dlnR = (-8.) * np.ones_like(mean_XS_cyl_annulus[:, 0])
     HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
     vc_ann_r = np.sqrt(vtilde_annulus[:, 1, 1] - HWRnumber * vtilde_annulus[:, 0, 0])
     vc_vpp[:, i] = vc_ann_r - np.sqrt(vtilde_annulus[:, 1, 1])
@@ -617,9 +652,9 @@ for i, r_exp in enumerate(list(list_rho_R_exp)):
 
 # velocity tensor!
 vtilde = vvT_cyl - error_var_XS_cyl 
-#for i in range(3):
-#    vtilde[:, :, i, i] = np.clip(vtilde[:, :, i, i], 0., np.Inf) # uncomment??
 dlnrho_dlnR = (-mean_XS_cyl[:, :, 0]) / rho_R_exp
+# power law: 
+#dlnrho_dlnR = (-8.) * np.ones_like(mean_XS_cyl[:, :, 0])
 dlnvR2_dlnR = (-mean_XS_cyl[:, :, 0]) / vrr_R_exp
 HWRnumber = 1 + dlnrho_dlnR + dlnvR2_dlnR
 vc = np.sqrt(vtilde[:, :, 1, 1] - HWRnumber * vtilde[:, :, 0, 0])          
@@ -711,8 +746,8 @@ gs = gridspec.GridSpec(2, 3, height_ratios = (3, 1))
 gs.update(wspace=0.25, hspace = 0.05)
 ax0 = plt.subplot(gs[:, 0])
 ax1 = plt.subplot(gs[:, 1])
-ax2 = plt.subplot(gs[0, 2])
-ax3 = plt.subplot(gs[1, 2])       
+ax2 = plt.subplot(gs[:, 2])
+#ax3 = plt.subplot(gs[1, 2])       
 #ax2.scatter(bins_dr[:idx5], vc_annulus[:idx5], facecolors='none', edgecolors='#3778bf', zorder = 20)
 ax2.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 4, capsize=3, mfc='k', mec='k', ecolor = 'k', zorder = 30)
 #ax0.scatter(bins_dr[:idx5], np.sqrt(vtilde_annulus[:idx5, 0, 0]), facecolors='none', edgecolors='#3778bf', zorder = 20)
@@ -730,42 +765,87 @@ ax1.scatter(mean_XS_cyl_n[cut_z_wedge, 0], np.sqrt(vtilde_n[cut_z_wedge, 1, 1]),
 #ax2.scatter(mean_XS_cyl_n[cut_z_wedge, 0], vc_n[cut_z_wedge], c = '#929591', s = 15, alpha = .05, zorder = -np.inf, rasterized = True)
 ax0.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax1.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax2.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on', labelbottom = 'off')
-ax3.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax2.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on') #, labelbottom = 'off')
+#ax3.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 ax0.plot(plot_R, exp_fit(theta_fit, plot_R), color = '#feb308', linestyle='--', zorder = 40, label = r'$\sqrt{{V_{{RR}}}}(R)\propto \exp\left(-\frac{{R}}{{{1}\,\rm kpc}}\right)$'.format(round(theta_fit[0], 2), int(round(theta_fit[1])))) #'#c44240'
 ax0.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 ax1.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
-ax3.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+ax2.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
 ax2.set_ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
 ax0.set_ylabel(r'$\sqrt{V_{RR}}~ \rm [km\,s^{-1}]$', fontsize = fsize)
 ax1.set_ylabel(r'$\sqrt{V_{\varphi\varphi}} ~\rm [km\,s^{-1}]$', fontsize = fsize)
 #ax3.scatter(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), facecolors='#3778bf', edgecolors='#3778bf', zorder = 30, alpha = .8)
 # with errorbars
-ax3.errorbar(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), yerr = [np.array(vc_vpp[idx5:, 0]), np.array(vc_vpp[idx5:, 1])], fmt = 'o', markersize = 4, capsize=3, mfc='k', mec='k', ecolor = 'k', zorder = 30)
-ax3.set_ylabel(r'$v_{\rm c} - \sqrt{V_{\varphi\varphi}}$', fontsize = fsize) 
+#ax3.errorbar(bins_dr[idx5:], vc_annulus[idx5:] - np.sqrt(vtilde_annulus[idx5:, 1, 1]), yerr = [np.array(vc_vpp[idx5:, 0]), np.array(vc_vpp[idx5:, 1])], fmt = 'o', markersize = 4, capsize=3, mfc='k', mec='k', ecolor = 'k', zorder = 30)
+#ax3.set_ylabel(r'$v_{\rm c} - \sqrt{V_{\varphi\varphi}}$', fontsize = fsize) 
 ax0.set_ylim(0, 325)
 ax1.set_ylim(0, 325)
-ax2.set_ylim(120, 250)
+ax2.set_ylim(140, 250)
 ax0.set_xlim(0, 25.2)
 ax1.set_xlim(0, 25.2)
 ax2.set_xlim(0, 25.2)
-ax3.set_xlim(0, 25.2)
+#ax3.set_xlim(0, 25.2)
 ax0.set_xticks([0, 5, 10, 15, 20, 25])
 ax1.set_xticks([0, 5, 10, 15, 20, 25])
 ax2.set_xticks([0, 5, 10, 15, 20, 25])
-ax3.set_xticks([0, 5, 10, 15, 20, 25])
+#ax3.set_xticks([0, 5, 10, 15, 20, 25])
 ax0.legend(fontsize = 16, frameon = True)
-plt.savefig('paper_rotation_curve/radial_profile_sub.pdf', bbox_inches = 'tight', pad_inches=.2)
-
+plt.savefig('paper_rotation_curve/radial_profile.pdf', bbox_inches = 'tight', pad_inches=.2)
+plt.close()
 
 # -------------------------------------------------------------------------------'''
 # systematics
-# -------------------------------------------------------------------------------        
+# ------------------------------------------------------------------------------- 
+
+f = open('data/rot_curve.txt', 'r')
+vc = np.loadtxt(f)
+f.close()
+f = open('data/rot_curve_pl_a27.txt', 'r')
+vc_pl_a27 = np.loadtxt(f)
+f.close()
+f = open('data/rot_curve_pl_a2.txt', 'r')
+vc_pl_a2 = np.loadtxt(f)
+f.close()
+f = open('data/rot_curve_pl_a3.txt', 'r')
+vc_pl_a3 = np.loadtxt(f)
+f.close()
+f = open('data/rot_curve_pl_a4.txt', 'r')
+vc_pl_a4 = np.loadtxt(f)
+f.close()
+#f = open('data/rot_curve_pl_a8.txt', 'r')
+#vc_pl_a8 = np.loadtxt(f)
+#f.close()
+dvc_pl_a27 = abs(vc_pl_a27[1, idx5:] - vc_annulus[idx5:]) / vc_annulus[idx5:] 
 
 f = open('data/sys_vc_rexp.txt', 'r')
 vc_rexp = np.loadtxt(f)
 f.close()
 dvc_rexp = 0.5 * abs(vc_rexp[idx5:, 0] - vc_rexp[idx5:, 1]) / vc_annulus[idx5:]
+
+fig, ax = plt.subplots(figsize = (10, 6))
+ax.plot(bins_dr[idx5:], vc_pl_a2[1, idx5:], color = '#d9544d', linestyle = ':', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -2$')
+ax.plot(bins_dr[idx5:], vc_pl_a27[1, idx5:], color = '#d9544d', lw = 2, linestyle = '-', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -2.7$')
+ax.plot(bins_dr[idx5:], vc_pl_a3[1, idx5:], color = '#d9544d', linestyle = '-.', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -3$')
+ax.plot(bins_dr[idx5:], vc_pl_a4[1, idx5:], color = '#d9544d', linestyle = '--', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -4$')
+#ax.plot(bins_dr[idx5:], vc_pl_a8[1, idx5:], color = '#d9544d', linestyle = (0, (3,1,1,1,1,1)), label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -8$')
+#ax.plot(bins_dr[idx5:], vc_rexp[idx5:, 3], color = 'k', linestyle = '--', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -\frac{R}{0.8\rm\,kpc}$')
+#ax.plot(bins_dr[idx5:], vc_rexp[idx5:, 2], color = 'k', linestyle = (0, (3,1,1,1,1,1)), label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -\frac{R}{1\rm\,kpc}$')
+ax.plot(bins_dr[idx5:], vc_rexp[idx5:, 0], color = 'k', linestyle = ':', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -\frac{R}{2\rm\,kpc}$')
+ax.plot(bins_dr[idx5:], vc[1, idx5:], color = 'k', lw = 2, linestyle = '-', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -\frac{R}{3\rm\,kpc}$')
+ax.plot(bins_dr[idx5:], vc_rexp[idx5:, 1], color = 'k', linestyle = '-.', label = r'$\frac{\partial \ln \nu}{\partial\ln R} = -\frac{R}{4\rm\,kpc}$')
+ax.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+ax.set_ylabel(r'$v_c\,\rm\,[km\,s^{-1}]$', fontsize = fsize)
+ax.set_xlim(bins_dr[idx5], bins_dr[-1])
+ax.set_ylim(168, 242)
+plt.legend(fontsize = 16, frameon = True, ncol = 2, loc = 3)
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.savefig('paper_rotation_curve/systematics_power_law.pdf', bbox_inches = 'tight', pad_inches=.2)
+
+
+f = open('data/rot_curve_missing_term.txt', 'r')
+vc_miss = np.loadtxt(f)
+f.close()
+dvc_miss = abs(vc_miss[1, idx5:] - vc_annulus[idx5:]) / vc_annulus[idx5:]      
 
 f = open('data/rot_curve_part1.txt', 'r')
 vc_wed1 = np.loadtxt(f)
@@ -778,18 +858,7 @@ f.close()
 vc_wed2_int = interpol.interp1d(vc_wed2[0, :], vc_wed2[1, :], kind = 'linear') 
 vc_wed2_new = vc_wed2_int(bins_dr[idx5:])
 dvc_wedges = 0.5 * abs(vc_wed1_new - vc_wed2_new) / vc_annulus[idx5:]
-
-f = open('data/rot_curve_zminus.txt', 'r')
-vc_zm = np.loadtxt(f)
-f.close()
-vc_zm_int = interpol.interp1d(vc_zm[0, :], vc_zm[1, :], kind = 'linear') 
-vc_zm_new = vc_zm_int(bins_dr[idx5:])
-f = open('data/rot_curve_zplus.txt', 'r')
-vc_zp = np.loadtxt(f)
-f.close()
-vc_zp_int = interpol.interp1d(vc_zp[0, :], vc_zp[1, :], kind = 'linear') 
-vc_zp_new = vc_zp_int(bins_dr[idx5:])
-dvc_z = 0.5 * abs(vc_zm_new - vc_zp_new) / vc_annulus[idx5:]
+dvc_wedges[:7] = 0 # almost no stars in one wedge within solar radius
 
 f = open('data/rot_curve_R08091.txt', 'r')
 vc_Rm = np.loadtxt(f)
@@ -807,34 +876,37 @@ vc_mu_plus = np.loadtxt(f)
 f.close()
 dvc_mu = 0.5 * abs(vc_mu_minus[1][idx5:] - vc_mu_plus[1][idx5:]) / vc_annulus[idx5:]
 
-fig, ax = plt.subplots(figsize = (8, 6)) 
-ax.plot(bins_dr[idx5:], dvc_rexp, label = r'$R_{\rm exp} = 2\,{\rm or}\,4\,\rm kpc$')
-#ax.plot(bins_dr[idx5:], dvc_z, label = r'above and below the plane')
-ax.plot(bins_dr[idx5:], dvc_R0, label = r'$\pm 1 \sigma_{R_{\odot}} = \pm 31\,\rm pc$')
-ax.plot(bins_dr[idx5:], dvc_mu, label = r'$\pm 1 \sigma_{\mu_{\rm Sgr\,A^{\star}}}$')
-ax.plot(bins_dr[idx5:], dvc_wedges, label = r'two distinct wedges')
+sum_sys = np.sqrt(dvc_rexp**2 + dvc_R0**2 + dvc_mu**2 + dvc_wedges**2 + dvc_miss**2 + dvc_pl_a27**2)
+
+fig, ax = plt.subplots(figsize = (10, 6))
+ax.plot(bins_dr[idx5:], dvc_miss, '#d9544d', linestyle = ':', lw = 2, label = r'neglected $\frac{\partial\nu\langle v_Rv_z\rangle}{\partial z}$ term') 
+ax.plot(bins_dr[idx5:], dvc_rexp, '#feb308', linestyle = '-.', lw = 2, label = r'$\Delta R_{\rm exp} = \pm 1\,\rm kpc$') #  = 2\,{\rm or}\,4\,\rm kpc
+ax.plot(bins_dr[idx5:], dvc_R0, '#0504aa', linestyle = '--', lw = 2, label = r'$\Delta R_{\odot} = \pm 1\sigma$', zorder = 10) #31\,\rm pc$')
+ax.plot(bins_dr[idx5:], dvc_mu, '#A8A8A8', linestyle = '-', lw = 2, label = r'$\Delta \mu_{\rm Sgr\,A^{\star}} = \pm 1\sigma$')
+ax.plot(bins_dr[idx5:], dvc_wedges, '#40a368', linestyle = (0, (3,1,1,1,1,1)), lw = 2, label = r'splitting sample in $\varphi_{\rm GC}$')
+ax.plot(bins_dr[idx5:], dvc_pl_a27, '#b1d1fc', linestyle = (0, (5, 5)), lw = 2, label = r'exponential vs. power law profile') 
+ax.plot(bins_dr[idx5:], sum_sys, color = 'k', lw = 2, label = r'$\sqrt{\Sigma \sigma_{\rm sys,\,i}^2}$')
 ax.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
-ax.set_ylabel(r'$\sigma_{\rm\,sys}$', fontsize = fsize)
+ax.set_ylabel(r'$\Delta v_{\rm\,sys} /v_c$', fontsize = fsize)
 ax.set_xlim(bins_dr[idx5], bins_dr[-1])
-ax.set_ylim(0, 0.1)
+ax.set_ylim(0, 0.12)
 plt.legend(fontsize = 16, frameon = True)
 ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
 plt.savefig('paper_rotation_curve/systematics.pdf', bbox_inches = 'tight', pad_inches=.2)
 
-
-fig, ax = plt.subplots(figsize = (8, 6)) 
-ax.fill_between(bins_dr[idx5:], dvc_rexp, label = r'$R_{\rm exp} = 2\,{\rm or}\,4\,\rm kpc$')
-#ax.fill_between(bins_dr[idx5:], y1 = dvc_rexp+dvc_wedges+dvc_z, y2 = dvc_rexp+dvc_wedges, label = r'above and below the plane')
-ax.fill_between(bins_dr[idx5:], y1 = dvc_R0+dvc_rexp, y2 = dvc_rexp, label = r'$\pm 1 \sigma_{R_{\odot}} = \pm 31\,\rm pc$')
-ax.fill_between(bins_dr[idx5:], y1 = dvc_mu+dvc_R0+dvc_rexp, y2 = dvc_R0+dvc_rexp, label = r'$\pm 1 \sigma_{\mu_{\rm Sgr\,A^{\star}}}$')
-ax.fill_between(bins_dr[idx5:], y1 = dvc_mu+dvc_R0+dvc_rexp+dvc_wedges, y2 = dvc_mu+dvc_R0+dvc_rexp, label = r'two distinct wedges')
-ax.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
-ax.set_ylabel(r'$\sigma_{\rm\,sys}$', fontsize = fsize)
-ax.set_xlim(bins_dr[idx5], bins_dr[-1])
-ax.set_ylim(0, 0.2)
-plt.legend(fontsize = 16, frameon = True, loc = 2)
-ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-plt.savefig('paper_rotation_curve/systematics2.pdf', bbox_inches = 'tight', pad_inches=.2)
+#fig, ax = plt.subplots(figsize = (8, 6)) 
+#ax.fill_between(bins_dr[idx5:], dvc_rexp, label = r'$R_{\rm exp} = 2\,{\rm or}\,4\,\rm kpc$')
+##ax.fill_between(bins_dr[idx5:], y1 = dvc_rexp+dvc_wedges+dvc_z, y2 = dvc_rexp+dvc_wedges, label = r'above and below the plane')
+#ax.fill_between(bins_dr[idx5:], y1 = dvc_R0+dvc_rexp, y2 = dvc_rexp, label = r'$\pm 1 \sigma_{R_{\odot}} = \pm 31\,\rm pc$')
+#ax.fill_between(bins_dr[idx5:], y1 = dvc_mu+dvc_R0+dvc_rexp, y2 = dvc_R0+dvc_rexp, label = r'$\pm 1 \sigma_{\mu_{\rm Sgr\,A^{\star}}}$')
+#ax.fill_between(bins_dr[idx5:], y1 = dvc_mu+dvc_R0+dvc_rexp+dvc_wedges, y2 = dvc_mu+dvc_R0+dvc_rexp, label = r'two distinct wedges')
+#ax.set_xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+#ax.set_ylabel(r'$\sigma_{\rm\,sys}$', fontsize = fsize)
+#ax.set_xlim(bins_dr[idx5], bins_dr[-1])
+#ax.set_ylim(0, 0.2)
+#plt.legend(fontsize = 16, frameon = True, loc = 2)
+#ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+#plt.savefig('paper_rotation_curve/systematics2.pdf', bbox_inches = 'tight', pad_inches=.2)
 
 # -------------------------------------------------------------------------------'''
       
