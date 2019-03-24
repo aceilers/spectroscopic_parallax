@@ -22,7 +22,8 @@ import astropy.cosmology as cosmo
 import emcee
 import scipy
 import matplotlib.patches as patches
-
+import matplotlib.patheffects as path_effects
+from matplotlib.font_manager import FontProperties
 
 planck = cosmo.Planck13
 
@@ -372,9 +373,12 @@ ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor 
 handles, labels = ax.get_legend_handles_labels()
 hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
 lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
-plt.legend(hand, lab, frameon = True, fontsize = 13, ncol = 3, loc = 1)
+plt.errorbar(23.2, 20, yerr = b_lin * 0.05, fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300)
+ax.add_patch(patches.Rectangle((21.3, 5), 3.75, 63, facecolor = 'w', edgecolor = '#EFEFEF', alpha = .8, zorder = 30))        # (x,y), width, height       
+plt.text(21.5, 40, r'$5\%$ systematic' + '\n' + 'uncertainties:', fontsize = 14, zorder = 40) #, bbox=dict(facecolor='w', alpha=1))
+plt.legend(hand, lab, frameon = True, fontsize = 13.5, ncol = 3, loc = 1)
 plt.tight_layout()
-plt.savefig('paper_rotation_curve/rotation_curve_fit_paper_literature_part1.pdf', bbox_inches = 'tight')
+plt.savefig('paper_rotation_curve/rotation_curve_fit_paper_literature_errorbar.pdf', bbox_inches = 'tight')
 
 
 # -------------------------------------------------------------------------------
@@ -410,6 +414,183 @@ d_rho_local_d_a = -1.*rho_0 / (R_sun / a * (1 + R_sun / a)**2)**2 * (-1.*R_sun/a
 sigma_rho_local = np.sqrt(d_rho_local_d_rho_0**2 * sigma_rho_0**2 + d_rho_local_d_R_sun**2 * sigma_R_sun**2 + d_rho_local_d_a**2 * sigma_a**2)
 sigma_rho_local_energy = (sigma_rho_local * c**2).to(u.GeV / u.cm**3)
 print('{:e} pm {:e}'.format(rho_0, sigma_rho_0))
+
+# -------------------------------------------------------------------------------
+# plot webpage
+# -------------------------------------------------------------------------------
+
+np.random.seed(42)
+# LINES IN DARK GREY/BLACK!
+fig, ax = plt.subplots(1, 1, figsize = (9.3, 7.), sharex = True)        
+plt.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300, label = r'Eilers et al.\ 2018 (this work)')
+#plt.plot(xx1[0, idx5a:], xx1[1, idx5a:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+#plt.plot(xx2[0, idx5b:], xx2[1, idx5b:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+plt.ylim(0, 400) #310
+plt.xlim(0, 25.2)
+plt.xticks([0, 5, 10, 15, 20, 25])
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+plt.ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm c}}$: linear fit')
+plt.plot(R, vc_halo, '#feb308', label = r'halo: NFW-profile fit', zorder = 40)
+plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm c}$: all stellar components + halo')
+for i in range(draws):
+    d = np.random.choice(np.arange(len(samples_halo)))
+    vc_halo_i = vc_NFW_old(R, 0, samples_halo[d, 0], samples_halo[d, 1], rho_c)
+    vc_tot_i = np.sqrt(vc_halo_i**2 + vc_stars**2)
+    plt.plot(R, vc_halo_i, color = '#feb308', lw = .6, alpha = .3, zorder = 30)
+    plt.plot(R, vc_tot_i, color = '#d9544d', lw = .6, alpha = .3, zorder = 30)
+plt.plot(R, vc_bulge, '#A8A8A8', linestyle=':', label = r'bulge')
+plt.plot(R, vc_thin_disk, '#A8A8A8', linestyle = '-.', label = r'thin disk')
+plt.plot(R, vc_thick_disk, '#A8A8A8', linestyle = '--', label = r'thick disk')
+plt.plot(R, vc_stars, '#A8A8A8', label = r'all stellar components')
+# literature        
+plt.errorbar(huang['R'], huang['V_c'], yerr = huang['sigma_Vc'], fmt = 'v', markersize = 8, capsize=4, mfc='w', mec='#929591', ecolor = '#929591', zorder = 0, label = r'Huang et al.\ 2016')
+plt.errorbar(kafle['col1'], kafle['col2'], yerr = kafle['col3'], fmt = 'D', markersize = 6, capsize=4, mfc='w', mec='#5e819d', ecolor = '#5e819d', zorder = 0, label = r'Kafle et al.\ 2012')
+plt.errorbar(lopez['col1'], lopez['col2'], yerr = lopez['col3'], fmt = 'p', markersize = 6, capsize=4, mfc='w', mec='#82a67d', ecolor = '#82a67d', zorder = 0, label = r'Lopez-Corredoira et al.\ 2014')
+ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor = '#EFEFEF', alpha = .8, zorder = -1000))        # (x,y), width, height       
+handles, labels = ax.get_legend_handles_labels()
+hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
+lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
+plt.errorbar(X_GC_sun_kpc, b_lin, yerr = b_lin * 0.03, markersize = 8, capsize=5, elinewidth=4, capthick = 4, mfc='w', mec='w', ecolor = 'w', zorder = 2000)
+plt.errorbar(X_GC_sun_kpc, b_lin, yerr = b_lin * 0.03, markersize = 8, capsize=4, elinewidth=2, capthick = 2, mfc='#047495', mec='#047495', ecolor = '#047495', zorder = 3000)
+text = ax.text(X_GC_sun_kpc-2.5, b_lin - 13, r'\textbf{systematic\,\,error}', fontsize = 15, zorder = 40, color = '#047495', ha='center', va='center') #, bbox=dict(facecolor='w', edgecolor='none', alpha=.5)) #, fontproperties=font, fontweight = 10
+text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='white'),
+                       path_effects.Normal()])
+plt.legend(hand, lab, frameon = True, fontsize = 13.5, ncol = 3, loc = 1)
+plt.tight_layout()
+plt.savefig('paper_rotation_curve/rotation_curve_fit_paper_literature_errorbar4.pdf', bbox_inches = 'tight')
+
+
+# -------------------------------------------------------------------------------
+# plot proposal
+# -------------------------------------------------------------------------------
+
+matplotlib.rcParams['ytick.labelsize'] = 20
+matplotlib.rcParams['xtick.labelsize'] = 20
+matplotlib.rc('text', usetex=True)
+fsize = 20
+
+np.random.seed(42)
+# LINES IN DARK GREY/BLACK!
+fig, ax = plt.subplots(1, 1, figsize = (9.3, 6.2), sharex = True)        
+plt.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300, label = r'Eilers et al.\ 2018 (this work)')
+#plt.plot(xx1[0, idx5a:], xx1[1, idx5a:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+#plt.plot(xx2[0, idx5b:], xx2[1, idx5b:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+plt.ylim(0, 400) #310
+plt.xlim(0, 25.2)
+plt.xticks([0, 5, 10, 15, 20, 25])
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlabel(r'${\rm Galactocentric\,\,radius}\,\,R\,\rm [kpc]$', fontsize = fsize)
+plt.ylabel(r'${\rm circular\,\,velocity}\,\,v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm c}}$: linear fit')
+plt.plot(R, vc_halo, '#feb308', label = r'halo: NFW-profile fit', zorder = 40)
+plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm c}$: all stellar components + halo')
+for i in range(draws):
+    d = np.random.choice(np.arange(len(samples_halo)))
+    vc_halo_i = vc_NFW_old(R, 0, samples_halo[d, 0], samples_halo[d, 1], rho_c)
+    vc_tot_i = np.sqrt(vc_halo_i**2 + vc_stars**2)
+    plt.plot(R, vc_halo_i, color = '#feb308', lw = .6, alpha = .3, zorder = 30)
+    plt.plot(R, vc_tot_i, color = '#d9544d', lw = .6, alpha = .3, zorder = 30)
+plt.plot(R, vc_bulge, '#A8A8A8', linestyle=':', label = r'bulge')
+plt.plot(R, vc_thin_disk, '#A8A8A8', linestyle = '-.', label = r'thin disk')
+plt.plot(R, vc_thick_disk, '#A8A8A8', linestyle = '--', label = r'thick disk')
+plt.plot(R, vc_stars, '#A8A8A8', label = r'all stellar components')
+# literature        
+plt.errorbar(huang['R'], huang['V_c'], yerr = huang['sigma_Vc'], fmt = 'v', markersize = 8, capsize=4, mfc='w', mec='#929591', ecolor = '#929591', zorder = 0, label = r'Huang et al.\ 2016')
+plt.errorbar(kafle['col1'], kafle['col2'], yerr = kafle['col3'], fmt = 'D', markersize = 6, capsize=4, mfc='w', mec='#5e819d', ecolor = '#5e819d', zorder = 0, label = r'Kafle et al.\ 2012')
+plt.errorbar(lopez['col1'], lopez['col2'], yerr = lopez['col3'], fmt = 'p', markersize = 6, capsize=4, mfc='w', mec='#82a67d', ecolor = '#82a67d', zorder = 0, label = r'Lopez-Corredoira et al.\ 2014')
+ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor = '#EFEFEF', alpha = .8, zorder = -1000))        # (x,y), width, height       
+handles, labels = ax.get_legend_handles_labels()
+hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
+lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
+plt.legend(hand, lab, frameon = True, fontsize = 13.5, ncol = 3, loc = 1)
+plt.tight_layout()
+plt.savefig('../applications/proposal_mw/vrot.pdf', bbox_inches = 'tight')
+
+# -------------------------------------------------------------------------------
+# plot webpage
+# -------------------------------------------------------------------------------
+
+'''fsize = 20
+fig, ax = plt.subplots(1, 1, figsize = (6, 5), sharex = True)        
+plt.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300, label = r'Eilers et al.\ 2018 (this work)')
+#plt.plot(xx1[0, idx5a:], xx1[1, idx5a:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+#plt.plot(xx2[0, idx5b:], xx2[1, idx5b:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+plt.ylim(0, 260) #310
+plt.xlim(0, 25.2)
+plt.xticks([0, 5, 10, 15, 20, 25])
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlabel(r'$R\,\rm [kpc]$', fontsize = fsize)
+plt.ylabel(r'$v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm c}}$: linear fit')
+plt.plot(R, vc_halo, '#feb308', label = r'halo: NFW-profile fit', zorder = 40)
+plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm c}$: all stellar components + halo')
+for i in range(draws):
+    d = np.random.choice(np.arange(len(samples_halo)))
+    vc_halo_i = vc_NFW_old(R, 0, samples_halo[d, 0], samples_halo[d, 1], rho_c)
+    vc_tot_i = np.sqrt(vc_halo_i**2 + vc_stars**2)
+    plt.plot(R, vc_halo_i, color = '#feb308', lw = .6, alpha = .3, zorder = 30)
+    plt.plot(R, vc_tot_i, color = '#d9544d', lw = .6, alpha = .3, zorder = 30)
+plt.plot(R, vc_bulge, '#A8A8A8', linestyle=':', label = r'bulge')
+plt.plot(R, vc_thin_disk, '#A8A8A8', linestyle = '-.', label = r'thin disk')
+plt.plot(R, vc_thick_disk, '#A8A8A8', linestyle = '--', label = r'thick disk')
+plt.plot(R, vc_stars, '#A8A8A8', label = r'all stellar components')
+# literature        
+#plt.errorbar(huang['R'], huang['V_c'], yerr = huang['sigma_Vc'], fmt = 'v', markersize = 8, capsize=4, mfc='w', mec='#929591', ecolor = '#929591', zorder = 0, label = r'Huang et al.\ 2016')
+#plt.errorbar(kafle['col1'], kafle['col2'], yerr = kafle['col3'], fmt = 'D', markersize = 6, capsize=4, mfc='w', mec='#5e819d', ecolor = '#5e819d', zorder = 0, label = r'Kafle et al.\ 2012')
+#plt.errorbar(lopez['col1'], lopez['col2'], yerr = lopez['col3'], fmt = 'p', markersize = 6, capsize=4, mfc='w', mec='#82a67d', ecolor = '#82a67d', zorder = 0, label = r'Lopez-Corredoira et al.\ 2014')
+#ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor = '#EFEFEF', alpha = .8, zorder = -1000))        # (x,y), width, height       
+#handles, labels = ax.get_legend_handles_labels()
+#hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
+#lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
+#plt.legend(hand, lab, frameon = True, fontsize = 13, ncol = 3, loc = 1)
+plt.tight_layout()
+plt.savefig('../webpage/webpage_new/rotation_curve.jpg', bbox_inches = 'tight')
+
+# -------------------------------------------------------------------------------
+# plot applications
+# -------------------------------------------------------------------------------
+
+fsize = 22
+matplotlib.rcParams['ytick.labelsize'] = fsize
+matplotlib.rcParams['xtick.labelsize'] = fsize
+fig, ax = plt.subplots(1, 1, figsize = (9.3, 7.6), sharex = True)        
+plt.errorbar(bins_dr[idx5:], vc_annulus[idx5:], yerr = [vc_annulus_err_m[idx5:], vc_annulus_err_p[idx5:]], fmt = 'o', markersize = 8, capsize=4, mfc='k', mec='k', ecolor = 'k', zorder = 300, label = r'Eilers et al.\ 2018 (this work)')
+#plt.plot(xx1[0, idx5a:], xx1[1, idx5a:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+#plt.plot(xx2[0, idx5b:], xx2[1, idx5b:], 'o', markersize = 8, zorder = -300, color = '#D7D7D7')
+plt.ylim(0, 400) #310
+plt.xlim(0, 25.2)
+plt.xticks([0, 5, 10, 15, 20, 25])
+plt.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlabel(r'${\rm Galactic~radius~} R\,\rm [kpc]$', fontsize = fsize)
+plt.ylabel(r'${\rm circular~velocity~} v_{\rm c}~\rm [km\,s^{-1}]$', fontsize = fsize)
+plt.plot(R, linear_fit([m_lin, b_lin], R, X_GC_sun_kpc), linestyle = ':', lw = 2, zorder = 20, color = '#0F1E66', label=r'$v_{{\rm c}}$: linear fit')
+plt.plot(R, vc_halo, '#feb308', label = r'halo: NFW-profile fit', zorder = 40)
+plt.plot(R, vc_tot, '#d9544d', zorder = 100, label=r'$v_{\rm c}$: all stellar components + halo')
+for i in range(draws):
+    d = np.random.choice(np.arange(len(samples_halo)))
+    vc_halo_i = vc_NFW_old(R, 0, samples_halo[d, 0], samples_halo[d, 1], rho_c)
+    vc_tot_i = np.sqrt(vc_halo_i**2 + vc_stars**2)
+    plt.plot(R, vc_halo_i, color = '#feb308', lw = .6, alpha = .3, zorder = 30)
+    plt.plot(R, vc_tot_i, color = '#d9544d', lw = .6, alpha = .3, zorder = 30)
+plt.plot(R, vc_bulge, '#A8A8A8', linestyle=':', label = r'bulge')
+plt.plot(R, vc_thin_disk, '#A8A8A8', linestyle = '-.', label = r'thin disk')
+plt.plot(R, vc_thick_disk, '#A8A8A8', linestyle = '--', label = r'thick disk')
+plt.plot(R, vc_stars, '#A8A8A8', label = r'all stellar components')
+# literature        
+plt.errorbar(huang['R'], huang['V_c'], yerr = huang['sigma_Vc'], fmt = 'v', markersize = 8, capsize=4, mfc='w', mec='#929591', ecolor = '#929591', zorder = 0, label = r'Huang et al.\ 2016')
+plt.errorbar(kafle['col1'], kafle['col2'], yerr = kafle['col3'], fmt = 'D', markersize = 6, capsize=4, mfc='w', mec='#5e819d', ecolor = '#5e819d', zorder = 0, label = r'Kafle et al.\ 2012')
+plt.errorbar(lopez['col1'], lopez['col2'], yerr = lopez['col3'], fmt = 'p', markersize = 6, capsize=4, mfc='w', mec='#82a67d', ecolor = '#82a67d', zorder = 0, label = r'Lopez-Corredoira et al.\ 2014')
+ax.add_patch(patches.Rectangle((0, 0), 5, 400, facecolor = '#EFEFEF', edgecolor = '#EFEFEF', alpha = .8, zorder = -1000))        # (x,y), width, height       
+handles, labels = ax.get_legend_handles_labels()
+hand = [handles[7], handles[8], handles[10], handles[9], handles[0], handles[2], handles[1], handles[6], handles[3], handles[4], handles[5]]
+lab = [labels[7], labels[8], labels[10], labels[9], labels[0], labels[2], labels[1], labels[6], labels[3], labels[4], labels[5]]
+plt.legend(hand, lab, frameon = True, fontsize = 13.5, ncol = 3, loc = 1)
+plt.tight_layout()
+plt.savefig('../applications/Hubble/rotation_curve.pdf', bbox_inches = 'tight')
+
+
 
 # -------------------------------------------------------------------------------
 # old plots

@@ -390,12 +390,12 @@ plt.ylabel(r'$\log g$', fontsize = 14)
 plt.savefig('plots/open_clusters/m71_new.pdf')
 
 
-cluster_list = ['M67', 'M71', 'M107', 'NGC2862']
+cluster_list = ['NGC2862', 'M71', 'M107', 'M67']
 
-fig, ax = plt.subplots(4, 1, figsize = (9, 9), sharex = True, sharey = True)
+fig, ax = plt.subplots(3, 1, figsize = (9, 7), sharex = True, sharey = True)
 plt.subplots_adjust(wspace = 0.02, hspace = 0.02)
 c, r = 0, 0
-for i in range(4):
+for i in range(3):
     hdu = fits.open('plots/open_clusters/{}members'.format(cluster_list[i]))
     mem = Table(hdu[1].data)
 
