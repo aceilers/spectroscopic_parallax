@@ -14,7 +14,7 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 import pickle
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
             
 # -------------------------------------------------------------------------------
 # download APOGEE catalogue
@@ -50,8 +50,9 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
     no_data = []
     no_data_i = np.ones((len(file_spectra),), dtype = bool)
     for entry, destination_i in zip(file_spectra, destinations):
+        #entry = entry.replace('t9', 'r10')
         print(i)
-        destination = './data/spectra/' + str(destination_i) + '/'
+        destination = './data/spectra/' #+ str(destination_i).strip() + '/'
         try:
             hdulist = fits.open(destination + entry.strip())
             if len(hdulist[1].data) < 8575: 
@@ -71,7 +72,7 @@ def LoadAndNormalizeData(file_spectra, file_name, destinations, pca = False, X_m
             all_flux[i] = flux
             all_sigma[i] = sigma
         except:
-            entry = entry.replace('apStar-r8', 'aspcapStar-r8-l31c.2')
+            entry = entry.replace('apStar-t9', 'aspcapStar-t9-l31c.2')
             try:
                 hdulist = fits.open(destination + entry.strip())
                 if len(hdulist[1].data) < 8575: 

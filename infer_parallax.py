@@ -139,80 +139,91 @@ if prediction:
     # split into training and validation set
     y_pred_all = np.zeros_like(y_all)
     y_pred_all_err = np.zeros_like(y_all)
+    
+    # for referee
+    for run in range(1, 5):
+        np.random.seed(run)
+        random_vector = np.random.choice(2, (len(labels),))
+        try:
+            labels.remove_column('spec_parallax')
+            labels.remove_column('spec_parallax_err')
+        except (KeyError):
+            pass
         
-    for k in range(Kfold):    
-        
-        valid = labels['random_index'] % Kfold == k
-        train = np.logical_not(valid)
-        print('k = {0}: # of stars for prediction: {1}'.format(k, sum(valid)))
-        print('k = {0}: # of remaining of stars: {1}'.format(k, sum(train)))
+        for k in range(Kfold):    
             
-        # -------------------------------------------------------------------------------
-        # additional quality cuts for training set
-        # -------------------------------------------------------------------------------
+            #valid = labels['random_index'] % Kfold == k
+            valid = random_vector == k
+            train = np.logical_not(valid)
+            print('k = {0}: # of stars for prediction: {1}'.format(k, sum(valid)))
+            print('k = {0}: # of remaining of stars: {1}'.format(k, sum(train)))
+                
+            # -------------------------------------------------------------------------------
+            # additional quality cuts for training set
+            # -------------------------------------------------------------------------------
+            
+            print('more quality cuts for training sample...')
+            
+            # finite parallax required for training
+            cut_parallax = np.isfinite(labels[train]['parallax'])
+            
+            # visibility periods used
+            cut_vis = labels[train]['visibility_periods_used'] >= 8
+            
+            # cut in parallax_error
+            cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
+            cut_burnin = labels[train]['parallax_over_error'] > 20.
+            
+            # cut in astrometric_gof_al (should be around unity...?) *Daniel Michalik's advice*
+            #cut_gof = labels[train]['astrometric_gof_al'] < 5  
+            # Coryn's advice!
+            cut_cal = (labels[train]['astrometric_chi2_al'] / np.sqrt(labels[train]['astrometric_n_good_obs_al']-5)) <= 35         
+            
+            # more cuts? e.g. astrometric_gof_al should be low!
+            
+            foo, M = A_all.shape
+            x0 = np.zeros((M,)) + 0.001/M 
+            x_new = None
+            for opt_step in range(steps):   
+                if opt_step == 0:
+                    cut_all = cut_parallax * cut_vis * cut_par * cut_cal * cut_burnin
+                else:
+                    cut_all = cut_parallax * cut_vis * cut_par * cut_cal
+                    x0 = x_new
+            
+                y = y_all[train][cut_all]
+                ivar = ivar_all[train][cut_all]
+                A = A_all[train, :][cut_all, :]
         
-        print('more quality cuts for training sample...')
-        
-        # finite parallax required for training
-        cut_parallax = np.isfinite(labels[train]['parallax'])
-        
-        # visibility periods used
-        cut_vis = labels[train]['visibility_periods_used'] >= 8
-        
-        # cut in parallax_error
-        cut_par = labels[train]['parallax_error'] < 0.1       # this cut is not strictly required!
-        cut_burnin = labels[train]['parallax_over_error'] > 20.
-        
-        # cut in astrometric_gof_al (should be around unity...?) *Daniel Michalik's advice*
-        #cut_gof = labels[train]['astrometric_gof_al'] < 5  
-        # Coryn's advice!
-        cut_cal = (labels[train]['astrometric_chi2_al'] / np.sqrt(labels[train]['astrometric_n_good_obs_al']-5)) <= 35         
-        
-        # more cuts? e.g. astrometric_gof_al should be low!
-        
-        foo, M = A_all.shape
-        x0 = np.zeros((M,)) + 0.001/M 
-        x_new = None
-        for opt_step in range(steps):   
-            if opt_step == 0:
-                cut_all = cut_parallax * cut_vis * cut_par * cut_cal * cut_burnin
-            else:
-                cut_all = cut_parallax * cut_vis * cut_par * cut_cal
-                x0 = x_new
-        
-            y = y_all[train][cut_all]
-            ivar = ivar_all[train][cut_all]
-            A = A_all[train, :][cut_all, :]
+                print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
+                             
+                # optimize H_func
+                print('{} optimization...'.format(k+1))
+                res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
+                print(res)   
+                x_new = res.x  
+                assert res.success
+                                   
+            # prediction
+            y_pred = np.exp(np.dot(A_all[valid, :], x_new))
+            y_pred_err = y_pred * np.sqrt(np.dot(A_all_err[valid, :] ** 2, x_new ** 2)) # Hogg made this up
     
-            print('k = {0}: # of stars in training set: {1}'.format(k, len(y)))    
-                         
-            # optimize H_func
-            print('{} optimization...'.format(k+1))
-            res = op.minimize(H_func, x0, args=(y, A, lams, ivar), method='L-BFGS-B', jac=True, options={'maxfun':50000}) 
-            print(res)   
-            x_new = res.x  
-            assert res.success
-                               
-        # prediction
-        y_pred = np.exp(np.dot(A_all[valid, :], x_new))
-        y_pred_err = y_pred * np.sqrt(np.dot(A_all_err[valid, :] ** 2, x_new ** 2)) # Hogg made this up
-
-        y_pred_all[valid] = y_pred
-        y_pred_all_err[valid] = y_pred_err
-        
-        plt.scatter(labels[valid]['parallax'], y_pred, alpha = .1)
-        plt.xlim(-1, 3)
-        plt.ylim(-1, 3)
-                                           
-        f = open('optimization/opt_results_{0}_{1}.pickle'.format(k, name), 'wb')
-        pickle.dump(res, f)
-        f.close()   
+            y_pred_all[valid] = y_pred
+            y_pred_all_err[valid] = y_pred_err
+            
+            plt.scatter(labels[valid]['parallax'], y_pred, alpha = .1)
+            plt.xlim(-1, 3)
+            plt.ylim(-1, 3)
+                                               
+            f = open('optimization/opt_results_{0}_{1}_run{2}.pickle'.format(k, name, run), 'wb')
+            pickle.dump(res, f)
+            f.close()   
     
-    spec_parallax = y_pred_all
-    spec_parallax_err = y_pred_all_err
-    labels.add_column(spec_parallax, name='spec_parallax')
-    labels.add_column(spec_parallax_err, name='spec_parallax_err')
-    Table.write(labels, 'data/training_labels_new_{}.fits'.format(name), format = 'fits', overwrite = True)
+        spec_parallax = y_pred_all
+        spec_parallax_err = y_pred_all_err
+        labels.add_column(spec_parallax, name='spec_parallax')
+        labels.add_column(spec_parallax_err, name='spec_parallax_err')
+        Table.write(labels, 'data/training_labels_new_{0}_run{1}.fits'.format(name, run), format = 'fits', overwrite = True)
     
 # -------------------------------------------------------------------------------
 # plots 
@@ -504,7 +515,7 @@ if not prediction:
 # distance to one star 2MASS J05215658+4359220 (Todd Thompson)                    
 # -------------------------------------------------------------------------------
 
-hdu = fits.open('data/all_flux_sig_norm_parent.fits')
+'''hdu = fits.open('data/all_flux_sig_norm_parent.fits')
 fluxes = hdu[0].data[:, :, 0]
 gaps = (np.sum(fluxes.T, axis = 0)) == float(fluxes.T.shape[0])
 
@@ -547,6 +558,7 @@ print(y_pred, y_pred_err)
 distance = (y_pred * u.mas).to(u.parsec, equivalencies = u.parallax())
 print(distance)
 
+# -------------------------------------------------------------------------------'''
 
 
 

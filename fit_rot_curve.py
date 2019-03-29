@@ -509,6 +509,28 @@ plt.tight_layout()
 plt.savefig('../applications/proposal_mw/vrot.pdf', bbox_inches = 'tight')
 
 # -------------------------------------------------------------------------------
+# plot talk
+# -------------------------------------------------------------------------------
+
+matplotlib.rc('axes',edgecolor='white')
+#colors = ["carolina blue", "amber", "greyish", "faded green", "dusty purple", "pale red", "orange"]
+#colors = sns.xkcd_palette(colors)
+
+R = np.linspace(0, 30, 1000)
+vc_bulge = vc_plummer(R, 0.5, 460*3e7)
+vc_halo = vc_NFW_old(R, 0, 2e12, 15.8, rho_c)
+vc_tot = np.sqrt(vc_bulge**2 + vc_halo**2)
+plt.plot(R, vc_bulge, '#feb308', lw = 3) #'#A8A8A8')
+plt.plot(R, vc_halo, '#d8dcd6', lw = 3, zorder = 40)
+#plt.plot(R, vc_tot, '#d9544d', lw = 3, zorder = 100)
+plt.xlim(-1, 30)
+plt.ylim(0, 250)
+plt.xlabel(r'$R~\rm [kpc]$', fontsize = 18, color = 'white')
+plt.ylabel(r'$v_{\rm c}~\rm [km/s]$', fontsize = 18, color = 'white')
+plt.tick_params(axis=u'both', direction='in', which='both', bottom = 'off', left = 'off', labelbottom = 'off', labelleft = 'off')
+plt.savefig('../talks_meetings/Galaxy_Coffee/Feb2019/vc2.pdf', transparent = True)
+
+# -------------------------------------------------------------------------------
 # plot webpage
 # -------------------------------------------------------------------------------
 

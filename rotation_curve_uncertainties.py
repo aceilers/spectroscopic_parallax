@@ -41,10 +41,10 @@ fsize = 18
 # open inferred labels
 # -------------------------------------------------------------------------------
 
-N = 44784
+N = 66692 #44784
 Kfold = 2
 lam = 30
-name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax'.format(N, lam, Kfold)
+name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax_apogeedr15'.format(N, lam, Kfold)
 
 print('loading new labels...')   
 labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
@@ -109,7 +109,7 @@ np.random.seed(42)
 # -------------------------------------------------------------------------------
 # HRD plot
 # -------------------------------------------------------------------------------           
-#
+
 #distance = (labels['spec_parallax'] * u.mas).to(u.parsec, equivalencies = u.parallax())
 #MG = labels['phot_g_mean_mag'] - 5. * np.log10(distance.value) + 5
 #sn = 10
@@ -508,35 +508,35 @@ for i, (r_start, r_end) in enumerate(zip(bin_start, bin_end)):
 # Figure 7 for HER18
 # -------------------------------------------------------------------------------           
 
-#cut_feh = abs(labels['FE_H']) < 10
-#cuts = cut_z * cut_feh * cut_vz
-#fig, ax = plt.subplots(1, 1, figsize = (8, 8))
-#sc = plt.quiver(XS_cart_true_n[cuts, 0], XS_cart_true_n[cuts, 1], XS_cart_true_n[cuts, 3], XS_cart_true_n[cuts, 4], 
-#           np.clip(labels['FE_H'][cuts], -.7, .7), cmap = 'RdBu_r', scale_units='xy', 
-#           scale=200, alpha =.8, headwidth = 3, headlength = 5, width = 0.0015, rasterized = True)
-##cb = plt.colorbar(shrink = .8)
-##cb.set_label(r'$v_z$', fontsize = 15)
-#plt.xlim(-25, 5)
-#plt.ylim(-10, 20)
-#overplot_rings()
-#overplot_rings_helio()
-#plt.tick_params(axis=u'both', direction='in', which='both')
-#plt.xlabel('$x$ [kpc]', fontsize = fsize)
-#plt.ylabel('$y$ [kpc]', fontsize = fsize)
-#ax.set_aspect('equal')
-#fig.subplots_adjust(right = 0.8)
-#cbar_ax = fig.add_axes([1, 0.08, 0.03, .86])
-#cb = fig.colorbar(sc, cax=cbar_ax)
-#cb.set_label(r'[Fe/H]', fontsize = fsize)
-#plt.tight_layout()
-#plt.savefig('paper/map.pdf', bbox_inches = 'tight', pad_inches=.2, dpi=250)
-#plt.close()
-        
-# -------------------------------------------------------------------------------
+cut_feh = abs(labels['FE_H']) < 10
+cuts = cut_z * cut_feh * cut_vz
+fig, ax = plt.subplots(1, 1, figsize = (8, 8))
+sc = plt.quiver(XS_cart_true_n[cuts, 0], XS_cart_true_n[cuts, 1], XS_cart_true_n[cuts, 3], XS_cart_true_n[cuts, 4], 
+           np.clip(labels['FE_H'][cuts], -.7, .7), cmap = 'RdBu_r', scale_units='xy', 
+           scale=200, alpha =.8, headwidth = 3, headlength = 5, width = 0.0015, rasterized = True)
+#cb = plt.colorbar(shrink = .8)
+#cb.set_label(r'$v_z$', fontsize = 15)
+plt.xlim(-25, 5)
+plt.ylim(-10, 20)
+overplot_rings()
+overplot_rings_helio()
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel('$x$ [kpc]', fontsize = fsize)
+plt.ylabel('$y$ [kpc]', fontsize = fsize)
+ax.set_aspect('equal')
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.08, 0.03, .86])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'[Fe/H]', fontsize = fsize)
+plt.tight_layout()
+plt.savefig('paper/map_dr15.pdf', bbox_inches = 'tight', pad_inches=.2, dpi=250)
+plt.close()
+    
+# -------------------------------------------------------------------------------'''
 # fit dlnvRR/dlnR
 # -------------------------------------------------------------------------------
 
-bins_dr = mean_XS_cyl_annulus[:, 0]
+'''bins_dr = mean_XS_cyl_annulus[:, 0]
 idx5 = sum(bins_dr < 5)
 vtilde_annulus = vvT_cyl_annulus - error_var_XS_cyl_annulus
 
@@ -793,7 +793,7 @@ ax0.legend(fontsize = 16, frameon = True)
 plt.savefig('paper_rotation_curve/radial_profile.pdf', bbox_inches = 'tight', pad_inches=.2)
 plt.close()
 
-# -------------------------------------------------------------------------------'''
+# -------------------------------------------------------------------------------
 # systematics
 # ------------------------------------------------------------------------------- 
 
@@ -909,4 +909,80 @@ plt.savefig('paper_rotation_curve/systematics.pdf', bbox_inches = 'tight', pad_i
 #plt.savefig('paper_rotation_curve/systematics2.pdf', bbox_inches = 'tight', pad_inches=.2)
 
 # -------------------------------------------------------------------------------'''
-      
+# SNR dependencies 
+# -------------------------------------------------------------------------------
+
+'''fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax_err'], s=8, alpha = .1)
+plt.ylim(0, .08)
+plt.xlim(0, 1000)
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\sigma_{\varpi^{\rm (sp)}}$', fontsize = 16)
+plt.savefig('plots/SNR_1.pdf')
+
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax_err'], vmin = 0, vmax = .05)
+plt.ylim(0, 1.2)
+plt.xlim(0, 1000)
+plt.colorbar(label = r'$\sigma_{\varpi^{\rm (sp)}}$')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_2.pdf')
+
+
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax_err']/labels['spec_parallax'], vmin = 0.02, vmax = .15)
+plt.ylim(0, 1.2)
+plt.xlim(0, 1000)
+plt.colorbar(label = r'$\sigma_{\varpi^{\rm (sp)}}/\varpi^{\rm (sp)}$')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_3.pdf')
+
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax_err']/labels['spec_parallax'], vmin = 0.02, vmax = .15)
+plt.ylim(0, .6)
+plt.xlim(0, 200)
+plt.colorbar(label = r'$\sigma_{\varpi^{\rm (sp)}}/\varpi^{\rm (sp)}$')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_4.pdf')
+
+#xx = np.linspace(0, 2000, 2000)
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax_err']/labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax'], vmin = 0.0, vmax = .5)
+plt.ylim(0, .2)
+plt.xlim(0, 1000)
+plt.colorbar(label = r'$\varpi^{\rm (sp)}$')
+#plt.plot(xx, 1./xx + 0.05, linestyle = '--', color = 'k')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\sigma_{\varpi^{\rm (sp)}}/\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_5.pdf')
+
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax_err']/labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax'], vmin = 0.0, vmax = .5)
+plt.ylim(0, .2)
+plt.xlim(0, 200)
+plt.colorbar(label = r'$\varpi^{\rm (sp)}$')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\sigma_{\varpi^{\rm (sp)}}/\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_6.pdf')
+
+
+fig = plt.subplots(1, 1, figsize = (10, 8)) 
+plt.scatter(labels['SNR'], labels['spec_parallax_err']/labels['spec_parallax'], s=5, alpha = .5, c = labels['spec_parallax'], vmin = 0.0, vmax = .5)
+plt.ylim(0, .2)
+plt.xlim(0, 200)
+plt.colorbar(label = r'$\varpi^{\rm (sp)}$')
+plt.tick_params(axis=u'both', direction='in', which='both')
+plt.xlabel(r'$\rm S/N$', fontsize = 16)
+plt.ylabel(r'$\sigma_{\varpi^{\rm (sp)}}/\varpi^{\rm (sp)}$', fontsize = 16)
+plt.savefig('plots/SNR_7.pdf')
+
+# -------------------------------------------------------------------------------'''

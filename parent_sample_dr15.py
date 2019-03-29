@@ -100,13 +100,14 @@ subprocess.call(delete0, shell = True)
 
 for i, (fn, tel, field) in enumerate(zip(training_labels['FILE'], training_labels['TELESCOPE'], training_labels['FIELD'])):
     
+    fn = fn.replace('t9', 'r10')
     fn2 = fn.replace('apStar', 'aspcapStar')
     destination = './data/spectra/' + fn.strip() 
     destination2 = './data/spectra/' + fn2.strip()    
     #print(tel, destination, os.path.isfile(destination))
     
-    if not (os.path.isfile(destination) or os.path.isfile(destination2)):
-        urlbase = 'https://data.sdss.org/sas/apogeework/apogee/spectro/redux/t9/stars/' \
+    if True: #not (os.path.isfile(destination) or os.path.isfile(destination2)):
+        urlbase = 'https://data.sdss.org/sas/apogeework/apogee/spectro/redux/r10/stars/' \
         + str(tel).strip() + '/' + str(field).strip() + '/'
         url = urlbase + fn.strip()
         url2 = urlbase + fn2.strip()
@@ -146,22 +147,27 @@ for i in range(len(training_labels['FILE'])):
 training_labels = training_labels[found]
 print('spectra found for: {}'.format(len(training_labels)))
 
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 # save training labels
 # -------------------------------------------------------------------------------
 
 print('save labels...')
 #fits.writeto('data/training_labels_parent_apogeedr15.fits', np.array(training_labels), overwrite = True)
-Table.write(training_labels, 'data/training_labels_parent_apogeedr15.fits', format = 'fits')
+Table.write(training_labels, 'data/training_labels_parent_apogeedr15_try3.fits', format = 'fits')
 
-# -------------------------------------------------------------------------------'''
+# -------------------------------------------------------------------------------
 # normalize spectra
 # -------------------------------------------------------------------------------
 
 print('load and normalize spectra...')
-file_name = 'all_flux_norm_parent_apogeedr15.fits'
-data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'][:10], file_name, training_labels['FIELD'][:10])
-print('not found: {}'.format(np.sum(not_found)))       
+file_name = 'all_flux_norm_parent_apogeedr15_try3.fits'
+data_norm, continuum, not_found = LoadAndNormalizeData(training_labels['FILE'], file_name, training_labels['FIELD'])
+print('not found: {}'.format(np.sum(not_found)))   
+
+print('save labels...')
+#fits.writeto('data/training_labels_parent_apogeedr15.fits', np.array(training_labels), overwrite = True)
+Table.write(training_labels, 'data/training_labels_parent_apogeedr15_try3.fits', format = 'fits')
+    
 
 ## remove entries from training labels, where no spectrum was found (for whatever reason...)!
 #f = open('data/no_data_parent.pickle', 'rb') 

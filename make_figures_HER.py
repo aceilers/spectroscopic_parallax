@@ -156,53 +156,129 @@ cb.set_label(r'$\rm S/N$', fontsize = fsize)
 plt.tight_layout()
 plt.savefig('paper/residuals.pdf', pad_inches=.2, bbox_inches = 'tight')
 
+# alternative version for referee
+fig, ax = plt.subplots(1, 3, figsize = (12, 4.5), sharey = True)
+sc = ax[0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['SNR'], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
+ax[1].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['SNR'][train], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
+ax[2].scatter(labels['parallax'][best], labels['spec_parallax'][best], c = labels['SNR'][best], cmap = 'viridis_r', s = 10, vmin = 50, vmax = 1000, rasterized = True)
+ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[2].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[2].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[0].set_xlim(-.35, 2)
+ax[1].set_xlim(-.35, 2)
+ax[2].set_xlim(-.35, 2)
+ax[0].set_ylim(-.35, 2)
+ax[1].set_ylim(-.35, 2)
+ax[2].set_ylim(-.35, 2)
+ax[0].set_title('parent sample', fontsize = fsize)
+ax[1].set_title('training set', fontsize = fsize)
+ax[2].set_title(r'$\varpi^{\rm (a)}/\sigma_{\varpi^{\rm (a)}} \geq 20$', fontsize = fsize)
+fig.subplots_adjust(right = 0.8)
+cbar_ax = fig.add_axes([1, 0.15, 0.03, 0.75])
+cb = fig.colorbar(sc, cax=cbar_ax)
+cb.set_label(r'$\rm S/N$', fontsize = fsize)
+plt.tight_layout()
+plt.savefig('paper/residuals_inclduing_parent_sample.pdf', pad_inches=.2, bbox_inches = 'tight')
+
 # -------------------------------------------------------------------------------
 # Figure 4 (parallax vs. parallax colored by logg, Teff, [Fe/H], H-W2)
 # -------------------------------------------------------------------------------
 
-fig, ax = plt.subplots(1, 4, figsize = (16, 4.5))
-sc = ax[0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['TEFF'][train], cmap = 'viridis_r', s = 10, vmin = 3600, vmax = 4800, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[0], shrink = .6)
+fig, ax = plt.subplots(2, 2, figsize = (10, 8))
+sc = ax[0, 0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['TEFF'][train], cmap = 'viridis_r', s = 10, vmin = 3600, vmax = 4800, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[0, 0])#, shrink = .8)
 cb.set_label(r'$T_{\rm eff}$', fontsize = fsize)
-sc = ax[1].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['LOGG'][train], cmap = 'viridis_r', s = 10, vmin = 0.1, vmax = 2.2, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[1], shrink = .6)
+sc = ax[0, 1].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['LOGG'][train], cmap = 'viridis_r', s = 10, vmin = 0.1, vmax = 2.2, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[0, 1])#, shrink = .8)
 cb.set_label(r'$\log g$', fontsize = fsize)
-sc = ax[2].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['FE_H'][train], cmap = 'viridis_r', s = 10, vmin = -1, vmax = .5, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[2], shrink = .6)
+sc = ax[1, 0].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['FE_H'][train], cmap = 'viridis_r', s = 10, vmin = -1, vmax = .5, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[1, 0]) #, shrink = .8)
 cb.set_label(r'$\rm [Fe/H]$', fontsize = fsize)
-sc = ax[3].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['H'][train] - labels['w2mpro'][train], cmap = 'viridis_r', s = 10, vmin = 0., vmax = 0.5, rasterized = True)
-cb = fig.colorbar(sc, ax = ax[3], shrink = .6)
+sc = ax[1, 1].scatter(labels['parallax'][train], labels['spec_parallax'][train], c = labels['H'][train] - labels['w2mpro'][train], cmap = 'viridis_r', s = 10, vmin = 0., vmax = 0.5, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[1, 1]) #, shrink = .9)
 cb.set_label(r'$\rm H-W_{2}$', fontsize = fsize)
-ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
-ax[0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
-ax[1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
-ax[1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
-ax[2].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
-ax[2].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
-ax[3].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
-ax[3].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
-ax[0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
-ax[1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
-ax[2].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
-ax[3].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
-ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax[2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax[3].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-ax[0].set_aspect('equal')
-ax[1].set_aspect('equal')
-ax[2].set_aspect('equal')
-ax[3].set_aspect('equal')
-ax[0].set_xlim(-.35, 2)
-ax[1].set_xlim(-.35, 2)
-ax[2].set_xlim(-.35, 2)
-ax[3].set_xlim(-.35, 2)
-ax[0].set_ylim(-.35, 2)
-ax[1].set_ylim(-.35, 2)
-ax[2].set_ylim(-.35, 2)
-ax[3].set_ylim(-.35, 2)
+ax[0, 0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0, 0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[0, 1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0, 1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[1, 0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1, 0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[1, 1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1, 1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[0, 0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[0, 1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[1, 0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[1, 1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[0, 0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0, 1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1, 0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1, 1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0, 0].set_aspect('equal')
+ax[0, 1].set_aspect('equal')
+ax[1, 0].set_aspect('equal')
+ax[1, 1].set_aspect('equal')
+ax[0, 0].set_xlim(-.35, 2)
+ax[0, 1].set_xlim(-.35, 2)
+ax[1, 0].set_xlim(-.35, 2)
+ax[1, 1].set_xlim(-.35, 2)
+ax[0, 0].set_ylim(-.35, 2)
+ax[0, 1].set_ylim(-.35, 2)
+ax[1, 0].set_ylim(-.35, 2)
+ax[1, 1].set_ylim(-.35, 2)
 plt.tight_layout()
 plt.savefig('paper/residuals_training.pdf')
+
+# alternative with parent sample for referee
+fig, ax = plt.subplots(2, 2, figsize = (10, 8))
+sc = ax[0, 0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['TEFF'], cmap = 'viridis_r', s = 10, vmin = 3600, vmax = 4800, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[0, 0])#, shrink = .8)
+cb.set_label(r'$T_{\rm eff}$', fontsize = fsize)
+sc = ax[0, 1].scatter(labels['parallax'], labels['spec_parallax'], c = labels['LOGG'], cmap = 'viridis_r', s = 10, vmin = 0.1, vmax = 2.2, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[0, 1])#, shrink = .8)
+cb.set_label(r'$\log g$', fontsize = fsize)
+sc = ax[1, 0].scatter(labels['parallax'], labels['spec_parallax'], c = labels['FE_H'], cmap = 'viridis_r', s = 10, vmin = -1, vmax = .5, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[1, 0]) #, shrink = .8)
+cb.set_label(r'$\rm [Fe/H]$', fontsize = fsize)
+sc = ax[1, 1].scatter(labels['parallax'], labels['spec_parallax'], c = labels['H'] - labels['w2mpro'], cmap = 'viridis_r', s = 10, vmin = 0., vmax = 0.5, rasterized = True)
+cb = fig.colorbar(sc, ax = ax[1, 1]) #, shrink = .9)
+cb.set_label(r'$\rm H-W_{2}$', fontsize = fsize)
+ax[0, 0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0, 0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[0, 1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0, 1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[1, 0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1, 0].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[1, 1].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[1, 1].set_ylabel(r'$\varpi^{\rm (sp)}$', fontsize = fsize)
+ax[0, 0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[0, 1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[1, 0].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[1, 1].plot(np.arange(-1, 3), np.arange(-1, 3), color = '0.6', linestyle = ':')
+ax[0, 0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0, 1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1, 0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1, 1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[0, 0].set_aspect('equal')
+ax[0, 1].set_aspect('equal')
+ax[1, 0].set_aspect('equal')
+ax[1, 1].set_aspect('equal')
+ax[0, 0].set_xlim(-.35, 2)
+ax[0, 1].set_xlim(-.35, 2)
+ax[1, 0].set_xlim(-.35, 2)
+ax[1, 1].set_xlim(-.35, 2)
+ax[0, 0].set_ylim(-.35, 2)
+ax[0, 1].set_ylim(-.35, 2)
+ax[1, 0].set_ylim(-.35, 2)
+ax[1, 1].set_ylim(-.35, 2)
+plt.tight_layout()
+plt.savefig('paper/residuals_parent.pdf')
 
 # -------------------------------------------------------------------------------
 # Figure 5 (12 stellar clusters, fairly narrow bins)
@@ -465,8 +541,169 @@ ax[1].set_ylim(-2., .7)
 plt.savefig('plots/systematics3.pdf', pad_inches=.2, bbox_inches = 'tight')
     
 # -------------------------------------------------------------------------------'''
+# plot for referee: data censoring
+# -------------------------------------------------------------------------------
+
+hdu = fits.open('data/training_labels_parent.fits')
+labels_all = Table(hdu[1].data)
+offset = 0.0483 
+labels_all['parallax'] += offset 
+
+bins = np.linspace(-.5, 1.5, 70)
+fig, ax = plt.subplots(1, 3, figsize = (15, 5))
+ax[0].hist(labels_all['parallax'][np.isfinite(labels_all['parallax']) == True], histtype='step', bins = bins, label = 'all RGB stars', lw = 2)
+ax[0].hist(labels['parallax'][np.isfinite(labels['parallax']) == True], histtype='step', bins = bins, label = 'parent sample', lw = 2)
+ax[0].hist(labels['parallax'][train], histtype='step', bins = bins, label = 'training set', lw = 2)
+ax[0].legend(frameon = True, fontsize = fsize)
+ax[0].set_xlabel(r'$\varpi^{\rm (a)}$', fontsize = fsize)
+ax[0].set_ylabel('counts', fontsize = fsize)
+
+bins2 = np.linspace(0, 1500, 70)
+ax[1].hist(labels_all['SNR'], histtype='step', bins = bins2, lw = 2)
+ax[1].hist(labels['SNR'], histtype='step', bins = bins2, lw = 2)
+ax[1].hist(labels['SNR'][train], histtype='step', bins = bins2, lw = 2)
+ax[1].set_xlabel(r'SNR', fontsize = fsize)
+
+bins2 = np.linspace(0, 2.2, 70)
+ax[2].hist(labels_all['LOGG'], histtype='step', bins = bins2, lw = 2)
+ax[2].hist(labels['LOGG'], histtype='step', bins = bins2, lw = 2)
+ax[2].hist(labels['LOGG'][train], histtype='step', bins = bins2, lw = 2)
+ax[2].set_xlabel(r'$\log g$', fontsize = fsize)
+
+ax[0].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[1].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+ax[2].tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+
+plt.savefig('paper/censoring_data.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 
+# -------------------------------------------------------------------------------
+# plot for referee: influence of parallax offset
+# -------------------------------------------------------------------------------
+
+N = 44784
+Kfold = 2
+lam = 30
+name = 'N{0}_lam{1}_K{2}_offset0.0483_parallax'.format(N, lam, Kfold)
+
+print('loading new labels...')   
+labels = Table.read('data/training_labels_new_{}.fits'.format(name), format = 'fits')    
+labels.rename_column('ra_1', 'ra')
+labels.rename_column('dec_1', 'dec')
+
+cut_jk = (labels['J'] - labels['K']) < (0.4 + 0.45 * labels['bp_rp'])
+cut_hw2 = (labels['H'] - labels['w2mpro']) > -0.05
+labels = labels[cut_jk * cut_hw2]
+
+# -------------------------------------------------------------------------------
+# plot for referee: coefficient vector
+# -------------------------------------------------------------------------------
+
+fig, ax = plt.subplots(1, 1, figsize = (10, 5))
+
+xlabels = ['1', r'$G$', r'$G_{\rm BP}$', r'$G_{\rm RP}$', r'$J$', r'$H$', r'$K$', r'$W_1$', r'$W_2$']
+x = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+name = 'N44784_lam30_K2_offset0.0483_parallax'
+
+for run in range(0, 5):
+    k = 0
+    f = open('optimization/opt_results_{0}_{1}_run{2}.pickle'.format(k, name, run), 'rb')
+    res = pickle.load(f)
+    f.close()  
+    if run == 0:
+        ax.plot(x, res.x[:9], color = 'k', lw = .8, label = 'A')
+    else:    
+        ax.plot(x, res.x[:9], color = 'k', lw = .8)
+
+    
+    k = 1
+    f = open('optimization/opt_results_{0}_{1}_run{2}.pickle'.format(k, name, run), 'rb')
+    res = pickle.load(f)
+    f.close()     
+    if run == 0:
+        ax.plot(x, res.x[:9], color = 'r', lw = .8, label = 'B')
+    else:    
+        ax.plot(x, res.x[:9], color = 'r', lw = .8)
+        
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xticks(x, xlabels, fontsize = 18)
+plt.ylabel(r'$\hat{\theta}$', fontsize = 18)
+plt.legend(frameon = True, fontsize = 18)
+plt.savefig('paper/coefficients.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+
+# -------------------------------------------------------------------------------
+# plot for referee: comparison to other data
+# -------------------------------------------------------------------------------
+
+schultheis = Table.read('data/Schultheis2014.txt', format = 'ascii', header_start = 0)
+matches = join(schultheis, labels, keys='APOGEE_ID')
+
+spec_par_match = matches['spec_parallax'] * u.mas
+distance_match = spec_par_match.to(u.parsec, equivalencies = u.parallax())
+
+chi2 = (distance_match.value/1000. - matches['Dis']) ** 2 / (matches['e_Dis']/100. * matches['Dis'])**2
+
+fsize = 16
+fig, ax = plt.subplots(1, 1, figsize = (8, 7))
+plt.plot([-1, 50], [-1, 50], linestyle = '--', color = '#929591')
+sc = plt.scatter(matches['Dis'], distance_match.value/1000., c = matches['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, s = 20)
+#plt.errorbar(matches['Dis'], distance_match.value/1000., xerr = matches['e_Dis']/100. * matches['Dis'], fmt = 'o', alpha = .3)
+cb = fig.colorbar(sc)
+cb.set_label(r'$\log g$', fontsize = fsize)
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlim(0, 25)
+plt.ylim(0, 25)
+plt.xlabel(r'$d~$[kpc] (Schultheis+2014)', fontsize = fsize)
+plt.ylabel(r'$d~$[kpc] (Hogg, Eilers, Rix 2018)', fontsize = fsize)
+plt.savefig('paper/comparison_schultheis.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+# -------------------------------------------------------------------------------
+# HWR's suggestion: isochrones
+# -------------------------------------------------------------------------------
+# isochrones:
+iso = Table.read('isochrones/isocz019.dat', format = 'ascii')
+iso_age8 = iso['col1'] == 8.0
+iso_age9 = iso['col1'] == 9.0
+iso_age10 = iso['col1'] == 10.0
+
+abs_mag_W1 = labels['w1mpro'] - 5 * np.log10(distance.value) + 5
+W1_sun = 3.222
+log_Lstar_Lsun = (W1_sun - abs_mag_W1)/2.5
+
+fig, ax = plt.subplots(1, 1, figsize = (8, 7))
+plt.scatter(np.log10(labels[train]['TEFF']), abs_mag_W1[train], s = 10, alpha = .5, rasterized = True, label = 'HER 2018')
+#plt.ylim(-.5, -8.5)
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.ylabel(r'$M_{\rm W1}$', fontsize = fsize)
+plt.xlabel(r'$\log_{10}(T_{\rm eff})$', fontsize = fsize)
+
+plt.plot(iso[iso_age8]['col5'], -2.5*iso[iso_age8]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 8$')
+plt.plot(iso[iso_age9]['col5'], -2.5*iso[iso_age9]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 9$')
+plt.plot(iso[iso_age10]['col5'], -2.5*iso[iso_age10]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 10$')
+plt.legend(frameon = True, fontsize = fsize)
+plt.ylim(8, -8)
+plt.xlim(4.3, 3.5)
+plt.savefig('paper/isochrones_test1.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+
+abs_mag_W1_schultheis = matches['w1mpro'] - 5 * np.log10(matches['Dis']*1000) + 5
+abs_mag_W1_matches = matches['w1mpro'] - 5 * np.log10(distance_match.value) + 5
+
+fig, ax = plt.subplots(1, 1, figsize = (8, 7))
+plt.scatter(np.log10(matches['TEFF']), abs_mag_W1_matches, s = 10, alpha = .5, rasterized = True, label = 'HER 2018')
+plt.scatter(np.log10(matches['TEFF']), abs_mag_W1_schultheis, s = 10, alpha = .5, rasterized = True, label = 'Schultheis+ 2014')
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.ylabel(r'$M_{\rm W1}$', fontsize = fsize)
+plt.xlabel(r'$\log_{10}(T_{\rm eff})$', fontsize = fsize)
+
+plt.plot(iso[iso_age8]['col5'], -2.5*iso[iso_age8]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 8$')
+plt.plot(iso[iso_age9]['col5'], -2.5*iso[iso_age9]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 9$')
+plt.plot(iso[iso_age10]['col5'], -2.5*iso[iso_age10]['col4'] + W1_sun, label = r'$\log(\rm age/yr) = 10$')
+plt.legend(frameon = True, fontsize = fsize)
+plt.ylim(8, -8)
+plt.xlim(4.3, 3.5)
+plt.savefig('paper/isochrones_test2.pdf', pad_inches=.2, bbox_inches = 'tight')
 
 
 
