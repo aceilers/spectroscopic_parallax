@@ -179,7 +179,7 @@ Whoops! Fixed. HOGG DO THIS.
     The panels and labels of Figure 3 are too small. Impossible to read
     the axes.
 
-Fixed.
+Fixed. This is a much better figure now.
 
     Make an analogous of Figure 2 and 3 for all the stars with available
     parallaxes, regardless of whether criteria 8 and 9 are valid or not
@@ -191,25 +191,35 @@ Done. HOGG: DO WE PUT THIS INTO THE PAPER?
     of the "lambda vector" which the authors mention in the same
     paragraph? Please clarify
 
-Whoops. That's just a typo. Fixed.
+Whoops. That's just a typo. Fixed. We adjusted that whole paragraph,
+which was word salad, into something that is not wrong and also
+clearer.
 
     Typos:
 
     4th line after eq 5: "... is, we ASSUME THAT C_m is a diagonal matrix
     with the..." (instead of "... we make C_m is ...")
 
-[syntactical reference]
+fixed
 
     Section 4, 2nd par., 4th line: please eliminate repeated "the" in "In
     detail, we obtain the the APOGEE..."
 
+fixed
+
     Section 4, 4th par., 5th line: "...3.6 and 4.5 μmPERIOD In detail..."
+
+fixed
 
     Section 4, 5th par., 2nd line: again, eliminate extra "the" in "...to
     the the 2MASS IDs"
 
+fixed
+
     Section 4, 4th line below eq 10: eliminate extra "or" in "...cut ever
     on parallax or or the ratio..."
+
+fixed
 
     Comments of the AAS Data and Software reviewer:
 
@@ -219,7 +229,14 @@ Whoops. That's just a typo. Fixed.
       in the final article. [This request is also true of submission
       AAS14147 for similar reasons].
 
+Fixed the zenodo URL to a doi.org URL.
+
+We will do a final URL for the repo on acceptance; we can't do it
+before, because git hash! Happy to work to ensure reproducibility!
+
     - Do the authors wish to see the full Table 1 hosted with the Journal?
       We'd gladly process the final table into the final article, which
       would speed ingest of that data into CDS/Vizier. Regardless the
       Zenodo URL in footnote # should be converted back to its DOI form.
+
+Yes we would like this. Let's discuss at acceptance.
