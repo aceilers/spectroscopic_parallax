@@ -174,7 +174,7 @@ DO THIS.
     parallaxes w(a)n on the HORIZONTAL axis and our spectrophotometric
     parallaxes w(sp) on the VERTICAL axis."
 
-Whoops! Fixed. HOGG DO THIS.
+Whoops! Fixed.
 
     The panels and labels of Figure 3 are too small. Impossible to read
     the axes.
