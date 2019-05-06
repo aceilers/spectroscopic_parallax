@@ -518,11 +518,14 @@ widths = np.ones((bin_centers.shape[0], 1)) * bin_width_start
 numbers = np.zeros((bin_centers.shape[0], 1))
 bins = np.hstack((bin_centers, widths, numbers))
 N_max = 50000
+velocity_directions = np.zeros((bins.shape[0], 2))
 
 # count numbers in each bin again
 for i in range(bins.shape[0]):
     cut_patch = cut_z * (abs(mean_XS_cart_n[:, 0] - bins[i, 0]) < .5 * bins[i, 2]) * (abs(mean_XS_cart_n[:, 1] - bins[i, 1]) < .5 * bins[i, 2])
     bins[i, 3] = np.sum(cut_patch)
+    velocity_directions[i, 0] = np.nanmean(mean_XS_cart_n[cut_patch, 3])
+    velocity_directions[i, 1] = np.nanmean(mean_XS_cart_n[cut_patch, 4])
 
 for x in range(1):
     
@@ -547,6 +550,8 @@ for x in range(1):
         if bins[i, 3] < 0.:
             cut_patch = cut_z * (abs(mean_XS_cart_n[:, 0] - bins[i, 0]) < .5 * bins[i, 2]) * (abs(mean_XS_cart_n[:, 1] - bins[i, 1]) < .5 * bins[i, 2])
             bins[i, 3] = np.sum(cut_patch)
+    velocity_directions[i, 0] = np.nanmean(mean_XS_cart_n[cut_patch, 3])
+    velocity_directions[i, 1] = np.nanmean(mean_XS_cart_n[cut_patch, 4])
  
 
 def average_in_bins(quantity, bins, mean_XS_cart_n, cut_z = True, expand_factor = 1, ind1 = None, ind2 = None):
@@ -578,13 +583,13 @@ def average_in_bins(quantity, bins, mean_XS_cart_n, cut_z = True, expand_factor 
     return bins
 
 
-color_quantity = vtilde_n[:, 2, 2]#mean_XS_cyl_n[:, 3] #vtilde_n#[:, 2, 2] #mean_XS_cyl_n[:, 2] * mean_XS_cyl_n[:, 5] #
+color_quantity = vtilde_n #mean_XS_cyl_n[:, 5] #vtilde_n[:, 2, 2]#mean_XS_cyl_n[:, 3] #vtilde_n#[:, 2, 2] #mean_XS_cyl_n[:, 2] * mean_XS_cyl_n[:, 5] #
 
 expand_factor = 2.5
-bins = average_in_bins(color_quantity, bins, mean_XS_cart_n, cut_z, expand_factor)
+bins = average_in_bins(color_quantity, bins, mean_XS_cart_n, cut_z, expand_factor, 0, 1)
 
-vmin, vmax = -.4, .4
-name = r'$\langle v_{\rm R}v_{\rm R}\rangle$'#'$\frac{\langle v_{\rm \varphi}v_{z}\rangle}{\sqrt{\langle v_{\rm \varphi}^2\rangle \langle v_{z}^2\rangle}}$'
+vmin, vmax = -.5, .5
+name = r'$\langle v_{\rm R}v_{\rm \varphi}\rangle$'#'$\frac{\langle v_{\rm \varphi}v_{z}\rangle}{\sqrt{\langle v_{\rm \varphi}^2\rangle \langle v_{z}^2\rangle}}$'
 name_plot = 'vrvp'
          
 #  PLOT
@@ -596,8 +601,11 @@ mapper = matplotlib.cm.ScalarMappable(norm=norm, cmap=cm)
 
 fig, ax = plt.subplots(1, 1, figsize = (10, 8))
 sc = plt.scatter(bins[:, 0], bins[:, 1], c = bins[:, 4], cmap = cm, vmin=vmin, vmax=vmax, s = (4./expand_factor) * (bin_width_start/0.5) * np.sqrt(bins[:, 3]))
+#sc = plt.quiver(bins[:, 0], bins[:, 1], velocity_directions[:, 0], velocity_directions[:, 1], 
+#           np.clip(bins[:, 4], -0.5, 0.5), cmap = cm, scale_units='xy', 
+#           scale=200, alpha =.8, headwidth = 3, headlength = 5, width = 0.0015, rasterized = True)
 cbar = plt.colorbar(sc) 
-#cbar.set_label('{}'.format(name), rotation=270, fontsize=18, labelpad=30)
+cbar.set_label('{}'.format(name), rotation=270, fontsize=18, labelpad=30)
 ax.set_xlim(-22, 2)
 ax.set_ylim(-10, 14)
 overplot_rings(ax)
@@ -605,11 +613,13 @@ ax.tick_params(axis=u'both', direction='in', which='both')
 ax.set_aspect('equal')
 ax.set_xlabel(r'$x\rm~[kpc]$', fontsize=18)
 ax.set_ylabel(r'$y\rm~[kpc]$', fontsize=18)
-plt.savefig('non_axisymmetries/mesh_vzvz.pdf'.format(name_plot, name)) 
+plt.savefig('non_axisymmetries/mesh_vz_bc.pdf'.format(name_plot, name)) 
 #plt.close()
 
 
-fig, ax = plt.subplots(3, 1, figsize = (10, 25))
+
+
+fig, ax = plt.subplots(1, 3, figsize = (25, 10))
 cm = plt.cm.get_cmap('viridis_r')
 
 for i in range(3):
@@ -639,7 +649,7 @@ for i in range(3):
     ax[i].set_aspect('equal')
     ax[i].set_xlabel(r'$x\rm~[kpc]$', fontsize=18)
     ax[i].set_ylabel(r'$y\rm~[kpc]$', fontsize=18)
-plt.savefig('non_axisymmetries/mesh_diagonal.pdf'.format(name_plot, name), bbox_inches = 'tight') 
+plt.savefig('non_axisymmetries/mesh_diagonal.png'.format(name_plot, name), bbox_inches = 'tight') 
 
 fig, ax = plt.subplots(3, 1, figsize = (10, 25))
 cm = plt.cm.get_cmap('RdBu_r')
@@ -705,20 +715,23 @@ plt.savefig('non_axisymmetries/mesh_off_diagonal.pdf'.format(name_plot, name), b
 # -------------------------------------------------------------------------------
 
 #shift phi
-new_phi = mean_XS_cyl_n[:, 1]
-new_phi[new_phi<0] = new_phi[new_phi<0] + 2 * np.pi
+
+bins = average_in_bins(vtilde_n[:, 2, 2], bins, mean_XS_cart_n, cut_z, expand_factor)
+phi = np.arctan2(bins[:, 1], bins[:, 0])
+phi[phi<-1] = phi[phi<-1] + 2 * np.pi
+R = np.sqrt(bins[:, 0] ** 2 + bins[:, 1] ** 2)
 
 fig, ax = plt.subplots(1, 1, figsize = (10, 8))
-bins = average_in_bins(vtilde_n, bins, mean_XS_cart_n, cut_z, expand_factor, ins[i][0], ins[i][1])
-sc = ax.scatter(new_phi[cut_z], np.log10(mean_XS_cyl_n[cut_z, 0]), c = mean_XS_cyl_n[cut_z, 3], vmin = -10, vmax = 10)
+sc = ax.scatter(phi, np.log10(R), c = bins[:, 4], vmin = 0, vmax = 4000)
 cbar = plt.colorbar(sc)
 cbar.set_label(r'$v_r$', rotation=270, fontsize=18, labelpad=30)
-ax.set_xlim(1.5, 4)
-ax.set_ylim(-0.25, 1.4)
+ax.set_xlim(-1, 2.*np.pi-2)
+ax.set_ylim(-0.5, 1.5)
 ax.tick_params(axis=u'both', direction='in', which='both')
+ax.set_xlabel(r'$\varphi$', fontsize=18)
+ax.set_ylabel(r'$\log R$\rm ~[kpc]', fontsize=18)
 
-
-# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------'''
 # Bessel funtions
 # -------------------------------------------------------------------------------
 

@@ -647,16 +647,41 @@ chi2 = (distance_match.value/1000. - matches['Dis']) ** 2 / (matches['e_Dis']/10
 fsize = 16
 fig, ax = plt.subplots(1, 1, figsize = (8, 7))
 plt.plot([-1, 50], [-1, 50], linestyle = '--', color = '#929591')
-sc = plt.scatter(matches['Dis'], distance_match.value/1000., c = matches['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, s = 20)
+sc = plt.scatter(np.log(matches['Dis']), np.log(distance_match.value/1000.), c = matches['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, s = 20)
 #plt.errorbar(matches['Dis'], distance_match.value/1000., xerr = matches['e_Dis']/100. * matches['Dis'], fmt = 'o', alpha = .3)
 cb = fig.colorbar(sc)
 cb.set_label(r'$\log g$', fontsize = fsize)
 ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
-plt.xlim(0, 25)
-plt.ylim(0, 25)
-plt.xlabel(r'$d~$[kpc] (Schultheis+2014)', fontsize = fsize)
-plt.ylabel(r'$d~$[kpc] (Hogg, Eilers, Rix 2018)', fontsize = fsize)
+plt.xlim(-.5, 4)
+plt.ylim(-.5, 4)
+plt.xlabel(r'$\ln d~$[kpc] (Schultheis+2014)', fontsize = fsize)
+plt.ylabel(r'$\ln d~$[kpc] (Hogg, Eilers, Rix 2018)', fontsize = fsize)
 plt.savefig('paper/comparison_schultheis.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+
+
+queiroz = fits.open('data/match_queiroz_HER.fits')
+matches = queiroz[1].data
+spec_par_match = matches['spec_parallax'] * u.mas
+distance_match = spec_par_match.to(u.parsec, equivalencies = u.parallax())
+
+
+fsize = 16
+fig, ax = plt.subplots(1, 1, figsize = (8, 7))
+plt.plot([-1, 50], [-1, 50], linestyle = '--', color = '#929591')
+sc = plt.scatter(np.log(matches['BPG_meandist']), np.log(distance_match.value/1000.), c = matches['LOGG'], cmap = cm, vmin = 0, vmax = 2.2, s = 10)
+#plt.errorbar(matches['Dis'], distance_match.value/1000., xerr = matches['e_Dis']/100. * matches['Dis'], fmt = 'o', alpha = .3)
+cb = fig.colorbar(sc)
+cb.set_label(r'$\log g$', fontsize = fsize)
+ax.tick_params(axis=u'both', direction='in', which='both', right = 'on', top = 'on')
+plt.xlim(-.5, 4)
+plt.ylim(-.5, 4)
+plt.xlabel(r'$\ln d~$[kpc] (Queiroz et al. 2018)', fontsize = fsize)
+plt.ylabel(r'$\ln d~$[kpc] (Hogg, Eilers, Rix 2018)', fontsize = fsize)
+plt.savefig('paper/comparison_queiroz.pdf', pad_inches=.2, bbox_inches = 'tight')
+
+
+
 
 # -------------------------------------------------------------------------------
 # HWR's suggestion: isochrones
