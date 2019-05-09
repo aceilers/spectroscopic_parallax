@@ -1,0 +1,242 @@
+Dear Editor:
+
+Enclosed please find the author response to the referee report on
+AAS14152 "Spectrophotometric parallaxes with linear models: Accurate
+distances for luminous red-giant stars" by Hogg, Eilers, & Rix.
+
+Apologies for the tardiness of this response. The referee has
+definitely made great suggestions and the paper is improved for us
+having addressed them. Our response to the referee is below the line.
+
+Hogg
+
+-----
+
+In what follows, the referee comments are indented, and our responses
+are not. We have made changes to the paper in response to every point;
+these comments were helpful and valuable.
+
+    The paper presents a method to estimate spectrophotometric parallaxes
+    based only on input data, without adoption of physically motivated
+    models and priors. The paper is written in an way that is strongly
+    focused on the method itself, but leaves several complementary aspects
+    that are certainly important to assess the reliability of the inferred
+    parallaxes and, most importantly, distances. I recommend its
+    publication only after such major issues are addressed.
+
+    Major issues
+
+    1 - The data-driven method described in the paper details out how
+    spectrophotometric parallaxes are inferred. But the paper does not
+    give the reader a clue about how spectrophotometric distances are
+    estimated. The authors make it clear in Section 2 that they never
+    invert *observed* parallaxes to estimate distances in their
+    method. But are the spectrophotometric distances they infer (shown in
+    Figures 5 and 6) just the inverse of the *inferred* parallaxes? If so,
+    this should be made explicit in the text, along with some discussion
+    about the problems (or lack of) that may arise from this
+    inversion. Even though the spectrophotometric parallaxes themselves
+    are always positive, a reader would like to be convinced that the
+    distances shown in Figures 5 and 6 do not suffer from biasses caused
+    by the asymmetric nature of the distances distribution that results
+    from a symmetric error distribution in parallaxes (as stated by the
+    likelihood assumption of the method). How do these biasses simply go
+    away when the method's w(sp) +/- sigma(sp) are used? In particular, a
+    negative parallax for many stars may be consistent with their w(sp)
+    +/- sigma(sp).
+
+These issues are subtle! We are assuming that the GAIA PARALLAXES have
+noise that is symmetric in parallax space. In our data-driven model,
+we use a linear combination of features to predict or estimate a LOG
+PARALLAX, so if anything we are claiming that our estimates are
+symmetric in log parallax, not parallax. But we aren't even really
+claiming that. The issues are subtle. However, this does deserve some
+discussion and we have added that around Figures 5 and 6. The short answer
+is that we just negative-logged our log-parallax estimates to make Figures
+5 and 6. HOGG DO THIS
+
+There is an additional question of whether we are somehow biasing
+things when we presume that the parallax must be positive? Our
+position is that we are biasing things by presuming that the LOG
+PARALLAX can be predicted as a linear combination of features. Of
+course any other assumption would also introduce biases! There is no
+way to fit that would be unbiased here, because by construction, our
+model is not physically accurate. We added words about this into the
+assumption list in Section 2. HOGG DO THIS
+
+    2 - The paper shows limited validation tests and comparisons to other
+    work. There are several papers that provide spectrophotometric
+    distances based on physical models for APOGEE stars (Queiroz et al
+    2018, MNRAS, 476, 2556; Schultheis et al 2014, AJ, 148, 24 and
+    others). The authors should compare their distances to those authors
+    and discuss the results of this comparison. Moreover, asteroseismic
+    distance estimates are also available for a fraction of the APOGEE
+    sample of giants in common with the CoRoT and Kepler missions. This is
+    an additional and important validation test.
+
+This is a great point. We obtained these two data sets (and the
+Queiroz sample required some emails!) and we made comparisons. We
+added a short paragraph about the results of these comparisons in
+Section XXX. We did not feel that the comparisons merited supporting
+Figures, but we do have such figures if the referee disagrees. HOGG DO THIS
+
+During the long period in which we haven't responded to this report,
+there was also a paper out by Leung & Bovy. They compare their results
+to ours, and we also mention that in the newly added paragraph. HOGG DO THIS
+
+    3 - The authors apply colour cuts to eliminate outliers in the APOGEE
+    data, eqs 6 and 7. They also apply a cut in parallax error, eq. 8.,
+    along with other quality criteria, to define the training set. So, the
+    training set parallax uncertainty distribution is truncated. How do
+    these cuts affect the method and its assumptions? In particular, it is
+    important to reconcile these selection criteria for the training set
+    with the statements presented in the Introduction (page 3):
+    "... regressions can be strongly biased if we have a bad selection
+    function or data censoring. This means that we cannot apply cuts to
+    the Gaia astrometry or signal-to-noise unless those cuts are correctly
+    accounted for in our generative model for the data sample. Below, we
+    will make no such cuts."  It is in fact clear from Figure 1 that the
+    training set is well under represented of low log g stars with respect
+    to the parent sample. This already jeopardizes the representativeness
+    assumption somewhat.  One useful assessment of the effects of data
+    censoring would be to show the spectral S/N or parallax distributions
+    of the training data in comparison to that of the entire sample that
+    the method is applied to.
+
+This point is important! The Gaia parallax uncertainties are based on
+a spacecraft model that is independent of the measurements themselves.
+Therefore, cuts on parallax uncertainties are not cuts on parallax and
+thus are not subject to the strong censure that we give to such cuts!
+But the referee is correct that we have been very unclear about this
+and we have attempted to fix this in Section YYYY. HOGG DO THIS
+
+The referee is completely correct that the detailed distribution of
+stars in parallax, SNR, and log g is not identical in the training set
+and the parent sample.  We don't have any reason to believe that this
+biases our results. However, we do now show these distribution
+differences in a newly added figure, Figure XXX. Certainly these
+differences mean that we probably have uncertainties that, in detail,
+vary with log g. HOGG DO THIS
+
+    4 - Finally, it is important to provide the reader with some
+    understanding of how in practice the data are driving the resulting
+    parallaxes. This may be achieved by discussing the behaviour of the
+    linear coefficients theta. How do their values, as estimated by
+    expr. (3), vary from training set A and to training set B? What
+    spectral ranges are most relevant and survive the L1 regularization
+    process? In other words, the authors could provide a discussion
+    similar to the one around Figure 5 of Ness et al did on the Cannon,
+    but this time comparing sets A and B across the spectrum or over the
+    smaller photometric subspace.
+
+Absolutely! Actually we had a section about this but dropped it just
+before submission. One of the reasons we dropped it is because the
+story is somewhat complicated. But you are right that this must be
+there, and we have added it back in, at the end of Section YYY. The
+short story (which you can read in the updated text) is that the
+photometric part of the model is interpretable and stable, but the
+spectroscopic part is less stable in its internals (while remaining
+very stable in its predictions in the data space). We don't fully
+understand this, but it connects to known issues in machine learning
+more generally, which we point out in the text. HOGG DO THIS
+
+    Other issues:
+
+    Introduction, 1st par.: could the authors say a few words about the
+    importance of making "precise kinematic and element-abundance maps of
+    the Milky Way disk out to large heliocentric radii..."?
+
+Good point! An expansion on this theme added. HOGG DO THIS.
+
+    Section 2, 1st par. after the list of assumptions. The statement "We
+    never cut on parallax or parallax signal-to-noise." is repeated.
+
+Yes, yes it is. That was supposed to be for emphasis, but we did HOGG
+WHAT NOW?
+
+    Section 4: "The hope of the model assumptions is that the Training Set
+    will contain sufficient dust variation that the model will naturally
+    learn the dust corrections and extrapolate acceptably.” Is this hope
+    checked in any way?
+
+Hahaha no. Okay fine. We now comment on this point in Section YYY
+where we deliver the interpretation of the photometric part of the
+model. HOGG DO THIS.
+
+    Section 4: The parallax offset w_0 is a contentious issue and it is
+    important to quantify its effect on the final spectrophotometric
+    parallaxes.
+
+The effect is weak. We comment on this more now in Section XXX. HOGG
+DO THIS.
+
+    The caption of Figure 2 is wrong: "...shows Gaia astrometric
+    parallaxes w(a)n on the HORIZONTAL axis and our spectrophotometric
+    parallaxes w(sp) on the VERTICAL axis."
+
+Whoops! Fixed.
+
+    The panels and labels of Figure 3 are too small. Impossible to read
+    the axes.
+
+Fixed. This is a much better figure now.
+
+    Make an analogous of Figure 2 and 3 for all the stars with available
+    parallaxes, regardless of whether criteria 8 and 9 are valid or not
+
+Done. HOGG: DO WE PUT THIS INTO THE PAPER?
+
+    Section 5, 2nd paragraph: Is the parameter Lambda (capital letter) the
+    same as lambda (lower case initial)? If so, what is meant by the value
+    of the "lambda vector" which the authors mention in the same
+    paragraph? Please clarify
+
+Whoops. That's just a typo. Fixed. We adjusted that whole paragraph,
+which was word salad, into something that is not wrong and also
+clearer.
+
+    Typos:
+
+    4th line after eq 5: "... is, we ASSUME THAT C_m is a diagonal matrix
+    with the..." (instead of "... we make C_m is ...")
+
+fixed
+
+    Section 4, 2nd par., 4th line: please eliminate repeated "the" in "In
+    detail, we obtain the the APOGEE..."
+
+fixed
+
+    Section 4, 4th par., 5th line: "...3.6 and 4.5 μmPERIOD In detail..."
+
+fixed
+
+    Section 4, 5th par., 2nd line: again, eliminate extra "the" in "...to
+    the the 2MASS IDs"
+
+fixed
+
+    Section 4, 4th line below eq 10: eliminate extra "or" in "...cut ever
+    on parallax or or the ratio..."
+
+fixed
+
+    Comments of the AAS Data and Software reviewer:
+
+    - We recommend reproducibility material such as that hosted at the
+      aceilers/spectroscopic parallax repository be archived to a
+      repository, with the repository DOI added adjacent to the github URL
+      in the final article. [This request is also true of submission
+      AAS14147 for similar reasons].
+
+Fixed the zenodo URL to a doi.org URL.
+
+We will do a final URL for the repo on acceptance; we can't do it
+before, because git hash! Happy to work to ensure reproducibility!
+
+    - Do the authors wish to see the full Table 1 hosted with the Journal?
+      We'd gladly process the final table into the final article, which
+      would speed ingest of that data into CDS/Vizier. Regardless the
+      Zenodo URL in footnote # should be converted back to its DOI form.
+
+Yes we would like this. Let's discuss at acceptance.

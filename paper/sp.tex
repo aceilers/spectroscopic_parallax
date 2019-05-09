@@ -3,10 +3,6 @@
 
 %@arxiver{residuals.pdf,map.pdf}
 
-% To-do items
-% -----------
-% - check with WISE experts that we have the correct WISE photometry 
-
 \documentclass[modern]{aastex62}
 \usepackage{amsmath}
 
@@ -460,7 +456,7 @@ and $C_m$ is the covariance matrix of the input
 features.
 In what follows we don't actually instantiate the full covariance matrix; we presume
 that input features are independently measured;
-that is, we make $C_m$ is a diagonal matrix with the uncertainty variances of the elements
+that is, we assume that $C_m$ is a diagonal matrix with the uncertainty variances of the elements
 of $x_m$ along the diagonal.
 
 We perform all of the fitting in a two-fold train-and-test framework,
@@ -496,7 +492,7 @@ of which there are 7405 (after cutting out pixels that rarely or never get data)
 on a common rest-frame wavelength grid.
 That is, every \apogee\ star is extracted on (or interpolated to)
 the same wavelength scale.
-In detail, we obtain the
+In detail, we obtain
 the \apogee\ spectral pixels from the pipeline-generated \code{aspcapStar} files.
 We then pseudo-continuum-normalize the spectra according to the procedure developed
 in \project{The~Cannon} (\citealt{cannon}):
@@ -514,11 +510,11 @@ official matches (\citealt{xmatch}) to match the \apogee+\zmass\ stars
 to the \wise\ Catalog (\citealt{wise}),
 according to the \gaia\ Archive internal match criteria.
 This gives, for each matching star $n$,
-mid-infrared photometry $W_{1n}$ and $W_{2n}$ at 3.6 and 4.5\,$\mu$m
+mid-infrared photometry $W_{1n}$ and $W_{2n}$ at 3.6 and 4.5\,$\mu$m.
 In detail we use the \code{w1mpro} and \code{w2mpro} Catalog entries.
 
 We match this full-match catalog to the \gaia\ \acronym{DR2}
-using the \gaia\ Archive official match (\citealt{xmatch}) to the the \zmass\ IDs.
+using the \gaia\ Archive official match (\citealt{xmatch}) to the \zmass\ IDs.
 We take from the \gaia\ \acronym{DR2} Catalog the photometric data
 $G_n$ (\code{phot_g_mean_mag}),
 $\BP_n$ (\code{phot_bp_mean_mag}),
@@ -583,7 +579,7 @@ which eliminates detections that are not consistent with a single PSF \citep[see
 to ensure that the parallax measurements are good.
 These cuts leave 28226 stars total in the Training Sets.
 But---as we have emphasized above---we do not cut ever on parallax or
-or the ratio to its uncertainty. For this reason, most of the Training Set stars
+the ratio to its uncertainty. For this reason, most of the Training Set stars
 do not have significantly measured parallaxes and more than 2~percent even have
 negative parallaxes!
 But we will perform our training such that it will be unbiased in these
@@ -649,8 +645,8 @@ and a scatter of less than 9~percent.
 \begin{figure}
 \includegraphics[width=\textwidth]{residuals.pdf}
 \caption{The predictive accuracy of the model, in the two-fold cross-validation.
-  Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the vertical axis
-  and our spectrophotometric parallaxes $\sparallax$ on the horizontal axis.
+  Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the horizontal axis
+  and our spectrophotometric parallaxes $\sparallax$ on the vertical axis.
   The left panel shows the full Training Set (both A and B combined),
   and the right panel shows a
   subset of stars with very high astrometric parallax signal-to-noise. This latter
@@ -661,12 +657,12 @@ and a scatter of less than 9~percent.
   positive-definite.\label{fig:xval}}
 \end{figure}
 
-We used this cross-validation framework to adjust the regularization parameter $\Lambda$.
-A coarse grid search in the value for the spectral-component value of the
-$\lambda$ vector, using the A/B split as the two-fold cross-validation, with the objective
+We used this cross-validation framework to adjust the regularization parameter $\lambda$.
+We performed a coarse grid search in $\lambda$,
+using the A/B split as the two-fold cross-validation, with the objective
 of the cross validation being prediction accuracy.
 We get a prediction accuracy of better than 9 percent 
-at the optimal setting of the regularization strength.
+at the (coarsely) optimal setting of the regularization strength.
 
 This 9-percent precision estimate is conservative in the sense that it does not
 deconvolve or correct for the contributions from the \gaia\ noise.
@@ -746,7 +742,7 @@ is proportional to the inverse-square of the uncertainty.\label{fig:precision}}
 In the end, this method produces a spectrophotometric parallax estimate $\sparallax_m$
 and uncertainty $\ssigma_m$ for every star $m$.
 \tablename~\ref{tab:output} shows a snippet of this catalog of output, with the full catalog available
-as an electronic data table associated with this \documentname.\footnote{\url{https://zenodo.org/record/1468053}}
+as an electronic data table associated with this \documentname.\footnote{\url{https://doi.org/10.5281/zenodo.1468053}}
 In order to use this output with \gaia\ astrometry, we recommend joining our catalog to the
 \gaia\ Catalog on the \zmass\ ID (name), as per the instructions at the \gaia\ Archive (\citealt{gaiaarchive}).
 In order to use this output with \apogee\ radial velocities and element abundances, we recommend
