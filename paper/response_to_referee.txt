@@ -48,12 +48,14 @@ these comments were helpful and valuable.
 These issues are subtle! We are assuming that the GAIA PARALLAXES have
 noise that is symmetric in parallax space. In our data-driven model,
 we use a linear combination of features to predict or estimate a LOG
-PARALLAX, so if anything we are claiming that our estimates are
-symmetric in log parallax, not parallax. But we aren't even really
-claiming that. The issues are subtle. However, this does deserve some
-discussion and we have added that around Figures 5 and 6. The short answer
-is that we just negative-logged our log-parallax estimates to make Figures
-5 and 6. HOGG DO THIS
+PARALLAX, so if anything we are claiming that our estimates (not the
+data, but our estimates based on the data) are symmetric in log
+parallax, not parallax. But we aren't even really claiming that. The
+issues are subtle. However, this does deserve some discussion and we
+have added that to the captions of Figure 5 and 6, and in the last
+paragraph of the discussion, for good emphasis [HOGG DO THIS AT
+"PLACEHOLDER A"].  The short answer is that we just exponentiated the
+negative of our log-parallax estimates to make Figures 5 and 6.
 
 There is an additional question of whether we are somehow biasing
 things when we presume that the parallax must be positive? Our
@@ -62,7 +64,7 @@ PARALLAX can be predicted as a linear combination of features. Of
 course any other assumption would also introduce biases! There is no
 way to fit that would be unbiased here, because by construction, our
 model is not physically accurate. We added words about this into the
-assumption list in Section 2. HOGG DO THIS
+linearity assumption in the assumption list in Section 2.
 
     2 - The paper shows limited validation tests and comparisons to other
     work. There are several papers that provide spectrophotometric
@@ -240,3 +242,9 @@ before, because git hash! Happy to work to ensure reproducibility!
       Zenodo URL in footnote # should be converted back to its DOI form.
 
 Yes we would like this. Let's discuss at acceptance.
+
+In addition to the above we made a few other small changes:
+
+- We added a reference to the Leung paper that followed ours in the
+relevant part of the discussion (where we discuss machine-learning
+alternatives).
