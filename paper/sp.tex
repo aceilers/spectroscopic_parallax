@@ -1,5 +1,5 @@
 %% This file is part of the spectroscopic_parallax project
-%% Copyright 2018 the authors.
+%% Copyright 2018, 2019 the authors.
 
 %@arxiver{residuals.pdf,map.pdf}
 
@@ -119,12 +119,15 @@ infrared:~stars
 \section*{~}\clearpage
 \section{Introduction} \label{sec:intro}
 
-If we want to make precise kinematic and element-abundance maps
-of the Milky Way disk out to large heliocentric radii,
-and especially through the extinction to the other side of the Galactic Center, we will
-need to make use of luminous red giants, and we will need to observe in
-the infrared.
-These arguments motivate the \apogee\ (\citealt{apogee}),
+The Milky Way disk is a beautiful object of study for cosmology and galaxy evolution.
+Its evolution involves gas accretion and cooling, star formation, and orbital dynamics.
+To understand the details of this story, we need precise measurements of the
+stars and their properties over a large part of the disk, not just
+very near the Sun.
+Since we live in the middle of this disk, and the disk is large and
+dusty, these measurements require infrared spectroscopy of luminous
+giants.
+This motivates the \apogee\ (\citealt{apogee}),
 \apogee-2, and \sdssv\ (\citealt{sdssv})
 projects, which take spectra in the infrared, and deliver detailed abundances
 along the entire red-giant branch up to the tip.
@@ -243,7 +246,8 @@ data will only affect the model in sensible and justifiable ways.
 The alternative---cutting to high signal-to-noise data---is the more traditional
 approach, but it leads to biased inferences (unless the cuts are included correctly
 in the likelihood function).
-The method in which we make no cuts and keep an umodified, justified likelihood function
+The method in which we make no cuts on astrometric measurements
+and we keep an umodified, justified likelihood function
 is unbiased, and simple.
 
 \section{Assumptions of the method}\label{sec:assumptions}
@@ -327,7 +331,6 @@ outliers or large-scale systematics.
 
 In addition to making the above assumptions, we also avoid various practices
 with the data that are tempting but lead to important biases.
-For example, we never cut on \gaia\ parallax or parallax signal-to-noise.
 The common practices of cutting to parallaxes that are good to 20~percent
 (see, for example, \citealt{trick, helmi}),
 or Catalog parallaxes that are positive, or parallaxes that are smaller or
@@ -337,9 +340,16 @@ That is, if you cut on parallax or parallax signal-to-noise and you subsequently
 take an average of parallaxes for some population, or perform a regression (as we
 do here), the results of that average or regression will be strongly biased.
 We never cut on parallax or parallax signal-to-noise.
+We will (below) cut on \gaia\ \emph{uncertainty estimates} on parallax.
+These uncertainty estimates are a function only of spacecraft orientation history
+(scanning law) and telemetry; they are not a function of the magnitudes of the
+parallaxes or their measurements.
+For these reasons, the uncertainty estimates on the parallaxes can be used to
+make sample cuts (and we do use them).
+These cuts will not bias our regressions.
 By using a justifiable likelihood function (the ``likelihood'' assumption above),
-we can use all of the \gaia\ parallaxes without the low signal-to-noise and
-negative parallaxes causing trouble for our regressions, and without the biases
+we can use all of the \gaia\ parallaxes without fearing that the low signal-to-noise and
+negative parallaxes causing trouble for our regressions, and without any of the biases
 that enter when cuts are made.
 
 Along similar lines, we never assume that the distance is the inverse of the
@@ -611,10 +621,13 @@ It also happens to be in the range of other values found in the literature (\cit
 Of course we really expect the offset to be a function of sky position and color (at least),
 so the offset we find is not recommended for further use as any kind of universal value.
 The spectrophotometric parallaxes we generate
-do not depend strongly on this choice, except
-for small differences at very small parallax (large distance).
-The Training Sets are shown in the bottom panels of \figurename~\ref{fig:samples}.
+do not depend strongly on this choice.
+It does not have a large effect because it moves the training data by only a tiny
+fraction of the root-variance of the uncertainties.
+It is also the case (for the same reason) that we do not strongly prefer (in a statistical sense)
+the $\varpi_0 = 0.048$\,mas value over the \gaia\ value of 0.029\,mas.
 
+The Training Sets are shown in the bottom panels of \figurename~\ref{fig:samples}.
 Comparison of the top and bottom panels of {\figurename}~\ref{fig:samples} shows
 that there is more color range in the Parent Sample than in the Training Set.
 This challenges the representativeness assumption in \sectionname~\ref{sec:assumptions}.

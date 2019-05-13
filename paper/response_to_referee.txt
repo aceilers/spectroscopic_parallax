@@ -8,7 +8,7 @@ Apologies for the tardiness of this response. The referee has
 definitely made great suggestions and the paper is improved for us
 having addressed them. Our response to the referee is below the line.
 
-Hogg
+David W Hogg, for the authors
 
 -----
 
@@ -45,18 +45,18 @@ these comments were helpful and valuable.
     negative parallax for many stars may be consistent with their w(sp)
     +/- sigma(sp).
 
-These issues are subtle! We are assuming that the GAIA PARALLAXES have
-noise that is symmetric in parallax space. In our data-driven model,
-we use a linear combination of features to predict or estimate a LOG
-PARALLAX, so if anything we are claiming that our estimates (not the
-data, but our estimates based on the data) are symmetric in log
-parallax, not parallax. But we aren't even really claiming that. The
-issues are subtle. However, this does deserve some discussion and we
-have added that to the captions of Figure XXX and YYY (formerly Figure
-5 and 6), and in the last paragraph of the discussion, for good
-emphasis [HOGG DO THIS AT "PLACEHOLDER A"].  The short answer is that
-we just exponentiated the negative of our log-parallax estimates to
-make those figures.
+These issues are subtle! We are assuming that the GAIA-MEASURED
+PARALLAXES have noise that is symmetric in parallax space. In our
+data-driven model, we use a linear combination of features to predict
+or estimate a LOG PARALLAX, so if anything we are claiming that our
+estimates (not the data, but our estimates based on the data) are
+symmetric in log parallax, not parallax. But we aren't even really
+claiming that. The issues are subtle. However, this does deserve some
+discussion and we have added that to the captions of Figure XXX and
+YYY (formerly Figure 5 and 6), and in the last paragraph of the
+discussion, for good emphasis [HOGG DO THIS AT "PLACEHOLDER A"].  The
+short answer is that we just exponentiated the negative of our
+log-parallax estimates to make those figures.
 
 There is an additional question of whether we are somehow biasing
 things when we presume that the parallax must be positive? Our
@@ -106,12 +106,13 @@ to ours, and we also mention that in the newly added paragraph. HOGG DO THIS
     of the training data in comparison to that of the entire sample that
     the method is applied to.
 
-This point is important! The Gaia parallax uncertainties are based on
+This point is important. The Gaia parallax uncertainties are based on
 a spacecraft model that is independent of the measurements themselves.
 Therefore, cuts on parallax uncertainties are not cuts on parallax and
 thus are not subject to the strong censure that we give to such cuts!
 But the referee is correct that we have been very unclear about this
-and we have attempted to fix this in Section YYYY. HOGG DO THIS
+and we have attempted to fix this in the relevant paragraph towards the
+end of Section 2. This has improved the paper.
 
 The referee is completely correct that the detailed distribution of
 stars in parallax, SNR, and log g is not identical in the training set
@@ -149,13 +150,14 @@ more generally, which we point out in the text. HOGG DO THIS
     importance of making "precise kinematic and element-abundance maps of
     the Milky Way disk out to large heliocentric radii..."?
 
-Good point! An expansion on this theme added. HOGG DO THIS.
+Good point! The paper now opens with the big question and flows to the
+spectroscopy and precision. This change affects the first paragraph of
+the paper and changes how it starts.
 
     Section 2, 1st par. after the list of assumptions. The statement "We
     never cut on parallax or parallax signal-to-noise." is repeated.
 
-Yes, yes it is. That was supposed to be for emphasis, but we did HOGG
-WHAT NOW?
+Yes, yes it is. Fixed and removed.
 
     Section 4: "The hope of the model assumptions is that the Training Set
     will contain sufficient dust variation that the model will naturally
@@ -170,8 +172,12 @@ model. HOGG DO THIS.
     important to quantify its effect on the final spectrophotometric
     parallaxes.
 
-The effect is weak. We comment on this more now in Section XXX. HOGG
-DO THIS.
+The effect is very weak; we don't find that the change from 0.029 to 0.048
+makes much difference to our results except at very small parallaxes. And
+our 0.048 is not preferred over 0.029 at large confidence. The main reason
+it has little effect is that it effectively moves the training data only a
+tiny fraction of a sigma. We added two sentences to this effect in the relevant
+place.
 
     The caption of Figure 2 is wrong: "...shows Gaia astrometric
     parallaxes w(a)n on the HORIZONTAL axis and our spectrophotometric
