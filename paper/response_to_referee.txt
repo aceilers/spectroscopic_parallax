@@ -123,10 +123,14 @@ end of Section 2. This has improved the paper.
 The referee is completely correct that the detailed distribution of
 stars in parallax, SNR, and log g is not identical in the training set
 and the parent sample.  We don't have any reason to believe that this
-biases our results. However, we do now show these distribution
-differences in a newly added figure, Figure XXX. Certainly these
-differences mean that we probably have uncertainties that, in detail,
-vary with log g. HOGG DO THIS
+biases our results. Furthermore, we do have complete coverage. That
+is, there are no parallaxes, SNRs, or log g values that exist in the
+test set that do not exist in the training set: In each dimension, the
+test set is inside the hull of the training set. But in detail there
+are small distributional differences. We now comment on this in the
+text explicitly in two new sentences in the Data Section. We did not
+feel like this merited a figure, but we do have one if the referee
+would like to see it.
 
     4 - Finally, it is important to provide the reader with some
     understanding of how in practice the data are driving the resulting
@@ -199,7 +203,7 @@ Fixed. This is a much better figure now.
     Make an analogous of Figure 2 and 3 for all the stars with available
     parallaxes, regardless of whether criteria 8 and 9 are valid or not
 
-Done. HOGG: DO WE PUT THIS INTO THE PAPER?
+Done. EILERS DID WE MAKE THIS? SHOULD WE PUT THIS INTO THE PAPER?
 
     Section 5, 2nd paragraph: Is the parameter Lambda (capital letter) the
     same as lambda (lower case initial)? If so, what is meant by the value
