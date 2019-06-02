@@ -54,9 +54,9 @@ symmetric in log parallax, not parallax. But we aren't even really
 claiming that. The issues are subtle. However, this does deserve some
 discussion and we have added that to the captions of Figure XXX and
 YYY (formerly Figure 5 and 6), and in the last paragraph of the
-discussion, for good emphasis [HOGG DO THIS AT "PLACEHOLDER A"].  The
-short answer is that we just exponentiated the negative of our
-log-parallax estimates to make those figures.
+discussion, for extra-special emphasis.  The short answer is that we
+just exponentiated the negative of our log-parallax estimates to make
+those figures.
 
 There is an additional question of whether we are somehow biasing
 things when we presume that the parallax must be positive? Our

@@ -933,10 +933,17 @@ the (asymmetric-drift-corrected) circular-velocity curve for the Milky Way.
 
 Finally, one comment on the use of these spectrophotometric parallaxes.
 They are noisy.
-[HOGG PLACEHOLDER A]
+And they linearly combine a set of features into a logarithmic parallax or
+logarithmic distance.
+Because the input features have close-to-Gaussian noise (mainly
+because they are observed at high signal-to-noise), the linear
+combination will have close-to-Gaussian noise.
+That is, the noise in the estimated distances or parallaxes ought to be close
+to Gaussian in the logarithm.
+This is a consideration in the use of these outputs:
 Precise use of these involves building a likelihood function and performing inference,
 just as the precise use of the \gaia\ data presented here required the same.
-We recommend making analogous inferences when using these outputs.
+Justified likelihood functions are critical to making good inferences.
 
 \acknowledgements
 It is a pleasure to thank
