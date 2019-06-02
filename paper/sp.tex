@@ -117,7 +117,7 @@ infrared:~stars
 }
 
 \section*{~}\clearpage
-\section{Introduction} \label{sec:intro}
+\section{Introduction}\label{sec:intro}
 
 The Milky Way disk is a beautiful object of study for cosmology and galaxy evolution.
 Its evolution involves gas accretion and cooling, star formation, and orbital dynamics.
@@ -377,7 +377,7 @@ strong prior}.
 Therefore we don't use any prior-contaminated parallax or distance
 inputs to the inference.
 
-\section{Method}
+\section{Method}\label{sec:method}
 
 There are not many choices
 for building a model of the stars that is both justifiable probabilistically
@@ -495,7 +495,7 @@ They are not independent globally---\gaia\ data were used to train the model---b
 each star's spectrophotometric parallax estimate is independent
 of the astrometric estimate from \gaia\ on a star-by-star basis.
 
-\section{Data}
+\section{Data}\label{sec:data}
 
 We take the \apogee\ (\citealt{aapogee, wapogee, apogee}) spectral data
 from \sdssiv\ (\citealt{sdssiv}) \acronym{DR14} (\citealt{dr14}).
@@ -654,7 +654,7 @@ For every star $n$ in either of the Training Sets we additionally require---in
 addition to these feature vectors---a \gaia-measured astrometric parallax $\gparallax_n$
 and uncertainty $\gsigma_n$.
 
-\section{Results and validation}
+\section{Results and validation}\label{sec:results}
 
 We optimize two models, one for Training Set A and one for Training Set B.
 The two models are applied to the two splits of the Parent Sample, Parent Sample
@@ -776,7 +776,7 @@ joining our catalog to the \sdssiv\ Catalog on the \zmass\ ID (name).
 In addition to this catalog, all the code used for this project is available online in an associated
 code repository.\footnote{\url{https://github.com/aceilers/spectroscopic_parallax}}
 
-\section{Discussion}
+\section{Discussion}\label{sec:discussion}
 
 We have demonstrated that photometry and spectroscopy can be used to predict
 or estimate distances to stars.
@@ -858,8 +858,25 @@ contains a set of photometry in magnitudes.
 Linear combinations of these photometric measurements are like complex synthetic
 magnitudes or colors.
 Similarly, linear combinations of spectral pixels are like a projection of the spectral space.
-Brief inspection of these linear combinations showed them to be sensible, but it is out of
-scope here to interpret them in detail.
+
+For an example of how the model might be interpreted, we can look at
+the photometric part of the linear model and see if the combination of
+photometry does indeed look like a dust-corrected absolute magnitude,
+as we expected (see \sectionname~\ref{sec:data}).
+It does! Indeed the model automatically finds a photometric
+combination that includes a term close to $H-W2$, which is known as a
+good extinction estimator.
+And we find that on the two-fold A/B split, the photometric model is extremely stable.
+As for the spectroscopic-pixel part of the model, we find that interpretation is
+less simple, for two reasons:
+One is that the number of pixels is enormous, so the model has huge flexibility.
+Another is that although the two splits, A and B, both give similar-performing
+models, they have (in detail) different linear coefficients in the spectral space.
+That is, the model is not as stable in the spectroscopic domain as it is in the
+photometric domain.
+This is a generic feature of high-capacity machine-learning methods.
+And it means that we did not obtrain as much insight from the spectroscopic model
+as we had hoped up-front.
 
 Although the model, training, and prediction make no use whatsoever of stellar
 models, we did use stellar models indirectly to select the Parent Sample of stars:

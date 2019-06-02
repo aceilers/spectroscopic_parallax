@@ -136,13 +136,13 @@ vary with log g. HOGG DO THIS
 Absolutely! Actually we had a section about this but dropped it just
 before submission. One of the reasons we dropped it is because the
 story is somewhat complicated. But you are right that this must be
-there, and we have added it back in, at the end of Section YYY. The
-short story (which you can read in the updated text) is that the
-photometric part of the model is interpretable and stable, but the
-spectroscopic part is less stable in its internals (while remaining
-very stable in its predictions in the data space). We don't fully
-understand this, but it connects to known issues in machine learning
-more generally, which we point out in the text. HOGG DO THIS
+there, and we have added it back in, in the middle of the Discussion
+section. The short story (which you can read in the updated text) is
+that the photometric part of the model is interpretable and stable,
+but the spectroscopic part is less stable in its internals (while
+remaining very stable in its predictions in the data space). We don't
+fully understand this, but it connects to known issues in machine
+learning more generally, which we point out in the text.
 
     Other issues:
 
@@ -164,9 +164,9 @@ Yes, yes it is. Fixed and removed.
     learn the dust corrections and extrapolate acceptably.” Is this hope
     checked in any way?
 
-Hahaha no. Okay fine. We now comment on this point in Section YYY
-where we deliver the interpretation of the photometric part of the
-model. HOGG DO THIS.
+Hahaha no. Okay fine. We now comment on this point in the Discussion,
+where we now deliver an interpretation of the photometric part of the
+model, and comment on the fact that it *does* look dust-corrected.
 
     Section 4: The parallax offset w_0 is a contentious issue and it is
     important to quantify its effect on the final spectrophotometric
