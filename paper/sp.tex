@@ -674,11 +674,13 @@ For the stars with highest \gaia-measured parallax signal-to-noise,
 the spectrophotometric model is predicting the \gaia\ parallaxes with little bias
 and a scatter of less than 9~percent.
 \begin{figure}
-\includegraphics[width=\textwidth]{residuals.pdf}
+\includegraphics[width=\textwidth]{residuals_inclduing_parent_sample.pdf}
 \caption{The predictive accuracy of the model, in the two-fold cross-validation.
   Each panel shows \gaia\ astrometric parallaxes $\gparallax_n$ on the horizontal axis
   and our spectrophotometric parallaxes $\sparallax$ on the vertical axis.
-  The left panel shows the full Training Set (both A and B combined),
+  The points are colored by spectroscopic (\apogee) signal-to-noise ratio.
+  The left panel shows the full Parent Sample,
+  the middle panel shows the Training Set (both A and B combined),
   and the right panel shows a
   subset of stars with very high astrometric parallax signal-to-noise. This latter
   set plays no particular role in the method, but it can be used to demonstrate or
@@ -779,7 +781,7 @@ In both cases, the agreement is better at smaller distances (larger
 parallaxes) and worse at larger distances, with the distances
 (parallaxes) presented here being smaller (larger) on average than the other
 investigation results for the very most distant (and hence most difficult) stars.
-In detail, the comparison with the larger sample (\citealt{sch})
+In detail, the comparison with the more recent sample (\citealt{que})
 are better:
 The scatter is at the 15-percent level for stars at distances
 $<8$\,kpc), and there is no visible bias between the results at these
