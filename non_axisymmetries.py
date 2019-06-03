@@ -613,7 +613,7 @@ ax.tick_params(axis=u'both', direction='in', which='both')
 ax.set_aspect('equal')
 ax.set_xlabel(r'$x\rm~[kpc]$', fontsize=18)
 ax.set_ylabel(r'$y\rm~[kpc]$', fontsize=18)
-plt.savefig('non_axisymmetries/mesh_vz_bc.pdf'.format(name_plot, name)) 
+plt.savefig('non_axisymmetries/{}.pdf'.format(name_plot)) 
 #plt.close()
 
 

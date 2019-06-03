@@ -20,7 +20,6 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 import astropy.coordinates as coord
 from mpl_toolkits.mplot3d import Axes3D
-import corner
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from mpl_toolkits.axes_grid1.colorbar import colorbar
 
@@ -642,6 +641,11 @@ matches = join(schultheis, labels, keys='APOGEE_ID')
 spec_par_match = matches['spec_parallax'] * u.mas
 distance_match = spec_par_match.to(u.parsec, equivalencies = u.parallax())
 
+diff = np.log(matches['Dis']) - np.log(distance_match.value/1000.)
+offset = np.median(diff)
+scatter = np.percentile(diff, 84) - np.percentile(diff, 16)
+print(offset, scatter)
+
 chi2 = (distance_match.value/1000. - matches['Dis']) ** 2 / (matches['e_Dis']/100. * matches['Dis'])**2
 
 fsize = 16
@@ -680,6 +684,10 @@ plt.xlabel(r'$\ln d~$[kpc] (Queiroz et al. 2018)', fontsize = fsize)
 plt.ylabel(r'$\ln d~$[kpc] (Hogg, Eilers, Rix 2018)', fontsize = fsize)
 plt.savefig('paper/comparison_queiroz.pdf', pad_inches=.2, bbox_inches = 'tight')
 
+diff = np.log(matches['BPG_meandist']) - np.log(distance_match.value/1000.)
+offset = np.nanmedian(diff)
+scatter = np.nanpercentile(diff, 84) - np.nanpercentile(diff, 16)
+print(offset, scatter)
 
 
 
