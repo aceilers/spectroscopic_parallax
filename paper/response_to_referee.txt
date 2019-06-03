@@ -202,7 +202,7 @@ Fixed. This is a much better figure now.
     Make an analogous of Figure 2 and 3 for all the stars with available
     parallaxes, regardless of whether criteria 8 and 9 are valid or not
 
-Done. EILERS DID WE MAKE THIS? SHOULD WE PUT THIS INTO THE PAPER?
+Done. 
 
     Section 5, 2nd paragraph: Is the parameter Lambda (capital letter) the
     same as lambda (lower case initial)? If so, what is meant by the value
