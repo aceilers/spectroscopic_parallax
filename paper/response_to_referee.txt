@@ -1,8 +1,3 @@
-To-do items:
-------------
-- find and kill all HOGG
-- find and kill all EILERS
-
 Dear Editor:
 
 Enclosed please find the author response to the referee report on
@@ -202,7 +197,8 @@ Fixed. This is a much better figure now.
     Make an analogous of Figure 2 and 3 for all the stars with available
     parallaxes, regardless of whether criteria 8 and 9 are valid or not
 
-Done. EILERS DID WE MAKE THIS? SHOULD WE PUT THIS INTO THE PAPER?
+We did this for Figure 2. We didn't do this for Figure 3 also, since
+we felt that the main point was already made with Figure 2.
 
     Section 5, 2nd paragraph: Is the parameter Lambda (capital letter) the
     same as lambda (lower case initial)? If so, what is meant by the value
