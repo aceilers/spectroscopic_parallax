@@ -935,9 +935,9 @@ This is left as a caveat for the reader and our users.
 Because of our train-and-test framework, each star is given a spectrophotometric
 parallax based on coefficients derived from training on a complementary Training Set sample, of
 which that star is not a member.
-As we emphasize above, this also ensures that the \gaia\ measurement $\gparallax_m$ of star $m$ is never used,
+As we emphasize above, this ensures that the \gaia\ measurement $\gparallax_m$ of star $m$ is never used,
 even indirectly, in generating the spectrophotometric estimate $\sparallax_m$ for that star $m$.
-This, in turn, ensures statistical independence of the
+This leads to true statistical independence of the
 parallax estimates generated here from the \gaia\ parallaxes.
 The two could even be combined na\"ively in an inference.
 
