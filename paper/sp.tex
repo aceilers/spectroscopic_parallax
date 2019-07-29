@@ -218,7 +218,7 @@ advanced methods bring.
 And we want to control or understand the smoothness or flexibility of the model.
 Deep networks can model extremely complex function spaces, which is good in some
 contexts, but bad when you know that the functional dependencies you hope to
-model are smooth:
+model are smooth.
 In that case, much of the information in the data can get spent on learning the
 smoothness of the function.
 
@@ -732,7 +732,7 @@ centered on literature values.
 In each case we are plotting only very securely identified cluster members; that
 is, membership is conservative.
 We chose the three displayed clusters
-to span some range in metallicity and age and extinction, and therefore test
+to span some range in metallicity, age, and extinction, and therefore test
 the accuracy of the method for different kinds of populations.
 With the exception of \acronym{M71}, the clusters we tested
 indicate that both \gaia\ and the spectrophotometric parallaxes appear to be unbiased
@@ -782,9 +782,9 @@ parallaxes) and worse at larger distances, with the distances
 (parallaxes) presented here being smaller (larger) on average than the other
 investigation results for the very most distant (and hence most difficult) stars.
 In detail, the comparison with the more recent sample (\citealt{que})
-are better:
+is better:
 The scatter is at the 15-percent level for stars at distances
-$<8$\,kpc), and there is no visible bias between the results at these
+$<8$\,kpc, and there is no visible bias between the results at these
 distances.
 The distances presented here also compare well with those from a recent
 machine-learning approach (\citealt{leung}), which appeared while this
@@ -826,7 +826,7 @@ also linear in any kind of apparent magnitude at fixed distance and also linear
 in distance modulus at fixed luminosity.
 Our feature decisions were highly motivated by these kinds of considerations.
 
-However, our choice of features is very rigid:
+However, our choice of features is very rigid.
 In principle the data themselves should tell us what features to include.
 In that direction, it would make sense to choose features using a more complex
 technique like deep learning or an auto-encoder.
@@ -855,25 +855,21 @@ feature engineering and model structure.
 
 The answer to the second question is that almost certainly we could have done better!
 Since models like Gaussian processes and deep networks subsume the linear model
-(at least approximately), they could have delivered better---or at least non-worse---results.
+(at least approximately), they could have delivered better---or at least similar---results.
 And indeed, after the the appearance of this manuscript, such an investigation
 has appeared (\citealt{leung}) and it does produce very good results.
-The issues with going to a much more complex model are manifold, however:
+The issues with going to a much more complex model are manifold, however.
 We would have had many more decisions to make and many more hyper-parameters
 to set.
 We would have used some (or maybe much) of the information in the data to learn
-the simple fact that the problem is close to linear; that is, if you give a model
-a lot of freedom or capacity, it has to use a lot of the data to learn what part
-of that capacity it really needs.
-A more complex model might also have edge issues: Very flexible models don't extrapolate
-outside the convex hull of their training data, and our training data was not
-balanced in terms of parallax and dust attenuation.
+the simple fact that the problem is \emph{close} to linear.
+A more complex model might also have edge issues, because flexible models don't extrapolate
+outside the convex hull of their training data.
 In the  linear model it is also---unlike in more flexible models---trivial to propagate
 uncertainties from the feature space to the prediction.
 We used that, above, to propagate uncertainty in \equationname~(\ref{eq:unc}).
 And finally---in principle---linear models are better for visualization and interpretation;
-the linear model contains essentially only first derivatives in the data space, which are
-relatively easy to understand.
+the linear model contains essentially only first derivatives in the data space.
 
 Another  advantage of a linear model over more general methods (like deep learning, say),
 is that it is possible to look inside
@@ -900,11 +896,11 @@ models, they have (in detail) different linear coefficients in the spectral spac
 That is, the model is not as stable in the spectroscopic domain as it is in the
 photometric domain.
 This is a generic feature of high-capacity machine-learning methods.
-And it means that we did not obtrain as much insight from the spectroscopic model
+And it means that we did not obtain as much insight from the spectroscopic model
 as we had hoped up-front.
 
 Although the model, training, and prediction make no use whatsoever of stellar
-models, we did use stellar models indirectly to select the Parent Sample of stars:
+models, we did use stellar models indirectly to select the Parent Sample of stars.
 We used the \apogee\ pipeline (\citealt{aspcap}) surface-gravity $\logg$ measurements.
 This tiny use of stellar models could have been obviated by selecting stars not
 on the basis of the derived physical parameter, but instead selecting stars to
@@ -939,11 +935,11 @@ This is left as a caveat for the reader and our users.
 Because of our train-and-test framework, each star is given a spectrophotometric
 parallax based on coefficients derived from training on a complementary Training Set sample, of
 which that star is not a member.
-This framework ensures that the \gaia\ parallax $\gparallax_m$ of star $m$ is never used,
-even indirectly, in generating the spectrophotometric parallax $\sparallax_m$ of star $m$.
-That means that the parallax estimates generated here and given in \tablename~\ref{tab:output}
-are statistically independent of the \gaia\ parallaxes and can be combined with them in
-na\"ive ways, for example in inverse-variance-weighted averages.
+As we emphasize above, this also ensures that the \gaia\ measurement $\gparallax_m$ of star $m$ is never used,
+even indirectly, in generating the spectrophotometric estimate $\sparallax_m$ for that star $m$.
+This, in turn, ensures statistical independence of the
+parallax estimates generated here from the \gaia\ parallaxes.
+The two could even be combined na\"ively in an inference.
 
 This \documentname\ and project delivers greatly improved distance estimates for
 luminous red-giant stars, more luminous than the red clump.
