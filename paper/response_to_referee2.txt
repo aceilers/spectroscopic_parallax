@@ -1,0 +1,86 @@
+Dear Editor:
+
+Enclosed please find the author response to the referee report on
+AAS14152R1 "Spectrophotometric parallaxes with linear models: Accurate
+distances for luminous red-giant stars" by Hogg, Eilers, & Rix.
+
+Apologies for the tardiness of this response. Our response to the
+referee is below the line.
+
+David W Hogg, for the authors
+
+-----
+
+In what follows, the referee comments are indented, and our responses
+are not. These comments improved the paper; we appreciate the close
+read!
+
+   page 3: "... hope to model are smoothPERIOD In that case, much of
+   the information in the data can ..."
+
+Done.
+
+   page 11: Section 5, 2nd paragraph: please use the same verbal tense
+   in the sentences.
+
+We disagree here. The first two sentences say what we did, and the last
+says what we find, having done that.
+
+   page 12, 2nd par: "... metallicity, age and extinction,..." (I
+   suggest to replace the first "and" by a comma)
+
+Done.
+
+   page 13, par. that compares to other distance estimates: "the
+   comparison with the more recent sample (Queiroz et al. 2018) IS
+   better:"
+
+Done.
+
+   page 13, par. that compares to other distance estimates: remove ")"
+   after "at distances < 8 kpc"
+
+Done.
+
+   page 15, section 6, 3rd par.: "...our choice of features is very
+   rigidPERIOD In principle..."
+
+Done.
+
+   In fact, in this last section there several other examples where
+   colon was used where a period would better separate the sentences,
+   in my humble opinion!
+
+Hahaha! Understood. Removed some.
+
+   page 15, last par.: Perhaps replace "non-worse", which sounds
+   weird, by "similar quality"?
+
+Done.
+
+   top of page 16: "...are manifold, howeverPERIOD We would have had..."
+
+Done.
+
+   page 16, end of 3rd par.: "...that we did not OBTAIN as much insight.."
+
+Done.
+
+   Section 6: perhaps the authors could shorten a bit the comparison
+   with more complex models based on machine learning and the
+   discussion on the advantages and disadvantages of the linear model
+   adopted.
+
+Shortened. That improves this paragraph.
+
+   In this last section, there are also a few sentences that are
+   repeated from previous sections, such as: "This framework ensures
+   that the Gaia parallax ... in generating the spectrophotometric
+   parallax ... That means that the parallax estimates generated here
+   and given in Table 1 are statistically independent of the Gaia
+   parallaxes" This sentence is basically repeated from the end of
+   Section 3.
+
+Rephrased these; we do want to emphasize these points by repetition,
+so we didn't delete them, just rephrased them to make it clear that
+it is a repetition for emphasis.
